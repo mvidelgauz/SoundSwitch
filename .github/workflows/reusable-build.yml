@@ -1,0 +1,225 @@
+name: Reusable .NET Build
+
+on:
+    workflow_call:
+        inputs:
+            configuration:
+                required: true
+                type: string
+            publish:
+                required: false
+                type: boolean
+                default: false
+            run-tests:
+                required: false
+                type: boolean
+                default: true
+            upload-test-results:
+                required: false
+                type: boolean
+                default: true
+            publish-artifact-name:
+                required: false
+                type: string
+                default: ""
+            ref:
+                required: false
+                type: string
+                default: ""
+                description: "Git ref (branch, tag, or SHA) to check out. Defaults to the triggering commit."
+            version:
+                required: false
+                type: string
+                default: ""
+                description: "Version to embed in published binaries (e.g. '6.14.4'). Passed as MSBuild Version/FileVersion/AssemblyVersion/InformationalVersion properties."
+            architectures:
+                required: false
+                type: string
+                default: "win-x64,win-arm64"
+                description: "Comma-separated list of architectures to publish (win-x64 and/or win-arm64). One arch-specific installer is compiled per architecture."
+        outputs:
+            framework:
+                value: ${{ jobs.detect-framework.outputs.framework }}
+            dotnet-version:
+                value: ${{ jobs.detect-framework.outputs.dotnet-version }}
+
+env:
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+    PROJECT_NAME: SoundSwitch
+
+jobs:
+    detect-framework:
+        runs-on: ubuntu-latest
+        outputs:
+            framework: ${{ steps.framework.outputs.framework }}
+            dotnet-version: ${{ steps.framework.outputs.dotnet-version }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  ref: ${{ inputs.ref || github.sha }}
+            - name: Detect target framework and SDK version
+              id: framework
+              shell: pwsh
+              run: |
+                  [xml]$project = Get-Content "${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}.csproj"
+                  $framework = $project.Project.PropertyGroup.TargetFramework | Select-Object -First 1
+                  if ([string]::IsNullOrWhiteSpace($framework)) {
+                    throw "Unable to determine TargetFramework from ${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}.csproj"
+                  }
+
+                  $match = [System.Text.RegularExpressions.Regex]::Match($framework, '^net(?<major>\d+)\.(?<minor>\d+)')
+                  if (-not $match.Success) {
+                    throw "Unable to derive .NET SDK version from TargetFramework '$framework'"
+                  }
+
+                  $dotnetVersion = "{0}.{1}.x" -f $match.Groups['major'].Value, $match.Groups['minor'].Value
+                  "framework=$framework" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+                  "dotnet-version=$dotnetVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    build:
+        needs: detect-framework
+        runs-on: windows-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+                  ref: ${{ inputs.ref || github.sha }}
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v6
+              with:
+                  dotnet-version: ${{ needs.detect-framework.outputs.dotnet-version }}
+                  cache: true
+                  cache-dependency-path: Directory.Packages.props
+            - name: Restore
+              shell: pwsh
+              run: dotnet restore
+            - name: Build
+              if: ${{ !inputs.publish }}
+              shell: pwsh
+              run: |
+                  dotnet build -c ${{ inputs.configuration }} --no-restore
+                  if ($LASTEXITCODE -ne 0) {
+                    throw "dotnet build failed with exit code $LASTEXITCODE."
+                  }
+            - name: Test
+              if: inputs.run-tests
+              shell: pwsh
+              run: dotnet test -c ${{ inputs.configuration }} --no-restore --logger trx --results-directory "TestResults-${{ needs.detect-framework.outputs.dotnet-version }}"
+            - name: Publish
+              if: inputs.publish
+              shell: pwsh
+              env:
+                  PUBLISH_VERSION: ${{ inputs.version }}
+              run: |
+                  $outputDir = Join-Path $PWD 'Final'
+                  if (Test-Path $outputDir) { Remove-Item $outputDir -Recurse -Force }
+                  New-Item -ItemType Directory -Path $outputDir | Out-Null
+
+                  # Collect optional version arguments
+                  $versionArgs = @()
+                  if ($env:PUBLISH_VERSION) {
+                    $numericVersion = $env:PUBLISH_VERSION -replace '[-+].*$', ''
+                    $versionArgs = @(
+                      "-p:Version=$env:PUBLISH_VERSION",
+                      "-p:FileVersion=$numericVersion",
+                      "-p:AssemblyVersion=$numericVersion",
+                      "-p:InformationalVersion=$env:PUBLISH_VERSION"
+                    )
+                  }
+
+                  $configuration = '${{ inputs.configuration }}'
+                  if ($configuration -notin @('Debug', 'Release', 'Nightly')) {
+                    throw "Invalid configuration: $configuration"
+                  }
+
+                  # Self-contained publish: the .NET Desktop Runtime ships inside
+                  # the installer payload, so the app does not depend on a
+                  # machine-wide runtime install.
+                  # Comma-separated architectures (win-x64 and/or win-arm64).
+                  $architectures = @(
+                    '${{ inputs.architectures }}' -split ',' |
+                      ForEach-Object { $_.Trim() } |
+                      Where-Object { $_ }
+                  )
+                  if ($architectures.Count -eq 0) {
+                    $architectures = @('win-x64', 'win-arm64')
+                  }
+                  $invalidArchs = @($architectures | Where-Object { $_ -notin @('win-x64', 'win-arm64') })
+                  if ($invalidArchs.Count -gt 0) {
+                    throw "Invalid architecture(s): $($invalidArchs -join ', '). Supported values: win-x64, win-arm64."
+                  }
+
+                  foreach ($rid in $architectures) {
+                    $ridOutputDir = Join-Path $outputDir $rid
+                    New-Item -ItemType Directory -Path $ridOutputDir -Force | Out-Null
+
+                    foreach ($project in @("${{ env.PROJECT_NAME }}.CLI", "${{ env.PROJECT_NAME }}")) {
+                      $projectTempDir = Join-Path $outputDir "$project-publish-$rid"
+                      $arguments = @(
+                        'publish', '-c', $configuration,
+                        '-r', $rid, '--self-contained', 'true',
+                        "$project\$project.csproj",
+                        '-o', $projectTempDir
+                      ) + $versionArgs
+                      dotnet @arguments
+                      if ($LASTEXITCODE -ne 0) {
+                        throw "dotnet publish failed for $project ($rid) with exit code $LASTEXITCODE."
+                      }
+
+                      Get-ChildItem $projectTempDir | Copy-Item -Destination $ridOutputDir -Force -Recurse
+                      Remove-Item $projectTempDir -Recurse -Force
+                    }
+                  }
+            - name: Setup Python
+              if: inputs.publish
+              uses: actions/setup-python@v7
+              with:
+                  python-version: "3.x"
+            - name: Generate HTML documentation
+              if: inputs.publish
+              shell: pwsh
+              run: |
+                  python -m pip install --upgrade pip --quiet
+                  if ($LASTEXITCODE -ne 0) { throw "Failed to upgrade pip (exit code $LASTEXITCODE)." }
+                  python -m pip install markdown --quiet
+                  if ($LASTEXITCODE -ne 0) { throw "Failed to install Python 'markdown' package (exit code $LASTEXITCODE)." }
+
+                  $outputDir = Join-Path $PWD 'Final'
+
+                  # Convert markdown files to HTML
+                  python tools\markdown_to_html.py CHANGELOG.md -o "$outputDir\Changelog.html"
+                  if ($LASTEXITCODE -ne 0) { throw "Markdown conversion failed for CHANGELOG.md (exit code $LASTEXITCODE)." }
+                  python tools\markdown_to_html.py README.md -o "$outputDir\Readme.html"
+                  if ($LASTEXITCODE -ne 0) { throw "Markdown conversion failed for README.md (exit code $LASTEXITCODE)." }
+                  python tools\markdown_to_html.py Terms.md -o "$outputDir\Terms.html"
+                  if ($LASTEXITCODE -ne 0) { throw "Markdown conversion failed for Terms.md (exit code $LASTEXITCODE)." }
+
+                  if (Test-Path 'README.de.md') {
+                    python tools\markdown_to_html.py README.de.md -o "$outputDir\Readme.de.html"
+                    if ($LASTEXITCODE -ne 0) { throw "Markdown conversion failed for README.de.md (exit code $LASTEXITCODE)." }
+                  }
+            - name: Bundle release assets
+              if: inputs.publish
+              shell: pwsh
+              run: |
+                  $outputDir = Join-Path $PWD 'Final'
+
+                  # Copy additional assets
+                  Copy-Item 'img\soundSwitched.png' $outputDir -Force -ErrorAction SilentlyContinue
+                  Copy-Item 'SoundSwitch.CLI\README.md' $outputDir -Force -ErrorAction SilentlyContinue
+                  Copy-Item 'LICENSE.txt' $outputDir -Force
+                  Copy-Item 'Terms.txt' $outputDir -Force
+            - name: Upload test results
+              if: ${{ always() && inputs.run-tests && inputs.upload-test-results }}
+              uses: actions/upload-artifact@v7
+              with:
+                  name: dotnet-results-${{ inputs.configuration }}-${{ needs.detect-framework.outputs.dotnet-version }}
+                  path: TestResults-${{ needs.detect-framework.outputs.dotnet-version }}
+            - name: Upload publish output
+              if: ${{ inputs.publish && inputs.publish-artifact-name != '' }}
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.publish-artifact-name }}
+                  path: Final\*

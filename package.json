@@ -2,11 +2,22 @@
   "name": "soundswitch",
   "type": "module",
   "release": {
+    "branches": [
+      "master",
+      {
+        "name": "beta",
+        "prerelease": true
+      },
+      "dev"
+    ],
     "plugins": [
       [
         "@semantic-release/commit-analyzer",
         {
           "preset": "conventionalcommits",
+          "parserOpts": {
+            "breakingHeaderPattern": "^(\\w*)(?:\\(([\\w$\\.\\-\\* ]*)\\))?!: (.*)$"
+          },
           "releaseRules": [
             {
               "breaking": true,
@@ -46,20 +57,20 @@
           "presetConfig": {
             "types": [
               {
-                "type": "boost",
-                "section": "Enhancements"
+                "type": "feat",
+                "section": "Features"
               },
               {
-                "type": "lang",
-                "section": "Languages"
+                "type": "boost",
+                "section": "Enhancements"
               },
               {
                 "type": "fix",
                 "section": "Bug Fixes"
               },
               {
-                "type": "feat",
-                "section": "Features"
+                "type": "lang",
+                "section": "Languages"
               },
               {
                 "type": "tests",
@@ -73,7 +84,19 @@
       [
         "@semantic-release/exec",
         {
-          "prepareCmd": "sed -i -E 's/AssemblyVersion\\(.+\\)/AssemblyVersion(\"${nextRelease.version}\")/' SoundSwitch/Properties/AssemblyInfo.cs"
+          "prepareCmd": "sed -i -E 's/AssemblyInformationalVersion\\(.+\\)/AssemblyInformationalVersion(\"${nextRelease.version}\")/' SoundSwitch/Properties/AssemblyInfo.cs"
+        }
+      ],
+      [
+        "@semantic-release/exec",
+        {
+          "prepareCmd": "sed -i -E 's/AssemblyFileVersion\\(.+\\)/AssemblyFileVersion(\"${nextRelease.version}\")/' SoundSwitch/Properties/AssemblyInfo.cs"
+        }
+      ],
+      [
+        "@semantic-release/exec",
+        {
+          "prepareCmd": "sed -i -E  's/AssemblyFileVersion\\(\"([0-9]+\\.[0-9]+\\.[0-9]+)(-[^\"]+)?\"\\)/AssemblyFileVersion(\"\\1\")/g' SoundSwitch/Properties/AssemblyInfo.cs"
         }
       ],
       [
@@ -85,22 +108,26 @@
           ]
         }
       ],
-      "@semantic-release/github"
+      [
+        "@semantic-release/github",
+        {
+          "draftRelease": true,
+          "releaseNameTemplate": "SoundSwitch v<%= nextRelease.version %>",
+          "successCommentCondition": "<% return issue.user.type !== 'Bot'; %>"
+        }
+      ]
     ]
   },
   "devDependencies": {
-    "@semantic-release/changelog": "^6.0.1",
-    "@semantic-release/commit-analyzer": "^9.0.1",
-    "@semantic-release/exec": "^6.0.2",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^8.0.2",
-    "@semantic-release/release-notes-generator": "^10.0.2",
-    "conventional-changelog-conventionalcommits": "^4.6.1",
-    "discord-webhook-node": "^1.1.8",
-    "normalize-url": ">=7.0.2",
-    "semantic-release": "^18.0.0",
-    "trim-newlines": ">=3.0.1",
-    "backblaze": "github:belphemur/backblaze#master"
-
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^11.0.0",
+    "@semantic-release/github": "^12.0.9",
+    "@semantic-release/release-notes-generator": "^14.1.1",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
+    "normalize-url": ">=9.0.0",
+    "semantic-release": "^25.0.3",
+    "trim-newlines": ">=5.0.0"
   }
 }

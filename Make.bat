@@ -12,7 +12,7 @@ rem
 rem You may run this script without markdown-html,
 rem but a dummy Changelog and README is created then.
 
-setlocal
+setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
 set buildPlatform=Release
@@ -20,39 +20,55 @@ if "%~1" neq "" (
     set buildPlatform=%~1
 )
 
-
 set FILE_DIR=%~dp0
-set FRAMEWORK=net6.0-windows
+
+rem Extract TargetFramework from .csproj using XML parsing
+for /f "delims=" %%a in ('findstr /C:"<TargetFramework>" "%FILE_DIR%SoundSwitch\SoundSwitch.csproj"') do (
+    set "line=%%a"
+    set "line=!line:*<TargetFramework>=!"
+    set "FRAMEWORK=!line:</TargetFramework>=!"
+)
+
+echo Building SoundSwitch %buildPlatform% for %FRAMEWORK%
+
 set ARCH=win-x64
-set BIN_DIR=%FILE_DIR%SoundSwitch\bin\%buildPlatform%\%FRAMEWORK%\%ARCH%\publish
 
 set finalDir=%FILE_DIR%Final
 
-rem Check if required commands exist
-where markdown-html >nul 2>nul
-set /a buildChangelogAndReadme=!%ERRORLEVEL%
-if %buildChangelogAndReadme%==0 (
-    echo markdown-html command not found, building with dummy Changelog and README!
-)
+@REM rem Check if required commands exist
+@REM where markdown-html >nul 2>nul
+@REM set /a buildChangelogAndReadme=!ERRORLEVEL!
+@REM if %buildChangelogAndReadme% == 0 (
+@REM     echo markdown-html command not found, building with dummy Changelog and README!
+@REM )
+set /a buildChangelogAndReadme=1
 
 echo Cleaning build directories
 rmdir /q /s bin >nul 2>nul
 rmdir /q /s obj >nul 2>nul
 rmdir /q /s Release >nul 2>nul
 
-rmdir /q /s %finalDir% >nul 2>nul
-mkdir %finalDir% >nul 2>nul
+rmdir /q /s "%finalDir%" >nul 2>nul
+mkdir "%finalDir%" >nul 2>nul
 
+for %%R in (win-x64 win-arm64) do (
+    mkdir "%finalDir%\%%R" >nul 2>nul
+
+    echo Build SoundSwitch.CLI %%R publish
+    dotnet publish -c %buildPlatform% -r %%R --self-contained true "%FILE_DIR%SoundSwitch.CLI\SoundSwitch.CLI.csproj" -o "%finalDir%\SoundSwitch.CLI-publish-%%R" || (set errorMessage=Build CLI %%R failed & goto ERROR_QUIT)
+    xcopy /y /e "%finalDir%\SoundSwitch.CLI-publish-%%R\*" "%finalDir%\%%R\" >nul 2>nul || (set errorMessage=Copy CLI %%R payload failed & goto ERROR_QUIT)
+    rmdir /q /s "%finalDir%\SoundSwitch.CLI-publish-%%R" >nul 2>nul || (set errorMessage=Cleanup CLI %%R payload failed & goto ERROR_QUIT)
+
+    echo Build SoundSwitch %%R publish
+    dotnet publish -c %buildPlatform% -r %%R --self-contained true "%FILE_DIR%SoundSwitch\SoundSwitch.csproj" -o "%finalDir%\SoundSwitch-publish-%%R" || (set errorMessage=Build SoundSwitch %%R failed & goto ERROR_QUIT)
+    xcopy /y /e "%finalDir%\SoundSwitch-publish-%%R\*" "%finalDir%\%%R\" >nul 2>nul || (set errorMessage=Copy SoundSwitch %%R payload failed & goto ERROR_QUIT)
+    rmdir /q /s "%finalDir%\SoundSwitch-publish-%%R" >nul 2>nul || (set errorMessage=Cleanup SoundSwitch %%R payload failed & goto ERROR_QUIT)
+)
 
 
 echo.
-echo Building SoundSwitch %buildPlatform%
-echo.
-echo Build AnyCPU
-dotnet publish -c %buildPlatform% %FILE_DIR%SoundSwitch\SoundSwitch.csproj || (set errorMessage=Build %ARCH% failed & goto ERROR_QUIT)
-echo.
 
-if %buildChangelogAndReadme%==1 (
+if %buildChangelogAndReadme% == 1 (
     echo Generate Changelog
     cmd.exe /c markdown-html CHANGELOG.md -o %finalDir%\Changelog.html > NUL
     echo Generate Terms
@@ -64,7 +80,7 @@ if %buildChangelogAndReadme%==1 (
 ) else (
     echo Generate dummy Changelog
     echo ^<html^>^<body^>^<h1^>Dummy Changelog, markdown-html is required^</h1^>^</body^>^</html^> > %finalDir%\Changelog.html
-    
+
     echo Generate dummy README
     echo ^<html^>^<body^>^<h1^>Dummy README, markdown-html is required^</h1^>^</body^>^</html^> > %finalDir%\Readme.html
 )
@@ -72,21 +88,19 @@ if %buildChangelogAndReadme%==1 (
 echo Copy soundSwitched image
 xcopy /y img\soundSwitched.png %finalDir% >nul 2>nul
 
+echo Copy CLI README
+xcopy /y  SoundSwitch.CLI\README.md %finalDir% >nul 2>nul
+
 echo Copy LICENSE
 xcopy /y LICENSE.txt %finalDir% >nul 2>nul
 xcopy /y Terms.txt %finalDir% >nul 2>nul
 
-echo Copy Published
-xcopy /y %BIN_DIR% %finalDir% /E/H/C/I >nul 2>nul
-)
-
-rem echo Update Icon
-rem tools\ResourceHacker.exe  -open %finalDir%\SoundSwitch.exe -save %finalDir%\SoundSwitch.exe -action addoverwrite -res SoundSwitch\Resources\Switch-SoundWave.ico -mask ICONGROUP,MAINICON,
-
 echo Build Installer
-rem Run installer compiler script
-call ./Installer/Make-Installer.bat %buildPlatform%
-if not %ERRORLEVEL%==0 (set errorMessage=Make-installer.bat failed or not found & goto ERROR_QUIT)
+rem Run installer compiler script: %1=configuration, %~2=optional comma-separated
+rem target architectures (x64,arm64; defaults to both when omitted). Quoted so the
+rem comma list reaches Make-Installer.bat as ONE argument.
+call ./Installer/Make-Installer.bat %buildPlatform% "%~2"
+if not %ERRORLEVEL% == 0 (set errorMessage=Make-installer.bat failed or not found & goto ERROR_QUIT)
 
 echo.
 echo All operations completed successfully.

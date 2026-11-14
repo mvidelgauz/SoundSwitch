@@ -12,47 +12,36 @@
 * GNU General Public License for more details.
 ********************************************************************/
 
+using System.Drawing;
+
 using SoundSwitch.Common.Framework.Audio.Device;
 using SoundSwitch.Framework.Audio;
 using SoundSwitch.Framework.NotificationManager.Notification.Configuration;
 using SoundSwitch.Localization;
+using SoundSwitch.Model;
 
-namespace SoundSwitch.Framework.NotificationManager.Notification
+namespace SoundSwitch.Framework.NotificationManager.Notification;
+
+internal class NotificationNone : INotification
 {
-    public class NotificationNone : INotification
-    {
-        public NotificationTypeEnum TypeEnum => NotificationTypeEnum.NoNotification;
-        public string               Label    => SettingsStrings.notificationOptionNone;
+    public NotificationType TypeEnum => NotificationType.NoNotification;
+    public string Label => SettingsStrings.none;
 
-        public INotificationConfiguration Configuration { get; set; }
+    public INotificationConfiguration Configuration { get; set; }
 
-        public void NotifyDefaultChanged(DeviceFullInfo audioDevice)
-        {
-        }
+    public void NotifyDefaultChanged(DeviceFullInfo audioDevice) { }
 
-        public void OnSoundChanged(CachedSound newSound)
-        {
-        }
+    public void NotifyProfileChanged(Profile.Profile profile, Bitmap icon, uint? processId) { }
 
-        public NotificationCustomSoundEnum SupportCustomSound() => NotificationCustomSoundEnum.NotSupported;
+    public void NotifyAppRuleMatched(AppSoundRule rule, DeviceFullInfo playback, DeviceFullInfo recording, Bitmap icon, uint processId) { }
 
-        public bool NeedCustomSound()
-        {
-            return false;
-        }
+    public void NotifyAppRuleNoProcess(AppSoundRule rule) { }
 
-        public bool IsAvailable()
-        {
-            return true;
-        }
+    public void NotifyMicrophoneMuteChanged(string deviceId, string microphoneName, bool newMuteState) { }
 
-        public void NotifyProfileChanged(Profile.Profile profile, uint? processId)
-        {
-        }
+    public void OnSoundChanged(CachedSound newSound) { }
 
-        public void NotifyMuteChanged(string microphoneName, bool newMuteState)
-        {
-            
-        }
-    }
+    public bool SupportCustomSound() => false;
+
+    public bool IsAvailable() => true;
 }

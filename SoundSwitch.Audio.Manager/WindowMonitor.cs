@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+
+using Serilog;
+
 using SoundSwitch.Audio.Manager.Interop.Com.Threading;
 using SoundSwitch.Audio.Manager.Interop.Com.User;
 
@@ -21,6 +24,11 @@ namespace SoundSwitch.Audio.Manager
             public string ProcessName { get; }
 
             /// <summary>
+            /// Path of the process that is active
+            /// </summary>
+            public string ProcessPath { get; }
+
+            /// <summary>
             /// Name of the active window
             /// </summary>
             public string WindowName { get; }
@@ -35,18 +43,19 @@ namespace SoundSwitch.Audio.Manager
             /// </summary>
             public User32.NativeMethods.HWND Hwnd { get; }
 
-            public Event(uint processId, string processName, string windowName, string windowClass, User32.NativeMethods.HWND hwnd)
+            public Event(uint processId, string processName, string processPath, string windowName, string windowClass, User32.NativeMethods.HWND hwnd)
             {
-                ProcessId   = processId;
+                ProcessId = processId;
                 ProcessName = processName;
-                WindowName  = windowName;
+                ProcessPath = processPath;
+                WindowName = windowName;
                 WindowClass = windowClass;
-                Hwnd        = hwnd;
+                Hwnd = hwnd;
             }
 
             public override string ToString()
             {
-                return $"{nameof(ProcessId)}: {ProcessId}, {nameof(ProcessName)}: {ProcessName}, {nameof(WindowName)}: {WindowName}, {nameof(WindowClass)}: {WindowClass}";
+                return $"{nameof(ProcessId)}: {ProcessId}, {nameof(ProcessName)}: {ProcessName}, {nameof(ProcessPath)}: {ProcessPath}, {nameof(WindowName)}: {WindowName}, {nameof(WindowClass)}: {WindowClass}";
             }
         }
 
@@ -65,22 +74,41 @@ namespace SoundSwitch.Audio.Manager
                 // Ignore if this is a bogus hwnd (shouldn't happen)
                 if (hwnd == IntPtr.Zero)
                     return;
-                var (processId, windowText, windowClass) = ProcessWindowInformation(hwnd);
 
-                //Couldn't find the processId of the window
-                if (processId == 0) return;
 
                 Task.Factory.StartNew(() =>
                 {
                     try
                     {
-                        var process = Process.GetProcessById((int) processId);
-                        var processName = process.MainModule?.FileName ?? "N/A";
-                        ForegroundChanged?.Invoke(this, new Event(processId, processName, windowText, windowClass, hwnd));
+                        var (processId, windowText, windowClass) = ProcessWindowInformation(hwnd);
+
+                        //Couldn't find the processId of the window
+                        if (processId == 0) return;
+
+                        if (processId == Environment.ProcessId)
+                        {
+                            Log.Information("Foreground = SoundSwitch, don't save.");
+                            return;
+                        }
+
+                        var process = Process.GetProcessById((int)processId);
+                        var processPath = "N/A";
+                        var processName = "N/A";
+                        try
+                        {
+                            processPath = process.MainModule?.FileName ?? "N/A";
+                            processName = process.ProcessName;
+                        }
+                        catch (Exception)
+                        {
+                            // ignored
+                        }
+
+                        ForegroundChanged?.Invoke(this, new Event(processId, processName, processPath, windowText, windowClass, hwnd));
                     }
                     catch (Exception)
                     {
-                      //Ignored
+                        //Ignored
                     }
                 });
             };
@@ -105,41 +133,37 @@ namespace SoundSwitch.Audio.Manager
 
         public static (uint ProcessId, string WindowText, string WindowClass) ProcessWindowInformation(User32.NativeMethods.HWND hwnd)
         {
-            return ComThread.Invoke(() =>
+            uint processId = 0;
+            var wndText = "";
+            var wndClass = "";
+            try
             {
-                uint processId = 0;
-                var  wndText   = "";
-                var  wndClass  = "";
-                try
-                {
-                    wndText = User32.GetWindowText(hwnd);
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
+                User32.NativeMethods.GetWindowThreadProcessId(hwnd, out processId);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
 
-                try
-                {
-                    wndClass = User32.GetWindowClass(hwnd);
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
+            try
+            {
+                wndText = User32.GetWindowText(hwnd);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
 
-                try
-                {
-                    User32.NativeMethods.GetWindowThreadProcessId(hwnd, out processId);
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
+            try
+            {
+                wndClass = User32.GetWindowClass(hwnd);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
 
-
-                return (processId, wndText, wndClass);
-            });
+            return (processId, wndText, wndClass);
         }
     }
 }

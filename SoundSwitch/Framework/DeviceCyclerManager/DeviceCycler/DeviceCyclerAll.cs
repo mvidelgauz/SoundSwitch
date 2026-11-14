@@ -12,29 +12,24 @@
 * GNU General Public License for more details.
 ********************************************************************/
 
-using System;
 using System.Collections.Generic;
-using NAudio.CoreAudioApi;
+
+using SoundSwitch.Audio.Manager.Interop.Enum;
+
 using SoundSwitch.Common.Framework.Audio.Device;
 using SoundSwitch.Localization;
 using SoundSwitch.Model;
 
-namespace SoundSwitch.Framework.DeviceCyclerManager.DeviceCycler
+namespace SoundSwitch.Framework.DeviceCyclerManager.DeviceCycler;
+
+public class DeviceCyclerAll : ADeviceCycler
 {
-    public class DeviceCyclerAll : ADeviceCycler
-    {
-        public override DeviceCyclerTypeEnum TypeEnum => DeviceCyclerTypeEnum.All;
-        public override string Label => SettingsStrings.cycleThroughOptionAllAudioDevices;
+    public override DeviceCyclerType TypeEnum => DeviceCyclerType.All;
+    public override string Label => SettingsStrings.cycleThrough_option_allAudioDevices;
         
 
-        protected override IEnumerable<DeviceFullInfo> GetDevices(DataFlow type)
-        {
-            return type switch
-            {
-                DataFlow.Render  => AppModel.Instance.ActiveAudioDeviceLister.PlaybackDevices,
-                DataFlow.Capture => AppModel.Instance.ActiveAudioDeviceLister.RecordingDevices,
-                _                => throw new ArgumentOutOfRangeException(nameof(type), type, null)
-            };
-        }
+    protected override IEnumerable<DeviceFullInfo> GetDevices(EDataFlow type)
+    {
+        return AppModel.Instance.AudioDeviceLister.GetDevices(type, EDeviceState.Active);
     }
 }

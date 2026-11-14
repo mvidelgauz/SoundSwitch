@@ -1,0 +1,32 @@
+# Builds the VuePress docs as a CI sanity check on every PR and push.
+# Deployment is handled by Cloudflare Pages directly from the repo, so this
+# workflow no longer publishes to GitHub Pages.
+name: Build Docs
+
+on:
+  push:
+    branches: [master, dev]
+    paths:
+      - 'website/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'website/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: 'website/.nvmrc'
+      - run: npm ci
+        working-directory: website
+      - run: npm run docs:build
+        working-directory: website

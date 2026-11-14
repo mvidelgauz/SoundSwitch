@@ -2,195 +2,114 @@ name: .NET
 
 on:
   push:
-    branches: [ dev, master ]
+    branches: [dev, master, beta]
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ dev, master ]
+    branches: [dev, master, beta]
+
+permissions:
+  contents: read
+  pull-requests: read
+
 env:
-  # Stop wasting time caching packages
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-  # Disable sending usage data to Microsoft
-  # DOTNET_CLI_TELEMETRY_OPTOUT: true
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  PROJECT_NAME: "SoundSwitch"
-  ARCH: "win-x64"
-  FRAMEWORK: "net6.0-windows"
-  NODEJS: 16
-  DOTNET: "6.0.x"
-  DOTNET_PRERELEASE: true
-  CONFIGURATION: "Nightly"
-  SENTRY_NAME: "soundswitch"
+  NODEJS: lts/*
 
 jobs:
-  build:
-    if: github.ref != 'refs/heads/dev'
-    runs-on: windows-latest
-    steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.9.1
-        with:
-          all_but_latest: true
-          access_token: ${{ github.token }}
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            ci:
-             - '.github/**/*.yml'
-             - 'devRelease.js'
-            SoundSwitch:
-              - 'SoundSwitch*/**'
-            node:
-              - 'package.json'
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v1
-        if: steps.filter.outputs.SoundSwitch == 'true' || steps.filter.outputs.ci == 'true' || github.ref == 'refs/heads/master'
-        with:
-          dotnet-version: ${{ env.DOTNET }}
-          include-prerelease: ${{ env.DOTNET_PRERELEASE }}
-      - name: Restore
-        if: steps.filter.outputs.SoundSwitch == 'true' || steps.filter.outputs.ci == 'true' || github.ref == 'refs/heads/master'
-        run: dotnet restore
-      - name: Build
-        if: steps.filter.outputs.SoundSwitch == 'true' || steps.filter.outputs.ci == 'true' || github.ref == 'refs/heads/master'
-        run: dotnet build -c Release --no-restore ${{env.PROJECT_NAME}}/${{env.PROJECT_NAME}}.csproj
-      - name: Test
-        if: steps.filter.outputs.SoundSwitch == 'true' || steps.filter.outputs.ci == 'true' || github.ref == 'refs/heads/master'
-        run: dotnet test -c Release --no-restore  --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}"
-      - name: Upload test results
-        if: steps.filter.outputs.SoundSwitch == 'true' || steps.filter.outputs.ci == 'true' || github.ref == 'refs/heads/master'
-        uses: actions/upload-artifact@v2
-        with:
-          name: dotnet-results-${{ matrix.dotnet-version }}
-          path: TestResults-${{ matrix.dotnet-version }}
-        # Use always() to always run this step to publish test results when there are test failures
-      - name: Setup Node.js
-        if: steps.filter.outputs.node == 'true'
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{env.NODEJS}}
-      - name: Cache node modules
-        if: steps.filter.outputs.node == 'true'
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: npm-cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-      - name: Install semantic-release dependencies
-        if: steps.filter.outputs.node == 'true'
-        run: npm ci --prefer-offline --silent --cache npm-cache
-      - name: Release dry run
-        if: steps.filter.outputs.node == 'true'
-        run: npx semantic-release -d
-
   changes:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-changes
+      cancel-in-progress: true
     runs-on: ubuntu-latest
-    # Set job outputs to values from filter step
     outputs:
       ci: ${{ steps.filter.outputs.ci }}
+      sound-switch: ${{ steps.filter.outputs.sound-switch }}
+      node: ${{ steps.filter.outputs.node }}
+      website: ${{ steps.filter.outputs.website }}
+      translations: ${{ steps.filter.outputs.translations }}
+      translation-files: ${{ steps.filter.outputs.translations_files }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
+          list-files: shell
           filters: |
             ci:
               - '.github/**/*.yml'
+            sound-switch:
               - 'SoundSwitch*/**'
-              - 'devRelease.js'
+              - 'Directory.Packages.props'
+              - 'global.json'
+              - 'nuget.config'
+            node:
+              - 'package.json'
+              - 'package-lock.json'
+              - '.releaserc'
+              - '.releaserc.json'
+              - '.releaserc.yaml'
+              - '.releaserc.yml'
+              - '.releaserc.js'
+              - '.releaserc.cjs'
+              - 'release.config.js'
+              - 'release.config.cjs'
+            website:
+              - 'website/**'
+              - '.github/workflows/docs.yml'
+            translations:
+              - 'SoundSwitch/**/*.resx'
 
-  nightly-release:
-    needs: [ changes ]
-    if: github.ref == 'refs/heads/dev' && needs.changes.outputs.ci == 'true'
-    outputs:
-      devVersion: ${{ steps.devVersion.outputs.version }}
+  validate-translations:
+    needs: changes
+    if: needs.changes.outputs.translations == 'true'
     runs-on: windows-latest
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.9.1
+      - uses: actions/checkout@v7
+      - name: Install Python
+        uses: actions/setup-python@v7
         with:
-          all_but_latest: true
-          access_token: ${{ github.token }}
-      - name: Checkout
-        uses: actions/checkout@v2
+          python-version: "3.x"
+      - name: Validate the string of translation (brackets)
+        shell: pwsh
+        run: python tools\check_brackets.py ${{ needs.changes.outputs.translation-files }}
+
+  build:
+    needs: changes
+    if: github.ref != 'refs/heads/dev' && (needs.changes.outputs.sound-switch == 'true' || needs.changes.outputs.ci == 'true' || github.ref == 'refs/heads/master')
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-build
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      configuration: Release
+    secrets: inherit
+
+  build-nightly:
+    needs: changes
+    if: github.ref != 'refs/heads/dev' && (needs.changes.outputs.sound-switch == 'true' || needs.changes.outputs.ci == 'true' || github.ref == 'refs/heads/master')
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-build-nightly
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      configuration: Nightly
+    secrets: inherit
+
+  release-dry-run:
+    needs: changes
+    if: needs.changes.outputs.node == 'true' || needs.changes.outputs.ci == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: ${{ env.DOTNET }}
-          include-prerelease: ${{ env.DOTNET_PRERELEASE }}
-      - name: Restore
-        run: dotnet restore -r ${{ env.ARCH }}
-      - name: Fetch tags
-        run: git fetch --tags --force
-      - name: Calculate version
-        id: devVersion
-        run: .\devVersion.ps1
-      - name: Build pre-release
-        run: dotnet publish -c ${{env.CONFIGURATION}} --no-restore -r ${{ env.ARCH }} ${{ env.PROJECT_NAME }}\${{ env.PROJECT_NAME }}.csproj
-      - name: Set Env var from GitHub
-        uses: rlespinasse/github-slug-action@v3.x
-      - name: Zip Build ${{env.PROJECT_NAME}}-${{ steps.devVersion.outputs.version }}
-        run: tar caf   ${{env.PROJECT_NAME}}-${{ steps.devVersion.outputs.version }}.zip -C ${{ env.PROJECT_NAME }}\bin\${{env.CONFIGURATION}}\${{ env.FRAMEWORK }}\${{ env.ARCH }}\publish\ *
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v7
         with:
-          node-version: ${{env.NODEJS}}
+          node-version: ${{ env.NODEJS }}
       - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: npm-cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-      - name: Install dependencies
-        run: npm ci --prefer-offline --silent --cache npm-cache
-      - name: Upload prerelease & Notify
-        env:
-          UPLOAD_SECRET: ${{secrets.UPLOAD_SECRET}}
-          UPLOAD_PUBLIC: ${{secrets.UPLOAD_PUBLIC}}
-          UPLOAD_BUCKET: ${{env.PROJECT_NAME}}
-        run: node devRelease.js "${{ secrets.DISCORD_WEBHOOK }}" "${{ steps.devVersion.outputs.version }}" "${{env.GITHUB_REPOSITORY_OWNER_PART}}/${{env.GITHUB_REPOSITORY_NAME_PART}}" "${{env.PROJECT_NAME}}-${{ steps.devVersion.outputs.version }}.zip"
-
-  nightly-sentry:
-    needs: nightly-release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Sentry Release
-        uses: getsentry/action-release@v1.1.6
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{env.SENTRY_NAME}}
-          SENTRY_PROJECT: ${{env.SENTRY_NAME}}
-        with:
-          environment: Nightly
-          version: "${{env.PROJECT_NAME}}@${{ needs.nightly-release.outputs.devVersion }}"
-
-  master-release:
-    needs: [ build, changes ]
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.9.1
-        with:
-          all_but_latest: true
-          access_token: ${{ github.token }}
-      - uses: actions/checkout@v2
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{env.NODEJS}}
-      - name: Cache node modules
-        uses: actions/cache@v2
+        uses: actions/cache@v6
         env:
           cache-name: cache-node-modules
         with:
@@ -198,20 +117,87 @@ jobs:
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
       - name: Install semantic-release dependencies
         run: npm ci --prefer-offline --silent --cache npm-cache
-      - name: Release
-        run: npx semantic-release
-      - name: Latest Version
-        run: | 
-          version=$(git describe --tags --abbrev=0 | cut -c 2-)
-          echo "::set-output name=version::$version.0"
-        id: version
-      - name: Sentry Release
-        uses: getsentry/action-release@v1.1.6
+      - name: Release dry run
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{env.SENTRY_NAME}}
-          SENTRY_PROJECT: ${{env.SENTRY_NAME}}
-        with:
-          environment: Stable
-          version: "${{env.PROJECT_NAME}}@${{ steps.version.outputs.version }}"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release --dry-run --no-ci
 
+  build-docs:
+    needs: changes
+    if: needs.changes.outputs.website == 'true' || needs.changes.outputs.ci == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: 'website/.nvmrc'
+      - run: npm ci
+        working-directory: website
+      - run: npm run docs:build
+        working-directory: website
+
+  merge-gate:
+    if: always() && github.event_name == 'pull_request'
+    needs:
+      - changes
+      - validate-translations
+      - build
+      - build-nightly
+      - release-dry-run
+      - build-docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required checks
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          require_dotnet="${{ needs.changes.outputs.sound-switch == 'true' || needs.changes.outputs.ci == 'true' }}"
+          require_translations="${{ needs.changes.outputs.translations == 'true' }}"
+          require_release="${{ needs.changes.outputs.node == 'true' || needs.changes.outputs.ci == 'true' }}"
+          require_docs="${{ needs.changes.outputs.website == 'true' || needs.changes.outputs.ci == 'true' }}"
+
+          changes_result="${{ needs.changes.result }}"
+          dotnet_result="${{ needs.build.result }}"
+          nightly_result="${{ needs.build-nightly.result }}"
+          translations_result="${{ needs.validate-translations.result }}"
+          release_result="${{ needs['release-dry-run'].result }}"
+          docs_result="${{ needs['build-docs'].result }}"
+
+          failed=0
+
+          if [[ "${changes_result}" != "success" ]]; then
+            echo "Changes job failed or was cancelled. Result: ${changes_result}"
+            failed=1
+          fi
+
+          if [[ "${require_dotnet}" == "true" && "${dotnet_result}" != "success" ]]; then
+            echo "C# build is required but result was: ${dotnet_result}"
+            failed=1
+          fi
+
+          if [[ "${require_dotnet}" == "true" && "${nightly_result}" != "success" ]]; then
+            echo "C# Nightly build is required but result was: ${nightly_result}"
+            failed=1
+          fi
+
+          if [[ "${require_translations}" == "true" && "${translations_result}" != "success" ]]; then
+            echo "Translation validation is required but result was: ${translations_result}"
+            failed=1
+          fi
+
+          if [[ "${require_release}" == "true" && "${release_result}" != "success" ]]; then
+            echo "Semantic release dry run is required but result was: ${release_result}"
+            failed=1
+          fi
+
+          if [[ "${require_docs}" == "true" && "${docs_result}" != "success" ]]; then
+            echo "Docs build is required but result was: ${docs_result}"
+            failed=1
+          fi
+
+          if [[ "${failed}" -eq 1 ]]; then
+            exit 1
+          fi
+
+          echo "Merge gate passed."

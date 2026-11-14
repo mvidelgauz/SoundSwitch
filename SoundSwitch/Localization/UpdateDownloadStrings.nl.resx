@@ -68,12 +68,18 @@
     <value>Wijzigingen</value>
   </data>
   <data name="cancel" xml:space="preserve">
-    <value>Annuleer</value>
+    <value>Annuleren</value>
   </data>
   <data name="install" xml:space="preserve">
-    <value>Installatie</value>
+    <value>Installeer</value>
   </data>
   <data name="downloadFailed" xml:space="preserve">
     <value>Download mislukt</value>
+  </data>
+  <data name="remindMe" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="wrongSignature" xml:space="preserve">
+    <value>Er is een probleem met de laatste SoundSwitch bijwerking. U moet de nieuwe versie handmatig downloaden op {0}</value>
   </data>
 </root>

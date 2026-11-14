@@ -1,97 +1,95 @@
 ﻿/********************************************************************
-* Copyright (C) 2015-2017 Antoine Aflalo
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-********************************************************************/
+ * Copyright (C) 2015-2017 Antoine Aflalo
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ ********************************************************************/
 
+#nullable enable
 using System;
-using Microsoft.Extensions.Caching.Memory;
-using NAudio.CoreAudioApi;
+
 using Serilog;
+
+using SoundSwitch.Audio.Manager;
+using SoundSwitch.Audio.Manager.Interop.Enum;
 using SoundSwitch.Common.Framework.Icon;
 using SoundSwitch.Common.Properties;
 
 namespace SoundSwitch.Common.Framework.Audio.Icon
 {
+    /// <summary>
+    /// Extracts icons for audio devices with DataFlow-specific fallback defaults.
+    /// Delegates caching and GDI reference counting to <see cref="IconExtractor"/>.
+    /// </summary>
     public class AudioDeviceIconExtractor
     {
-        private static readonly System.Drawing.Icon DefaultSpeakers   = Resources.defaultSpeakers;
-        private static readonly System.Drawing.Icon DefaultMicrophone = Resources.defaultMicrophone;
-
-        private static readonly IMemoryCache IconCache = new MemoryCache(new MemoryCacheOptions());
-
-        private static string GetKey(MMDevice audioDevice, bool largeIcon)
-        {
-            return $"{audioDevice.IconPath}-${largeIcon}";
-        }
+        private static readonly IconHandle DefaultSpeakersHandle = CreatePermanentDefaultIcon(() => Resources.defaultSpeakers, () => System.Drawing.SystemIcons.Application, nameof(Resources.defaultSpeakers));
+        private static readonly IconHandle DefaultMicrophoneHandle = CreatePermanentDefaultIcon(() => Resources.defaultMicrophone, () => System.Drawing.SystemIcons.Information, nameof(Resources.defaultMicrophone));
 
         /// <summary>
-        /// Extract an Icon form a given path
+        /// Creates a permanent icon handle from a bundled icon resource with a fallback option.
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="dataFlow"></param>
-        /// <param name="largeIcon"></param>
-        /// <returns></returns>
-        public static System.Drawing.Icon ExtractIconFromPath(string path, DataFlow dataFlow, bool largeIcon)
+        /// <param name="bundledIconFactory">Factory function that provides the primary bundled icon.</param>
+        /// <param name="fallbackIconFactory">Factory function that provides a fallback system icon if the bundled icon fails to load.</param>
+        /// <param name="resourceName">The name of the resource being loaded, used for logging purposes.</param>
+        /// <returns>A permanent <see cref="IconHandle"/> that does not require disposal.</returns>
+        private static IconHandle CreatePermanentDefaultIcon(Func<System.Drawing.Icon> bundledIconFactory, Func<System.Drawing.Icon> fallbackIconFactory, string resourceName)
         {
-            var key = $"{path}-${largeIcon}";
-
-            return IconCache.GetOrCreate(key, entry =>
+            try
             {
-                entry.SlidingExpiration = TimeSpan.FromMinutes(30);
-                entry.RegisterPostEvictionCallback((o, value, reason, state) =>
-                {
-                    if (!(value is IDisposable disposable)) return;
-                    //Don't dispose the default values
-                    if (value == DefaultMicrophone || value == DefaultSpeakers) return;
-                    try
-                    {
-                        disposable.Dispose();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                    }
-                });
-                try
-                {
-                    if (path.EndsWith(".ico"))
-                    {
-                        return System.Drawing.Icon.ExtractAssociatedIcon(path);
-                    }
-
-                    var iconInfo  = path.Split(',');
-                    var dllPath   = iconInfo[0];
-                    var iconIndex = int.Parse(iconInfo[1]);
-                    return IconExtractor.Extract(dllPath, iconIndex, largeIcon);
-                }
-                catch (Exception e)
-                {
-                    Log.Warning(e, "Can't extract icon from {path}", path);
-                    return dataFlow switch
-                    {
-                        DataFlow.Capture => DefaultMicrophone,
-                        DataFlow.Render  => DefaultSpeakers,
-                        _                => throw new ArgumentOutOfRangeException()
-                    };
-                }
-            });
+                return IconExtractor.CreatePermanent(bundledIconFactory());
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Can't load bundled fallback icon {resourceName}, using system icon fallback", resourceName);
+                return IconExtractor.CreatePermanent((System.Drawing.Icon)fallbackIconFactory().Clone());
+            }
         }
 
         /// <summary>
-        ///     Extract the Icon out of an AudioDevice
+        /// Extract an icon from an audio device icon path, falling back to a DataFlow-specific
+        /// default icon on failure.
+        /// </summary>
+        /// <param name="path">Audio device icon path (a <c>.ico</c> file or <c>dllPath,iconIndex</c>).</param>
+        /// <param name="dataFlow">Data flow of the device, used to select the fallback icon.</param>
+        /// <param name="largeIcon">When <see langword="true"/>, extract a 32×32 icon; otherwise 16×16.</param>
+        /// <returns>
+        /// An <see cref="IconHandle"/> the caller <strong>must dispose</strong> when done.
+        /// </returns>
+        public static IconHandle ExtractIconFromPath(string path, EDataFlow dataFlow, bool largeIcon)
+        {
+            try
+            {
+                return IconExtractor.ExtractFromPath(path, largeIcon);
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Can't extract icon from {path}", path);
+                return dataFlow switch
+                {
+                    EDataFlow.eCapture => DefaultMicrophoneHandle.Acquire(),
+                    EDataFlow.eRender => DefaultSpeakersHandle.Acquire(),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }
+        }
+
+        /// <summary>
+        /// Extract the icon out of an <see cref="AudioDevice"/>.
         /// </summary>
         /// <param name="audioDevice"></param>
         /// <param name="largeIcon"></param>
-        /// <returns></returns>
-        public static System.Drawing.Icon ExtractIconFromAudioDevice(MMDevice audioDevice, bool largeIcon)
+        /// <returns>
+        /// An <see cref="IconHandle"/> the caller <strong>must dispose</strong> when done.
+        /// </returns>
+        public static IconHandle ExtractIconFromAudioDevice(AudioDevice audioDevice, bool largeIcon)
         {
             return ExtractIconFromPath(audioDevice.IconPath, audioDevice.DataFlow, largeIcon);
         }

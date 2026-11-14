@@ -19,7 +19,7 @@ namespace SoundSwitch.Localization {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TrayIconStrings {
@@ -39,7 +39,7 @@ namespace SoundSwitch.Localization {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SoundSwitch.Localization.TrayIconStrings", typeof(TrayIconStrings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::SoundSwitch.Localization.LocalizedStringProvider("SoundSwitch.Localization.TrayIconStrings", typeof(TrayIconStrings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -81,9 +81,9 @@ namespace SoundSwitch.Localization {
         /// <summary>
         ///   Looks up a localized string similar to Community.
         /// </summary>
-        internal static string communityMenu {
+        internal static string community {
             get {
-                return ResourceManager.GetString("communityMenu", resourceCulture);
+                return ResourceManager.GetString("community", resourceCulture);
             }
         }
         
@@ -124,15 +124,6 @@ namespace SoundSwitch.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exit.
-        /// </summary>
-        internal static string exit {
-            get {
-                return ResourceManager.GetString("exit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Check for update.
         /// </summary>
         internal static string forceCheckForUpdate {
@@ -160,6 +151,15 @@ namespace SoundSwitch.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Theme Based.
+        /// </summary>
+        internal static string iconChanger_themeBased {
+            get {
+                return ResourceManager.GetString("iconChanger.themeBased", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Default.
         /// </summary>
         internal static string iconChanger_none {
@@ -183,15 +183,6 @@ namespace SoundSwitch.Localization {
         internal static string iconChanger_recording {
             get {
                 return ResourceManager.GetString("iconChanger.recording", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Mixer.
-        /// </summary>
-        internal static string mixer {
-            get {
-                return ResourceManager.GetString("mixer", resourceCulture);
             }
         }
         
@@ -228,6 +219,15 @@ namespace SoundSwitch.Localization {
         internal static string playbackDevices {
             get {
                 return ResourceManager.GetString("playbackDevices", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Quit SoundSwitch.
+        /// </summary>
+        internal static string quit {
+            get {
+                return ResourceManager.GetString("quit", resourceCulture);
             }
         }
         
@@ -273,6 +273,15 @@ namespace SoundSwitch.Localization {
         internal static string versionAvailable {
             get {
                 return ResourceManager.GetString("versionAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Volume Mixer.
+        /// </summary>
+        internal static string volumeMixer {
+            get {
+                return ResourceManager.GetString("volumeMixer", resourceCulture);
             }
         }
     }

@@ -14,19 +14,27 @@
 
 using AuthenticodeExaminer;
 
-namespace SoundSwitch.Framework.Updater
+using RailSharp;
+using RailSharp.Internal.Result;
+
+namespace SoundSwitch.Framework.Updater;
+
+public static class SignatureChecker
 {
-    public static class SignatureChecker
+    /// <summary>
+    /// Does the given file have the right signature
+    /// </summary>
+    /// <param name="filename"></param>
+    /// <returns></returns>
+    public static Result<SignatureCheckResult, VoidSuccess> IsValid(string filename)
     {
-        /// <summary>
-        /// Does the given file have the right signature
-        /// </summary>
-        /// <param name="filename"></param>
-        /// <returns></returns>
-        public static bool IsValid(string filename)
+        var inspector = new FileInspector(filename);
+        var result = inspector.Validate(RevocationChecking.Online);
+        if (result != SignatureCheckResult.Valid)
         {
-            var inspector = new FileInspector(filename);
-            return inspector.Validate() == SignatureCheckResult.Valid;
+            return result;
         }
+
+        return Result.Success();
     }
 }

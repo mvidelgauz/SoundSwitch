@@ -13,33 +13,26 @@
 ********************************************************************/
 
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Windows.Forms;
+
 using SoundSwitch.Framework.Factory;
 using SoundSwitch.Framework.NotificationManager.Notification;
 
-namespace SoundSwitch.Framework.NotificationManager
+namespace SoundSwitch.Framework.NotificationManager;
+
+public class NotificationFactory() : AbstractFactory<NotificationType, INotification>(Notifications)
 {
-    public class NotificationFactory : AbstractFactory<NotificationTypeEnum, INotification>
+    private static readonly IEnumImplList<NotificationType, INotification> Notifications = new EnumImplList
+        <NotificationType, INotification>
+        {
+            new NotificationNone(),
+            new NotificationBanner(),
+            new NotificationWindows(),
+            new NotificationSound()
+        };
+
+    protected override IReadOnlyDictionary<NotificationType, INotification> DataSource()
     {
-        private static readonly IEnumImplList<NotificationTypeEnum, INotification> Notifications = new EnumImplList
-            <NotificationTypeEnum, INotification>
-            {
-                new NotificationWindows(),
-                new NotificationSound(),
-                new NotificationCustom(),
-                new NotificationBanner(),
-                new NotificationNone()
-            };
-
-        public NotificationFactory() : base(Notifications)
-        {
-        }
-
-        protected override IReadOnlyDictionary<NotificationTypeEnum, INotification> DataSource()
-        {
-            return AllImplementations.Where(pair => pair.Value.IsAvailable()).ToDictionary(pair => pair.Key, pair => pair.Value);
-        }
+        return AllImplementations.Where(pair => pair.Value.IsAvailable()).ToDictionary(pair => pair.Key, pair => pair.Value);
     }
 }

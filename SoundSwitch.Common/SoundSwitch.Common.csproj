@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <OutputType>Library</OutputType>
     <Deterministic>false</Deterministic>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
@@ -11,18 +11,21 @@
     <Configurations>Debug;Release;Nightly</Configurations>
     <Platforms>AnyCPU</Platforms>
     <AssemblyTitle>SoundSwitch.Common</AssemblyTitle>
-    <Version>2.3.0</Version>
+    <Version>2.4.0</Version>
   </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="SoundSwitch.Tests" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\defaultMicrophone.ico" />
     <Content Include="Resources\defaultSpeakers.ico" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NAudio" Version="2.0.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Serilog" Version="2.10.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
-    <PackageReference Include="System.Resources.Extensions" Version="5.0.0" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SoundSwitch.Audio.Manager\SoundSwitch.Audio.Manager.csproj" />
   </ItemGroup>
 </Project>

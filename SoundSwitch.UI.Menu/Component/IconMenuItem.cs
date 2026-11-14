@@ -1,9 +1,11 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
+
 using JetBrains.Annotations;
+
 using SoundSwitch.UI.Menu.Util;
 
 namespace SoundSwitch.UI.Menu.Component
@@ -16,8 +18,8 @@ namespace SoundSwitch.UI.Menu.Component
         {
             private bool _selected;
             private Image? _image;
-            private string _label;
-            private Icon _icon;
+            private string _label = string.Empty;
+            private Icon? _icon;
 
             public bool Selected
             {
@@ -57,7 +59,7 @@ namespace SoundSwitch.UI.Menu.Component
 
             private Icon Icon
             {
-                get => _icon;
+                get => _icon!;
                 set
                 {
                     if (value == _icon)
@@ -65,12 +67,14 @@ namespace SoundSwitch.UI.Menu.Component
                         return;
                     }
 
-                    _icon = value;
+                    var oldIcon = _icon;
+                    _icon = (Icon)value.Clone();
                     OnPropertyChanged();
                     var oldImage = _image;
                     _image = null;
                     OnPropertyChanged(nameof(Image));
                     oldImage?.Dispose();
+                    oldIcon?.Dispose();
                 }
             }
 
@@ -116,6 +120,8 @@ namespace SoundSwitch.UI.Menu.Component
             {
                 _image?.Dispose();
                 _image = null;
+                _icon?.Dispose();
+                _icon = null;
                 GC.SuppressFinalize(this);
             }
         }

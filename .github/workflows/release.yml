@@ -1,0 +1,128 @@
+name: Release
+
+on:
+    push:
+        branches: [master, beta]
+
+env:
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+    NODEJS: lts/*
+    PROJECT_NAME: SoundSwitch
+    SENTRY_NAME: soundswitch
+
+jobs:
+    release:
+        concurrency:
+            group: ${{ github.workflow }}-${{ github.ref }}-release
+            cancel-in-progress: true
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            issues: write
+            pull-requests: write
+        outputs:
+            version: ${{ steps.dry-run.outputs.version }}
+            released: ${{ steps.dry-run.outputs.released }}
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+            - name: Setup Node.js
+              uses: actions/setup-node@v7
+              with:
+                  node-version: ${{ env.NODEJS }}
+            - name: Cache node modules
+              uses: actions/cache@v6
+              env:
+                  cache-name: cache-node-modules
+              with:
+                  path: npm-cache
+                  key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+            - name: Install semantic-release dependencies
+              run: npm ci --prefer-offline --silent --cache npm-cache
+            - name: Determine next version (dry run)
+              id: dry-run
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: node tools/release-dry-run.js
+            - name: Release
+              if: steps.dry-run.outputs.released == 'true'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: npx semantic-release
+
+    build:
+        concurrency:
+            group: ${{ github.workflow }}-${{ github.ref }}-build
+            cancel-in-progress: true
+        needs: release
+        if: needs.release.outputs.released == 'true'
+        permissions:
+            contents: read
+        uses: ./.github/workflows/reusable-build.yml
+        with:
+            configuration: Release
+            publish: true
+            publish-artifact-name: soundswitch-release
+            ref: v${{ needs.release.outputs.version }}
+            version: ${{ needs.release.outputs.version }}
+            architectures: win-x64,win-arm64
+        secrets: inherit
+
+    upload:
+        concurrency:
+            group: ${{ github.workflow }}-${{ github.ref }}-upload
+            cancel-in-progress: true
+        needs: [release, build]
+        if: needs.release.outputs.released == 'true'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Download artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: soundswitch-release
+                  path: release-package
+            - name: Create release zip
+              run: |
+                  version="${{ needs.release.outputs.version }}"
+                  archive="${{ env.PROJECT_NAME }}-v${version}.zip"
+                  cd release-package
+                  zip -r "../${archive}" .
+                  cd ..
+                  echo "archive=${archive}" >> "$GITHUB_ENV"
+            - name: Upload release zip to GitHub Release
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  version="${{ needs.release.outputs.version }}"
+                  tag="v${version}"
+                  if gh release view "${tag}" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+                    gh release upload "${tag}" "${{ env.archive }}" --repo "${{ github.repository }}" --clobber
+                    echo "Uploaded ${{ env.archive }} to release ${tag}"
+                  else
+                    echo "Release ${tag} not found, skipping upload"
+                  fi
+
+    sentry:
+        concurrency:
+            group: ${{ github.workflow }}-${{ github.ref }}-sentry
+            cancel-in-progress: true
+        needs: [release, upload]
+        if: needs.release.outputs.released == 'true'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+            - name: Sentry Release
+              uses: getsentry/action-release@v3.8.0
+              env:
+                  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+                  SENTRY_ORG: ${{ env.SENTRY_NAME }}
+                  SENTRY_PROJECT: ${{ env.SENTRY_NAME }}
+              with:
+                  environment: Stable
+                  release: "${{ env.PROJECT_NAME }}@${{ needs.release.outputs.version }}"

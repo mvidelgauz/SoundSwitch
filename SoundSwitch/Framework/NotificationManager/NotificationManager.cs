@@ -1,118 +1,303 @@
 ﻿/********************************************************************
-* Copyright (C) 2015-2017 Antoine Aflalo
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-********************************************************************/
+ * Copyright (C) 2015-2017 Antoine Aflalo
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ ********************************************************************/
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
+
+using SoundSwitch.Audio.Manager.Interop.Enum;
+
 using Serilog;
+
+using SoundSwitch.Common.Framework.Audio.Device;
+using SoundSwitch.Common.Framework.Icon;
 using SoundSwitch.Framework.Audio;
+using SoundSwitch.Framework.Banner.MicrophoneMute;
 using SoundSwitch.Framework.NotificationManager.Notification;
 using SoundSwitch.Framework.NotificationManager.Notification.Configuration;
+using SoundSwitch.Framework.Toast;
 using SoundSwitch.Localization;
 using SoundSwitch.Model;
 using SoundSwitch.Properties;
+using SoundSwitch.Services;
 
-namespace SoundSwitch.Framework.NotificationManager
+namespace SoundSwitch.Framework.NotificationManager;
+
+public class NotificationManager(INotificationSettings notificationSettings, IAppInfrastructure infrastructure, IDeviceService deviceService) : IDisposable
 {
-    public class NotificationManager
+    private string _lastDeviceId;
+    private INotification _switchDeviceNotification;
+    private INotification _switchProfileNotification;
+    private INotification _microphoneMuteNotification;
+    private readonly NotificationFactory _notificationFactory = new();
+    private bool _disposed;
+
+    public void Init()
     {
-        private readonly IAppModel _model;
-        private string _lastDeviceId;
-        private INotification _notification;
-        private readonly NotificationFactory _notificationFactory;
-
-        public NotificationManager(IAppModel model)
+        if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763))
         {
-            _model = model;
-            _notificationFactory = new NotificationFactory();
+            ToastNotificationRenderer.EnsureRegistered();
         }
 
-        public void Init()
+        deviceService.DefaultDeviceChanged += ModelOnDefaultDeviceChanged;
+        notificationSettings.NotificationSettingsChanged += ModelOnNotificationSettingsChanged;
+        SetNotifications(notificationSettings.SwitchDeviceNotification, notificationSettings.SwitchProfileNotification, notificationSettings.MicrophoneMuteNotification);
+        notificationSettings.CustomSoundChanged += ModelOnCustomSoundChanged;
+        notificationSettings.BannerSettingsChanged += ModelOnBannerSettingsChanged;
+        Log.Information("Notification manager initiated");
+    }
+
+    private void ModelOnBannerSettingsChanged(object sender, BannerDataChangedEvent e)
+    {
+        ApplyConfigurationChanges(_switchDeviceNotification, e);
+        ApplyConfigurationChanges(_switchProfileNotification, e);
+        ApplyConfigurationChanges(_microphoneMuteNotification, e);
+
+        // Leaving the persistent mute style must dismiss banners that are already pinned on
+        // screen; otherwise they would stay visible until the next mute-target or device event.
+        if (e.PrevMicrophoneMuteBanner == MicrophoneMute.Persistent && e.NewMicrophoneMuteBanner != MicrophoneMute.Persistent)
+            ((NotificationBanner)_notificationFactory.Get(NotificationType.BannerNotification)).ClearPersistentMuteBanners();
+    }
+
+    private void ModelOnCustomSoundChanged(object sender, CustomSoundChangedEvent customSoundChangedEvent)
+    {
+        _switchDeviceNotification.OnSoundChanged(customSoundChangedEvent.NewSound);
+        _switchProfileNotification.OnSoundChanged(customSoundChangedEvent.NewSound);
+        _microphoneMuteNotification.OnSoundChanged(customSoundChangedEvent.NewSound);
+    }
+
+    private void ModelOnNotificationSettingsChanged(object sender, NotificationSettingsUpdatedEvent notificationSettingsUpdatedEvent)
+    {
+        SetNotifications(notificationSettingsUpdatedEvent.NewSwitchDeviceSettings,
+            notificationSettingsUpdatedEvent.NewSwitchProfileSettings,
+            notificationSettingsUpdatedEvent.NewMicrophoneMuteSettings);
+    }
+
+    private void SetNotifications(NotificationType switchDeviceType, NotificationType switchProfileType, NotificationType microphoneMuteType)
+    {
+        var wasMicrophoneMuteBanner = MicrophoneMuteNotificationIsBanner;
+        _switchDeviceNotification = BuildNotification(switchDeviceType);
+        _switchProfileNotification = BuildNotification(switchProfileType);
+        _microphoneMuteNotification = BuildNotification(microphoneMuteType);
+
+        // The banner notification instance is shared, so leaving banner notifications must
+        // dismiss persistent mute banners that were already on screen.
+        if (wasMicrophoneMuteBanner && microphoneMuteType != NotificationType.BannerNotification)
+            ((NotificationBanner)_notificationFactory.Get(NotificationType.BannerNotification)).ClearPersistentMuteBanners();
+    }
+
+    private INotification BuildNotification(NotificationType notificationType)
+    {
+        var notification = _notificationFactory.Get(notificationType);
+        notification.Configuration = new NotificationConfiguration
         {
-            _model.DefaultDeviceChanged += ModelOnDefaultDeviceChanged;
-            _model.NotificationSettingsChanged += ModelOnNotificationSettingsChanged;
-            SetNotification(_model.NotificationSettings);
-            _model.CustomSoundChanged += ModelOnCustomSoundChanged;
-            Log.Information("Notification manager initiated");
+            Icon = infrastructure.TrayIcon.NotifyIcon,
+            DefaultSound = Resources.NotificationSound,
+            BannerPosition = notificationSettings.BannerPosition,
+            DisplayInfo = notificationSettings.BannerDisplayInfo,
+            Ttl = notificationSettings.BannerOnScreenTime,
+            Opacity = notificationSettings.BannerOpacityPercentage,
+            MicrophoneMuteBanner = notificationSettings.MicrophoneMuteBanner,
+            MicrophoneUnmuteBanner = notificationSettings.MicrophoneUnmuteBanner,
+        };
+
+        try
+        {
+            notification.Configuration.CustomSound = notificationSettings.CustomNotificationSound;
+        }
+        catch (CachedSoundFileNotExistsException)
+        {
+            MessageBox.Show(string.Format(SettingsStrings.audioFileNotFound, SettingsStrings.notification_option_sound),
+                SettingsStrings.audioFileNotFound_caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        private void ModelOnCustomSoundChanged(object sender, CustomSoundChangedEvent customSoundChangedEvent)
+        return notification;
+    }
+
+    private static void ApplyConfigurationChanges(INotification notification, BannerDataChangedEvent e)
+    {
+        notification.Configuration.BannerPosition = e.NewBannerPosition;
+        notification.Configuration.DisplayInfo = e.NewBannerDisplayInfo;
+        notification.Configuration.Ttl = e.NewTtl;
+        notification.Configuration.Opacity = e.NewOpacity;
+        notification.Configuration.MicrophoneMuteBanner = e.NewMicrophoneMuteBanner;
+        notification.Configuration.MicrophoneUnmuteBanner = e.NewMicrophoneUnmuteBanner;
+    }
+
+    private void ModelOnDefaultDeviceChanged(object sender, DeviceDefaultChangedEvent deviceDefaultChangedEvent)
+    {
+        if (_lastDeviceId == deviceDefaultChangedEvent.DeviceId)
+            return;
+
+        _switchDeviceNotification.NotifyDefaultChanged(deviceDefaultChangedEvent.Device);
+        _lastDeviceId = deviceDefaultChangedEvent.DeviceId;
+    }
+
+    private DeviceFullInfo? CheckDeviceAvailable(DeviceInfo deviceInfo)
+    {
+        return deviceInfo.Type switch
         {
-            _notification.OnSoundChanged(customSoundChangedEvent.NewSound);
+            EDataFlow.eCapture => deviceService.AvailableRecordingDevices.FirstOrDefault(info => info.Equals(deviceInfo)),
+            _ => deviceService.AvailablePlaybackDevices.FirstOrDefault(info => info.Equals(deviceInfo))
+        };
+    }
+
+    /// <summary>
+    /// Notify on Profile changed
+    /// </summary>
+    public void NotifyProfileChanged(Profile.Profile profile, uint? processId)
+    {
+        if (profile.NotifyOnActivation)
+        {
+            var icon = GetIcon(profile, processId);
+
+            _switchProfileNotification.NotifyProfileChanged(profile, icon, processId);
+        }
+    }
+
+    /// <summary>
+    /// Notify on App Rule matched
+    /// </summary>
+    public void NotifyAppRuleMatched(AppSoundRule rule, AppSoundRuleDevicePair pair, uint processId)
+    {
+        if (rule.Notify)
+        {
+            var icon = GetIconForRule(rule, processId);
+            
+            var playback = AppRuleDeviceResolver.Resolve(pair.Playback, deviceService);
+            var recording = AppRuleDeviceResolver.Resolve(pair.Recording, deviceService);
+            
+            _switchProfileNotification.NotifyAppRuleMatched(rule, playback, recording, icon, processId);
+        }
+    }
+
+    /// <summary>
+    /// Notify that an App Rule hotkey was pressed while its application isn't running.
+    /// This intentionally ignores <see cref="AppSoundRule.Notify"/>: it is an error the
+    /// user must see, and it still follows the global notification type.
+    /// </summary>
+    public void NotifyAppRuleNoProcess(AppSoundRule rule)
+    {
+        _switchProfileNotification.NotifyAppRuleNoProcess(rule);
+    }
+
+    private Bitmap GetIconForRule(AppSoundRule rule, uint processId)
+    {
+        if (!_switchProfileNotification.SupportIcon)
+        {
+            return null;
         }
 
-        private void ModelOnNotificationSettingsChanged(object sender, NotificationSettingsUpdatedEvent notificationSettingsUpdatedEvent)
+        Bitmap icon = null;
+        try
         {
-            var notificationTypeEnum = notificationSettingsUpdatedEvent.NewSettings;
-            SetNotification(notificationTypeEnum);
+            var process = Process.GetProcessById((int)processId);
+            using var iconHandle = IconExtractor.Extract(process.MainModule?.FileName, 0, true);
+            icon = iconHandle.ToBitmap();
+        }
+        catch (Exception)
+        {
+            // ignored
         }
 
-        private void SetNotification(NotificationTypeEnum notificationTypeEnum)
+        return icon ?? Resources.default_profile_image;
+    }
+
+    private Bitmap GetIcon(Profile.Profile profile, uint? processId)
+    {
+        if (!_switchProfileNotification.SupportIcon)
         {
-            _notification = _notificationFactory.Get(notificationTypeEnum);
-            _notification.Configuration = new NotificationConfiguration()
-            {
-                Icon = _model.TrayIcon.NotifyIcon,
-                DefaultSound = Resources.NotificationSound
-            };
+            return null;
+        }
+
+        Bitmap icon = null;
+        if (processId.HasValue)
+        {
             try
             {
-                _notification.Configuration.CustomSound = AppModel.Instance.CustomNotificationSound;
+                var process = Process.GetProcessById((int)processId.Value);
+                using var iconHandle = IconExtractor.Extract(process.MainModule?.FileName, 0, true);
+                icon = iconHandle.ToBitmap();
             }
-            catch (CachedSoundFileNotExistsException)
+            catch (Exception)
             {
-                if (!_notification.NeedCustomSound())
-                {
-                    return;
-                }
-
-                MessageBox.Show(string.Format(SettingsStrings.audioFileNotFound, SettingsStrings.notificationOptionSound),
-                    SettingsStrings.audioFileNotFoundCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                _model.NotificationSettings = NotificationTypeEnum.SoundNotification;
+                // ignored
             }
         }
 
-        private void ModelOnDefaultDeviceChanged(object sender, DeviceDefaultChangedEvent deviceDefaultChangedEvent)
+        if (icon == null)
         {
-            if (_lastDeviceId == deviceDefaultChangedEvent.DeviceId)
-                return;
-
-            _notification.NotifyDefaultChanged(deviceDefaultChangedEvent.Device);
-            _lastDeviceId = deviceDefaultChangedEvent.DeviceId;
-        }
-
-        /// <summary>
-        /// Notify on Profile changed
-        /// </summary>
-        public void NotifyProfileChanged(Profile.Profile profile, uint? processId)
-        {
-            if (!profile.NotifyOnActivation)
+            var device = profile.Devices.Select(wrapper => CheckDeviceAvailable(wrapper.DeviceInfo)).FirstOrDefault(info => info != null);
+            if (device != null)
             {
-                return;
+                using var iconHandle = device.LargeIcon;
+                icon = iconHandle.ToBitmap();
             }
-
-            _notification.NotifyProfileChanged(profile, processId);
         }
 
-        public void NotifyMuteChanged(string microphoneName, bool newMuteState)
+        return icon ?? Resources.default_profile_image;
+    }
+
+    public void NotifyMuteChanged(string deviceId, string microphoneName, bool newMuteState)
+    {
+        // Notifications are only built in Init(), but mute events from the device lister
+        // arrive on audio threads and can fire before that. Without a notification, there
+        // is nothing to render, so skip instead of crashing both threads' callers.
+        if (_microphoneMuteNotification == null)
         {
-            _notification.NotifyMuteChanged(microphoneName, newMuteState);
+            Log.Warning("Microphone mute notification not ready yet; ignoring mute change of {DeviceName} ({DeviceId}) to {MuteState}",
+                microphoneName, deviceId, newMuteState);
+            return;
         }
 
-        ~NotificationManager()
-        {
-            _model.DefaultDeviceChanged -= ModelOnDefaultDeviceChanged;
-            _model.NotificationSettingsChanged -= ModelOnNotificationSettingsChanged;
-            _model.CustomSoundChanged -= ModelOnCustomSoundChanged;
-        }
+        _microphoneMuteNotification.NotifyMicrophoneMuteChanged(deviceId, microphoneName, newMuteState);
+    }
+
+    /// <summary>
+    /// True when microphone mute changes are rendered as banners. Only banners honour the
+    /// "show mute banners only for the selected input" scope; sound and toast notifications
+    /// keep reporting every microphone.
+    /// </summary>
+    public bool MicrophoneMuteNotificationIsBanner =>
+        _microphoneMuteNotification?.TypeEnum == NotificationType.BannerNotification;
+
+    /// <summary>
+    /// Reconciles the persistent mute banners after the mute target or banner scope changed.
+    /// </summary>
+    /// <param name="inScopeMicrophoneIds">Identifiers of the microphones that remain in scope</param>
+    /// <param name="mutedInScopeMicrophones">In-scope microphones that are currently muted</param>
+    public void SyncMuteBanners(IReadOnlyCollection<string> inScopeMicrophoneIds,
+        IReadOnlyCollection<(string Id, string Name)> mutedInScopeMicrophones)
+    {
+        var banner = (NotificationBanner)_notificationFactory.Get(NotificationType.BannerNotification);
+        if (MicrophoneMuteNotificationIsBanner)
+            banner.SyncMuteBanners(inScopeMicrophoneIds, mutedInScopeMicrophones);
+        else
+            banner.ClearPersistentMuteBanners();
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        deviceService.DefaultDeviceChanged -= ModelOnDefaultDeviceChanged;
+        notificationSettings.NotificationSettingsChanged -= ModelOnNotificationSettingsChanged;
+        notificationSettings.CustomSoundChanged -= ModelOnCustomSoundChanged;
+        notificationSettings.BannerSettingsChanged -= ModelOnBannerSettingsChanged;
     }
 }

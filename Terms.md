@@ -1,6 +1,6 @@
 # Terms and Conditions
 
-Last updated: September 02, 2021
+Last updated: August 23, 2026
 
 Please read these terms and conditions carefully before using Our Service.
 
@@ -44,13 +44,13 @@ By accessing or using the Service You agree to be bound by these Terms and Condi
 
 You represent that you are over the age of 18\. The Company does not permit those under 18 to use the Service.
 
-Your access to and use of the Service is also conditioned on Your acceptance of and compliance with the Privacy Policy of the Company. Our Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your personal information when You use the Application or the Website and tells You about Your privacy rights and how the law protects You. Please read Our Privacy Policy carefully before using Our Service.
+Your access to and use of the Service is also conditioned on Your acceptance of and compliance with the [Privacy Policy](/legal/telemetry.md) of the Company. Our Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your personal information when You use the Application or the Website and tells You about Your privacy rights and how the law protects You. Please read Our Privacy Policy carefully before using Our Service.
 
 # Links to Other Websites
 
 Our Service may contain links to third-party web sites or services that are not owned or controlled by the Company.
 
-The Company has no control over, and assumes no responsibility for, the content, privacy policies, or practices of any third party web sites or services. You further acknowledge and agree that the Company shall not be responsible or liable, directly or indirectly, for any damage or loss caused or alleged to be caused by or in connection with the use of or reliance on any such content, goods or services available on or through any such web sites or services.
+The Company has no control over, and assumes no responsibility for, the content, privacy policies, or practices of any third-party websites or services. You further acknowledge and agree that the Company shall not be responsible or liable, directly or indirectly, for any damage or loss caused or alleged to be caused by or in connection with the use of or reliance on any such content, goods or services available on or through any such web sites or services.
 
 We strongly advise You to read the terms and conditions and privacy policies of any third-party web sites or services that You visit.
 
@@ -70,7 +70,7 @@ Some states do not allow the exclusion of implied warranties or limitation of li
 
 # "AS IS" and "AS AVAILABLE" Disclaimer
 
-The Service is provided to You "AS IS" and "AS AVAILABLE" and with all faults and defects without warranty of any kind. To the maximum extent permitted under applicable law, the Company, on its own behalf and on behalf of its Affiliates and its and their respective licensors and service providers, expressly disclaims all warranties, whether express, implied, statutory or otherwise, with respect to the Service, including all implied warranties of merchantability, fitness for a particular purpose, title and non-infringement, and warranties that may arise out of course of dealing, course of performance, usage or trade practice. Without limitation to the foregoing, the Company provides no warranty or undertaking, and makes no representation of any kind that the Service will meet Your requirements, achieve any intended results, be compatible or work with any other software, applications, systems or services, operate without interruption, meet any performance or reliability standards or be error free or that any errors or defects can or will be corrected.
+The Service is provided to You "AS IS" and "AS AVAILABLE" and with all faults and defects without warranty of any kind. To the maximum extent permitted under applicable law, the Company, on its own behalf and on behalf of its Affiliates and its and their respective licensors and service providers, expressly disclaims all warranties, whether express, implied, statutory or otherwise, with respect to the Service, including all implied warranties of merchantability, fitness for a particular purpose, title and non-infringement, and warranties that may arise out of course of dealing, course of performance, usage or trade practice. Without limitation to the foregoing, the Company provides no warranty or undertaking, and makes no representation of any kind that the Service will meet Your requirements, achieve any intended results, be compatible or work with any other software, applications, systems or services, operate without interruption, meet any performance or reliability standards or be error-free or that any errors or defects can or will be corrected.
 
 Without limiting the foregoing, neither the Company nor any of the company's provider makes any representation or warranty of any kind, express or implied: (i) as to the operation or availability of the Service, or the information, content, and materials or products included thereon; (ii) that the Service will be uninterrupted or error-free; (iii) as to the accuracy, reliability, or currency of any information or content provided through the Service; or (iv) that the Service, its servers, the content, or e-mails sent from or on behalf of the Company are free of viruses, scripts, trojan horses, worms, malware, timebombs or other harmful components.
 
@@ -100,7 +100,7 @@ If any provision of these Terms is held to be unenforceable or invalid, such pro
 
 ## Waiver
 
-Except as provided herein, the failure to exercise a right or to require performance of an obligation under this Terms shall not effect a party's ability to exercise such right or require such performance at any time thereafter nor shall be the waiver of a breach constitute a waiver of any subsequent breach.
+Except as provided herein, the failure to exercise a right or to require performance of an obligation under this Terms shall not affect a party's ability to exercise such right or require such performance at any time thereafter nor shall the waiver of a breach constitute a waiver of any subsequent breach.
 
 # Translation Interpretation
 
@@ -113,9 +113,39 @@ We reserve the right, at Our sole discretion, to modify or replace these Terms a
 By continuing to access or use Our Service after those revisions become effective, You agree to be bound by the revised terms. If You do not agree to the new terms, in whole or in part, please stop using the website and the Service.
 
 # Telemetry terms
-By having the telemetry enabled, you agree to have the version of SoundSwitch you have installed be shared with Us anynoumously using the service provided by [Sentry](https://sentry.io/). This information is only used as a way to gather the adoption of new version of the sofware.
+
+SoundSwitch can send opt-in usage telemetry and crash reports through [Sentry](https://sentry.io/). Telemetry is optional and controlled by the **Telemetry** setting in the General tab; it can be turned off at any time.
+
 ## Data gathered
-* Version of SoundSwitch
+
+- Version of SoundSwitch and release channel (Stable, Beta, Nightly)
+- A per-install pseudonymous identifier (a random GUID, not tied to your real identity)
+- Anonymous feature-usage counts (e.g. playback device switches, profile activations, microphone mute toggles, notification types used)
+- App Rule (App Sound Lock) activation, creation, and deletion counts. For activations, the metric also records the `trigger` source (process or foreground window) and a pseudonymous SHA256 prefix (first 8 hex characters) of the matched process basename; the creation and deletion counters contain no process identifier
+- Lightweight breadcrumbs of user actions (e.g. hotkey presses, settings saved) — used only as context for crash reports
+- Local Windows username, hashed with SHA256 (first 8 hex characters) — sent as a pseudonymous label on crash reports via Sentry's SDK to help distinguish users during debugging
+- Update subsystem usage counts — anonymous counters for which update mode is configured (Silent, Notify, or Never, emitted when the setting changes and once at startup as a baseline), when a check for updates is triggered (with a categorical trigger of manual for a tray-menu "Check for update" click, or setting_change when a check is kicked off automatically by a settings change such as the beta channel or update mode), when a newer release is found and offered, when an update download fails (`soundswitch.update.download_failed`, a network or storage failure before any install is attempted), and when an install is attempted or applied (with a categorical result of success — meaning the installer was launched — signature_error, or failed — meaning the installer could not be launched). Download (network) failures are reported separately from install failures and are never labeled as an install attempt. Only the categorical update mode, trigger, and outcome are sent; no version numbers, file paths, or identifiers are included
+- Update-postponed and startup configuration snapshot — an anonymous counter (`soundswitch.update.postponed`) when an offered update is postponed; and, once at startup, a categorical snapshot of which settings are enabled (for example: include beta versions, language, quick menu, keep volume, switch foreground program, advanced notification mode, auto-add new devices, and tray icon style) plus the counts of configured profiles (`soundswitch.profile.count`) and App Sound Lock rules (`soundswitch.apprule.count`). Only the categorical setting values and counts are sent; no free text, names, or identifiers are included
+
+## Data NOT gathered (telemetry counters)
+
+The opt-in telemetry counters above never receive audio device names or IDs, profile names/content/rules, file paths, file names, media content, full process paths, window titles, or App Rule content. App Rules are represented only by a pseudonymous SHA256 hash of the process basename.
+
+> **Note on crash breadcrumbs:** a local crash report's breadcrumbs (generated from application logs) may still include some of these fields — such as process names or paths, window titles, and App Rule patterns — because Sentry.Serilog forwards Debug-level and higher log events. These breadcrumbs are sent only with a crash report, not as part of the usage counters above.
+
+- Network identifiers, IP addresses, or location data
+
+## How to disable
+
+Uncheck **Telemetry** in SoundSwitch settings → General tab. The change takes effect immediately. When telemetry is disabled, no usage counters are sent. Crash reports and their breadcrumbs are sent only when the application crashes, independent of this setting.
+
+## Your data rights
+
+The telemetry described above is pseudonymous, not tied to your real identity. If you would like any crash-report or breadcrumb data associated with your per-install identifier to be deleted, contact us using the details in the Contact section below and we will remove it where technically feasible. For the full picture of what is collected and your choices, see the [Privacy and Telemetry](/legal/telemetry.md) page on our website.
+
+## Website cookies and analytics
+
+This website uses privacy-respecting analytics to understand aggregate usage, and third-party advertising (Google AdSense) that may set cookies in your browser. You can control or delete cookies through your browser settings at any time. Data collected by the website is not combined with the application telemetry described above.
 
 # Contact Us
 

@@ -1,0 +1,77 @@
+# SoundSwitch Repository Agents
+
+## Scope
+
+This file defines repository-wide guidance for the SoundSwitch workspace. More specific `AGENTS.md` files in subdirectories override or extend this guidance for their own areas.
+
+## Technology
+
+- Primary language: C#
+- Platform: .NET on Windows
+- UI stack: WinForms desktop application
+- Main solution entry point: `SoundSwitch.sln`
+
+## Repository Map
+
+- `SoundSwitch/`: main WinForms application, localization, framework, services, UI, and application model
+- `SoundSwitch.Audio.Manager/`: Windows audio device management and policy switching
+- `SoundSwitch.Common/`: shared code used across projects
+- `SoundSwitch.CLI/`: command-line entry points and automation surface
+- `SoundSwitch.IPC/`: inter-process communication components
+- `SoundSwitch.UI.Menu/` and `SoundSwitch.UI.UserControls/`: UI-focused reusable components
+- `SoundSwitch.Tests/` and `SoundSwitch.Audio.Manager.Tests/`: automated regression coverage
+
+## General Rules
+
+- Keep changes consistent with an existing C#/.NET codebase; prefer small, targeted fixes over broad refactors.
+- Treat this repository as a Windows desktop app first; avoid introducing cross-platform assumptions into WinForms and Windows integration code.
+- Keep user-facing strings in localization resources instead of hardcoded literals.
+- Preserve existing public behavior unless the change explicitly intends to alter it.
+- Prefer `NameClean` over raw device names when dealing with displayed audio device names.
+
+## Engineering Principles
+
+Apply **DRY > SOLID > KISS** in that priority order when they conflict. The detailed guidance lives in the repo skill [`.opencode/skills/dry-solid-kiss/SKILL.md`](./.opencode/skills/dry-solid-kiss/SKILL.md); load the `dry-solid-kiss` skill when implementing, refactoring, or reviewing code.
+
+## Design Docs and ADRs
+
+Significant changes (new/reworked user-facing features, cross-project changes, schema migrations, or changes with real design alternatives) get an ADR under `docs/design/<topic>/<YYYY-MM-DD>-<slug>.md` **before** implementation. Load the `design-docs` skill ([`.opencode/skills/design-docs/SKILL.md`](./.opencode/skills/design-docs/SKILL.md); template at [`TEMPLATE.md`](./.opencode/skills/design-docs/TEMPLATE.md)) when the user asks for an ADR or when planning such a change. When implementing a change that already has an ADR, read the ADR first and keep it current in the same PR.
+
+## Pull Request Reviews
+
+To answer and close out GitHub review threads (CodeRabbit, Kody, or human), load the `answer-pull-request-reviews` skill ([`.agents/skills/answer-pull-request-reviews/SKILL.md`](./.agents/skills/answer-pull-request-reviews/SKILL.md)); it drives `tools/Review-Threads.ps1` to list threads via the gh CLI, decide fix-vs-push-back per thread, then reply and resolve until zero remain.
+
+## User Documentation
+
+When a change alters what a user **sees or does** — a new setting, tab, button, default, trigger, or notification behaviour — update the matching website pages and screenshots in the same change. Docs drift counts as an incomplete change, not a follow-up. The detailed workflow lives in the repo skill [`.opencode/skills/documentation-sync/SKILL.md`](./.opencode/skills/documentation-sync/SKILL.md); load the `documentation-sync` skill when implementing or reviewing a user-visible feature.
+
+- Website pages live in `website/src/**/*.md`; validate with `cd website && npm run docs:build`.
+- Screenshots live in `img/Documentation/**` and are exposed to the site as `/images/` through the symlink `website/src/.vuepress/public/images`. Update the PNG once there and both the website and the root `README.md` pick it up.
+- Capture screenshots with automation, never a manual full-screen grab: `pwsh tools/Capture-DocumentationScreenshot.ps1 -Name Notifications -Tab Notifications`.
+
+## Commits
+
+- Use conventional commits for commit messages.
+- Follow the repository semantic-release config in `package.json` rather than generic conventional-commit defaults.
+- Release-relevant commit types are `feat`, `fix`, `perf`, `lang`, and `boost`.
+- `feat` produces a minor release; `fix`, `perf`, `lang`, `boost`, and `revert` produce a patch release; breaking changes produce a major release.
+- `tests` is recognized in generated release notes, but it does not trigger a release on its own.
+- Scoped or module-style commit messages are encouraged when useful, for example `fix(localization): ...` or `feat(audio-manager): ...`.
+- Keep the subject concise and focused on the user-visible or engineering outcome.
+
+## Development Documentation
+
+For additional developer-focused documentation — including build instructions, contribution guidelines, architecture overviews, and deep dives into specific components — see the [`docs/`](./docs/) folder:
+
+- [Building SoundSwitch](./docs/building.md) — Setup, build commands, and CI/CD pipeline.
+- [Contributing](./docs/contributing.md) — Standards, commit conventions, and PR process.
+- [Architecture Overview](./docs/architecture.md) — Project structure and key layers.
+- [Banner Manager](./docs/banner-manager.md) — Deep dive into the microphone mute banner subsystem.
+
+## Validation
+
+- Default validation (Windows): `dotnet build SoundSwitch.sln -c Debug`
+- Linux validation: the full solution cannot build on Linux (CsWinRT projection generation in `SoundSwitch.Audio.Manager` requires Windows). Validate compile changes with:
+  `dotnet build SoundSwitch/SoundSwitch.csproj -c Debug -p:LinuxBuild=true -p:BuildProjectReferences=false`
+  `LinuxBuild=true` (defined in `Directory.Build.props`) enables `EnableWindowsTargeting` and skips the PowerShell-based `PatchLocalizedResourceDesigners` prebuild target, which is safe because the patched `*.Designer.cs` files are committed.
+- Run targeted tests for the area you change, and at minimum run the related test project when changing shared logic (Windows only).

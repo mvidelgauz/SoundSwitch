@@ -1,38 +1,61 @@
 ﻿/********************************************************************
-* Copyright (C) 2015-2017 Antoine Aflalo
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-********************************************************************/
+ * Copyright (C) 2015-2017 Antoine Aflalo
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ ********************************************************************/
 
 using System;
+using System.Collections.Generic;
+using System.Reactive;
 using System.Threading;
+
+using SoundSwitch.Audio.Manager.Interop.Enum;
+
 using SoundSwitch.Common.Framework.Audio.Collection;
 using SoundSwitch.Common.Framework.Audio.Device;
+using SoundSwitch.Framework.Audio.Lister;
 
-namespace SoundSwitch.Model
+namespace SoundSwitch.Model;
+
+public interface IAudioDeviceLister : IDisposable
 {
-    public interface IAudioDeviceLister : IDisposable
-    {
-        /// <summary>
-        ///     Get the playback device in the set state
-        /// </summary>
-        /// <returns></returns>
-        DeviceReadOnlyCollection<DeviceFullInfo> PlaybackDevices { get; }
 
-        /// <summary>
-        ///     Get the recording device in the set state
-        /// </summary>
-        /// <returns></returns>
-        DeviceReadOnlyCollection<DeviceFullInfo> RecordingDevices { get; }
+    bool Refreshing { get; }
+    IObservable<DefaultDevicePayload> DefaultDeviceChanged { get; }
 
-        void Refresh(CancellationToken token);
-    }
+    /// <summary>
+    /// Observable that emits when a device's volume or mute state changes
+    /// </summary>
+    IObservable<DeviceVolumeChangedPayload> DeviceVolumeChanged { get; }
+
+    /// <summary>
+    /// Observable that emits when the device list has been fully refreshed
+    /// </summary>
+    IObservable<Unit> DeviceListRefreshed { get; }
+
+    void Refresh(CancellationToken token);
+
+    /// <summary>
+    /// Get devices per type and state
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="state"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    DeviceReadOnlyCollection<DeviceFullInfo> GetDevices(EDataFlow type, EDeviceState state);
+
+    /// <summary>
+    /// Process device updates
+    /// </summary>
+    /// <param name="deviceChangedEvents"></param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    void ProcessDeviceUpdates(IEnumerable<DeviceChangedEvent> deviceChangedEvents);
 }

@@ -1,4 +1,4 @@
-/********************************************************************
+﻿/********************************************************************
 * Copyright (C) 2015-2017 Antoine Aflalo
 *
 * This program is free software; you can redistribute it and/or
@@ -16,60 +16,85 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using NAudio;
 using NAudio.Wave;
 
-namespace SoundSwitch.Framework.Audio
+namespace SoundSwitch.Framework.Audio;
+
+public class CachedSound
 {
-    public class CachedSound
+    public byte[] AudioData { get; private set; }
+    public WaveFormat WaveFormat { get; private set; }
+    public string FilePath { get; }
+
+    /// <summary>
+    /// Load the AudioFile into the memory using the right reader.
+    /// </summary>
+    /// <param name="audioFileName"></param>
+    /// <exception cref="CachedSoundFileNotExistsException">Audio file doesn't exist</exception>
+    public CachedSound(string audioFileName)
     {
-        public byte[] AudioData { get; private set; }
-        public WaveFormat WaveFormat { get; private set; }
-        public string FilePath { get; }
-
-        /// <summary>
-        /// Load the AudioFile into the memory using the right reader.
-        /// </summary>
-        /// <param name="audioFileName"></param>
-        /// <exception cref="ArgumentException">Audio file doesn't exists</exception>
-        public CachedSound(string audioFileName)
+        if (!File.Exists(audioFileName))
         {
-            if (!File.Exists(audioFileName))
-            {
-                throw new CachedSoundFileNotExistsException("The audio file doesn't exists");
-            }
-
-            FilePath = audioFileName;
-            using var audioFileReader = GetReader(audioFileName);
-            // TODO: could add resampling in here if required
-            WaveFormat = audioFileReader.WaveFormat;
-            var wholeFile = new List<byte>((int)(audioFileReader.Length));
-            var readBuffer = new byte[audioFileReader.WaveFormat.SampleRate * audioFileReader.WaveFormat.Channels];
-            int samplesRead;
-            while ((samplesRead = audioFileReader.Read(readBuffer, 0, readBuffer.Length)) > 0)
-            {
-                wholeFile.AddRange(readBuffer.Take(samplesRead));
-            }
-
-            AudioData = wholeFile.ToArray();
+            throw new CachedSoundFileNotExistsException("The audio file doesn't exists");
         }
 
-        public CachedSound(MemoryStream stream, WaveFormat waveFormat)
+        FilePath = audioFileName;
+        using var audioFileReader = GetReader(audioFileName);
+        // TODO: could add resampling in here if required
+        WaveFormat = audioFileReader.WaveFormat;
+        var wholeFile = new List<byte>((int)(audioFileReader.Length));
+        var readBuffer = new byte[audioFileReader.WaveFormat.SampleRate * audioFileReader.WaveFormat.Channels];
+        int samplesRead;
+        while ((samplesRead = audioFileReader.Read(readBuffer, 0, readBuffer.Length)) > 0)
         {
-            WaveFormat = waveFormat;
-            AudioData = stream.ToArray();
+            wholeFile.AddRange(readBuffer.Take(samplesRead));
         }
 
-        private static WaveStream GetReader(string filename)
+        AudioData = [.. wholeFile];
+    }
+
+    /// <summary>
+    /// Decode the WAV / MP3 from the stream using the right reader.
+    /// </summary>
+    /// <param name="stream">A stream containing a WAV or an MP3 file.</param>
+    public CachedSound(Stream stream)
+    {
+        // Buffer the stream so the format can be sniffed from the start regardless of
+        // the stream's position, and so the reader sees a rewound stream.
+        using var buffered = new MemoryStream();
+        stream.CopyTo(buffered);
+        buffered.Position = 0;
+
+        using var reader = new AudioFileReader(buffered);
+        WaveFormat = reader.WaveFormat;
+        var wholeFile = new List<byte>((int)reader.Length);
+        var readBuffer = new byte[reader.WaveFormat.SampleRate * reader.WaveFormat.Channels];
+        int samplesRead;
+        while ((samplesRead = reader.Read(readBuffer, 0, readBuffer.Length)) > 0)
         {
-            try
-            {
-                return new AudioFileReader(filename);
-            }
-            catch (MmException e)
-            {
-                return new MediaFoundationReader(filename);
-            }
+            wholeFile.AddRange(readBuffer.Take(samplesRead));
+        }
+
+        AudioData = [.. wholeFile];
+    }
+
+    public CachedSound(MemoryStream stream, WaveFormat waveFormat)
+    {
+        WaveFormat = waveFormat;
+        AudioData = stream.ToArray();
+    }
+
+    private static WaveStream GetReader(string filename)
+    {
+        try
+        {
+            return new AudioFileReader(filename);
+        }
+        catch (MmException)
+        {
+            return new MediaFoundationReader(filename);
         }
     }
 }

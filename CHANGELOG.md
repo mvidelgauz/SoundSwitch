@@ -1,3 +1,2092 @@
+## [7.5.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v7.4.1...v7.5.0-beta.1) (2026-11-07)
+
+### Features
+
+* **app-rules:** group the process picker and sync rules with Windows app assignments ([#2566](https://github.com/Belphemur/SoundSwitch/issues/2566)) ([3c197a9](https://github.com/Belphemur/SoundSwitch/commit/3c197a995769d87d94efeb45ade857922e2c083d))
+* **ui:** add app theme setting - follow Windows, light or dark ([#2571](https://github.com/Belphemur/SoundSwitch/issues/2571)) ([04d041c](https://github.com/Belphemur/SoundSwitch/commit/04d041c2568c8119f76f92919da222ba6c49d0f8)), closes [#2567](https://github.com/Belphemur/SoundSwitch/issues/2567) [#2567](https://github.com/Belphemur/SoundSwitch/issues/2567) [#2567](https://github.com/Belphemur/SoundSwitch/issues/2567) [#2567](https://github.com/Belphemur/SoundSwitch/issues/2567)
+
+### Bug Fixes
+
+* **app-rules:** scale the rule editor for per-monitor displays and make it resizable ([d2c1461](https://github.com/Belphemur/SoundSwitch/commit/d2c14613f0406edf270b530cfc08ef63565b8742)), closes [#2570](https://github.com/Belphemur/SoundSwitch/issues/2570)
+
+## [7.4.1](https://github.com/Belphemur/SoundSwitch/compare/v7.4.0...v7.4.1) (2026-11-04)
+
+### Bug Fixes
+
+* **audio:** serialize retained-id snapshot with cache publication ([#2561](https://github.com/Belphemur/SoundSwitch/issues/2561)) ([b682764](https://github.com/Belphemur/SoundSwitch/commit/b6827641fd83c74f5ee65ad0c8f65c3699b90b69)), closes [#2554](https://github.com/Belphemur/SoundSwitch/issues/2554)
+* **audio:** tolerate endpoint disconnect during notification playback ([#2564](https://github.com/Belphemur/SoundSwitch/issues/2564)) ([23549e2](https://github.com/Belphemur/SoundSwitch/commit/23549e284a3d2b82386467049ad66b12755d8613)), closes [#2557](https://github.com/Belphemur/SoundSwitch/issues/2557)
+* **banner:** tolerate disposed banners in mute banner rearrangement ([#2563](https://github.com/Belphemur/SoundSwitch/issues/2563)) ([0943e9e](https://github.com/Belphemur/SoundSwitch/commit/0943e9eacfeb3e4b1ec02c0da9fb7c46753bb858)), closes [#2559](https://github.com/Belphemur/SoundSwitch/issues/2559)
+* **configuration:** atomically persist config save with transient-lock retry ([#2560](https://github.com/Belphemur/SoundSwitch/issues/2560)) ([a297fcf](https://github.com/Belphemur/SoundSwitch/commit/a297fcf3c10379df931d15e611239dc4e5ed9bc2)), closes [#2556](https://github.com/Belphemur/SoundSwitch/issues/2556)
+* **notification:** guard mute-change notifications against uninitialized state ([#2562](https://github.com/Belphemur/SoundSwitch/issues/2562)) ([49e48ad](https://github.com/Belphemur/SoundSwitch/commit/49e48ad8c62ccf1fe33c88cb7a56c3469c3676a5)), closes [#2555](https://github.com/Belphemur/SoundSwitch/issues/2555)
+* **settings:** stop the crash on the banner scale numeric ([e2425a3](https://github.com/Belphemur/SoundSwitch/commit/e2425a327aa7d5eb2f95c8dfc7f59b761ebff29f)), closes [#2558](https://github.com/Belphemur/SoundSwitch/issues/2558)
+
+## [7.4.0](https://github.com/Belphemur/SoundSwitch/compare/v7.3.3...v7.4.0) (2026-11-03)
+
+### Features
+
+* **app-rules:** assign a hotkey to an app rule ([#2522](https://github.com/Belphemur/SoundSwitch/issues/2522)) ([843c550](https://github.com/Belphemur/SoundSwitch/commit/843c5505bcee5a2f44f3aa57bdf40eb71f1e7e75)), closes [#2496](https://github.com/Belphemur/SoundSwitch/issues/2496)
+* **banner:** customize monitor, color, and scale ([2c90212](https://github.com/Belphemur/SoundSwitch/commit/2c90212a88d0dd304bb62b090ad1ece51e454210))
+* **installer:** self-contained dual-arch installers, no runtime download ([#2442](https://github.com/Belphemur/SoundSwitch/issues/2442)) ([a9c1d56](https://github.com/Belphemur/SoundSwitch/commit/a9c1d562425999d2189b691b373197fcff74ff03)), closes [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435)
+* **microphone:** select mute target and scope mute banners ([7b81213](https://github.com/Belphemur/SoundSwitch/commit/7b81213bb9b4510baf41a9a7fe479e8533c903d4))
+* **ui:** follow Windows dark theme on WinForms settings ([#2417](https://github.com/Belphemur/SoundSwitch/issues/2417), item 3) ([#2420](https://github.com/Belphemur/SoundSwitch/issues/2420)) ([fcf551c](https://github.com/Belphemur/SoundSwitch/commit/fcf551c03fb763fc3744d9ea0c7addc5f1b7b853)), closes [#2418](https://github.com/Belphemur/SoundSwitch/issues/2418)
+
+### Bug Fixes
+
+* **app-rules:** persist device info to survive device id changes ([#2454](https://github.com/Belphemur/SoundSwitch/issues/2454)) ([#2455](https://github.com/Belphemur/SoundSwitch/issues/2455)) ([a2bbca7](https://github.com/Belphemur/SoundSwitch/commit/a2bbca72ece10e71d5c3e8662ceca962c694e203))
+* **docs:** sync website lock file and pin Node 26 ([5965eed](https://github.com/Belphemur/SoundSwitch/commit/5965eed0d27adb665c11b724097873dac6883a91))
+* **tray-icon:** device-aware theme icons with crisper rendering ([#2417](https://github.com/Belphemur/SoundSwitch/issues/2417)) ([#2418](https://github.com/Belphemur/SoundSwitch/issues/2418)) ([1eb5a14](https://github.com/Belphemur/SoundSwitch/commit/1eb5a14c8457ab8f18833139f477f7fcbe3dcad7))
+* **ui:** extend dark mode to remaining screens and shared controls ([#2417](https://github.com/Belphemur/SoundSwitch/issues/2417)) ([#2452](https://github.com/Belphemur/SoundSwitch/issues/2452)) ([39aa664](https://github.com/Belphemur/SoundSwitch/commit/39aa66426f211c1bb650adab080ab38be9ebbf9c)), closes [#2420](https://github.com/Belphemur/SoundSwitch/issues/2420) [#2450](https://github.com/Belphemur/SoundSwitch/issues/2450)
+* **ui:** initialize text rendering before hidden WinForms window ([#2448](https://github.com/Belphemur/SoundSwitch/issues/2448)) ([#2449](https://github.com/Belphemur/SoundSwitch/issues/2449)) ([df928b9](https://github.com/Belphemur/SoundSwitch/commit/df928b977e7e78173e0a1806ea4db6bacdf0cd70)), closes [#2420](https://github.com/Belphemur/SoundSwitch/issues/2420) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435)
+* **ui:** make remaining settings controls follow dark mode ([#2450](https://github.com/Belphemur/SoundSwitch/issues/2450)) ([#2451](https://github.com/Belphemur/SoundSwitch/issues/2451)) ([003eb7b](https://github.com/Belphemur/SoundSwitch/commit/003eb7bdc44ba8ecfcc460d4c4fc8bb70b28faa5)), closes [#2420](https://github.com/Belphemur/SoundSwitch/issues/2420)
+* **ui:** paint list column headers light in dark mode ([607f449](https://github.com/Belphemur/SoundSwitch/commit/607f44948860a7e6171018aaf4d14e5caec0d9b9))
+* **ui:** repaint list group headers in dark mode ([47a022c](https://github.com/Belphemur/SoundSwitch/commit/47a022cb06b23e7b1a9a590bd0ca18a3f1ba81cd))
+* **ui:** theme settings tab pages in dark mode ([90cc77c](https://github.com/Belphemur/SoundSwitch/commit/90cc77cb9c5161de9c3ae2941daa48160e227446))
+* **ui:** use readable link color in dark mode ([8b47af1](https://github.com/Belphemur/SoundSwitch/commit/8b47af1354dee88ed627e6698bb86a6a5373968e))
+* **updater:** do not offer same-base release to a nightly install ([87d8476](https://github.com/Belphemur/SoundSwitch/commit/87d8476f195a7e9a73ef14732192b3ea924d42b3))
+* **website:** exclude changelog page from search ([1c57fae](https://github.com/Belphemur/SoundSwitch/commit/1c57faee3cac0f73794be952bbd777faad1d9a2d))
+* **website:** restore search and stop mobile horizontal scroll ([#2545](https://github.com/Belphemur/SoundSwitch/issues/2545)) ([84750f1](https://github.com/Belphemur/SoundSwitch/commit/84750f1ff62e2279876d120ed9fd5edcdfda6c7f))
+
+## [7.4.0-beta.2](https://github.com/Belphemur/SoundSwitch/compare/v7.4.0-beta.1...v7.4.0-beta.2) (2026-10-25)
+
+### Features
+
+* **app-rules:** assign a hotkey to an app rule ([#2522](https://github.com/Belphemur/SoundSwitch/issues/2522)) ([843c550](https://github.com/Belphemur/SoundSwitch/commit/843c5505bcee5a2f44f3aa57bdf40eb71f1e7e75)), closes [#2496](https://github.com/Belphemur/SoundSwitch/issues/2496)
+* **microphone:** select mute target and scope mute banners ([7b81213](https://github.com/Belphemur/SoundSwitch/commit/7b81213bb9b4510baf41a9a7fe479e8533c903d4))
+
+### Bug Fixes
+
+* **docs:** sync website lock file and pin Node 26 ([5965eed](https://github.com/Belphemur/SoundSwitch/commit/5965eed0d27adb665c11b724097873dac6883a91))
+
+## [7.4.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v7.3.3...v7.4.0-beta.1) (2026-10-19)
+
+### Features
+
+* **banner:** customize monitor, color, and scale ([2c90212](https://github.com/Belphemur/SoundSwitch/commit/2c90212a88d0dd304bb62b090ad1ece51e454210))
+* **installer:** self-contained dual-arch installers, no runtime download ([#2442](https://github.com/Belphemur/SoundSwitch/issues/2442)) ([a9c1d56](https://github.com/Belphemur/SoundSwitch/commit/a9c1d562425999d2189b691b373197fcff74ff03)), closes [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435)
+* **ui:** follow Windows dark theme on WinForms settings ([#2417](https://github.com/Belphemur/SoundSwitch/issues/2417), item 3) ([#2420](https://github.com/Belphemur/SoundSwitch/issues/2420)) ([fcf551c](https://github.com/Belphemur/SoundSwitch/commit/fcf551c03fb763fc3744d9ea0c7addc5f1b7b853)), closes [#2418](https://github.com/Belphemur/SoundSwitch/issues/2418)
+
+### Bug Fixes
+
+* **app-rules:** persist device info to survive device id changes ([#2454](https://github.com/Belphemur/SoundSwitch/issues/2454)) ([#2455](https://github.com/Belphemur/SoundSwitch/issues/2455)) ([a2bbca7](https://github.com/Belphemur/SoundSwitch/commit/a2bbca72ece10e71d5c3e8662ceca962c694e203))
+* **tray-icon:** device-aware theme icons with crisper rendering ([#2417](https://github.com/Belphemur/SoundSwitch/issues/2417)) ([#2418](https://github.com/Belphemur/SoundSwitch/issues/2418)) ([1eb5a14](https://github.com/Belphemur/SoundSwitch/commit/1eb5a14c8457ab8f18833139f477f7fcbe3dcad7))
+* **ui:** extend dark mode to remaining screens and shared controls ([#2417](https://github.com/Belphemur/SoundSwitch/issues/2417)) ([#2452](https://github.com/Belphemur/SoundSwitch/issues/2452)) ([39aa664](https://github.com/Belphemur/SoundSwitch/commit/39aa66426f211c1bb650adab080ab38be9ebbf9c)), closes [#2420](https://github.com/Belphemur/SoundSwitch/issues/2420) [#2450](https://github.com/Belphemur/SoundSwitch/issues/2450)
+* **ui:** initialize text rendering before hidden WinForms window ([#2448](https://github.com/Belphemur/SoundSwitch/issues/2448)) ([#2449](https://github.com/Belphemur/SoundSwitch/issues/2449)) ([df928b9](https://github.com/Belphemur/SoundSwitch/commit/df928b977e7e78173e0a1806ea4db6bacdf0cd70)), closes [#2420](https://github.com/Belphemur/SoundSwitch/issues/2420) [#2435](https://github.com/Belphemur/SoundSwitch/issues/2435)
+* **ui:** make remaining settings controls follow dark mode ([#2450](https://github.com/Belphemur/SoundSwitch/issues/2450)) ([#2451](https://github.com/Belphemur/SoundSwitch/issues/2451)) ([003eb7b](https://github.com/Belphemur/SoundSwitch/commit/003eb7bdc44ba8ecfcc460d4c4fc8bb70b28faa5)), closes [#2420](https://github.com/Belphemur/SoundSwitch/issues/2420)
+* **ui:** paint list column headers light in dark mode ([607f449](https://github.com/Belphemur/SoundSwitch/commit/607f44948860a7e6171018aaf4d14e5caec0d9b9))
+* **ui:** repaint list group headers in dark mode ([47a022c](https://github.com/Belphemur/SoundSwitch/commit/47a022cb06b23e7b1a9a590bd0ca18a3f1ba81cd))
+* **ui:** theme settings tab pages in dark mode ([90cc77c](https://github.com/Belphemur/SoundSwitch/commit/90cc77cb9c5161de9c3ae2941daa48160e227446))
+* **ui:** use readable link color in dark mode ([8b47af1](https://github.com/Belphemur/SoundSwitch/commit/8b47af1354dee88ed627e6698bb86a6a5373968e))
+* **updater:** do not offer same-base release to a nightly install ([87d8476](https://github.com/Belphemur/SoundSwitch/commit/87d8476f195a7e9a73ef14732192b3ea924d42b3))
+
+## [7.3.3](https://github.com/Belphemur/SoundSwitch/compare/v7.3.2...v7.3.3) (2026-09-01)
+
+### Bug Fixes
+
+* **audio:** treat S_FALSE as success for IAudioEndpointVolume calls ([#2409](https://github.com/Belphemur/SoundSwitch/issues/2409)) ([#2410](https://github.com/Belphemur/SoundSwitch/issues/2410)) ([c295ac7](https://github.com/Belphemur/SoundSwitch/commit/c295ac77813a627270a1d9130a868ae00aaddf3a))
+* **notification:Windows:** Show the popup unless less than 1 sec of display ([88d724f](https://github.com/Belphemur/SoundSwitch/commit/88d724fed1038f1d55127004998821443a31544b))
+
+## [7.3.2](https://github.com/Belphemur/SoundSwitch/compare/v7.3.1...v7.3.2) (2026-08-31)
+
+### Enhancements
+
+* **website:** send donation thank-you email via PayPal IPN + Postmark ([#2402](https://github.com/Belphemur/SoundSwitch/issues/2402)) ([94e7114](https://github.com/Belphemur/SoundSwitch/commit/94e71141c53482b3e105ad4c7dbb69d78cd6ff49))
+
+### Bug Fixes
+
+* **audio::cache:** be sure we keep updating properly our cache to represent current state of devices ([69f89e5](https://github.com/Belphemur/SoundSwitch/commit/69f89e5c1aa54f000561b789ae7403725722e5c6)), closes [#2407](https://github.com/Belphemur/SoundSwitch/issues/2407)
+* **audio:** refresh cached device list on connect/disconnect swap ([#2404](https://github.com/Belphemur/SoundSwitch/issues/2404)) ([#2405](https://github.com/Belphemur/SoundSwitch/issues/2405)) ([0cc81fb](https://github.com/Belphemur/SoundSwitch/commit/0cc81fb8796252ff3be00ffc3caebe9401577223))
+* **audio:** resolve device by id via enumeration fallback ([#2404](https://github.com/Belphemur/SoundSwitch/issues/2404)) ([#2406](https://github.com/Belphemur/SoundSwitch/issues/2406)) ([49d49f4](https://github.com/Belphemur/SoundSwitch/commit/49d49f4b21efe8d77c3f5fa6e73a4e084689085a)), closes [#2405](https://github.com/Belphemur/SoundSwitch/issues/2405) [#2405](https://github.com/Belphemur/SoundSwitch/issues/2405)
+* **website:** accept PAYPAL_IPN_MODE=live instead of failing closed ([50c50e0](https://github.com/Belphemur/SoundSwitch/commit/50c50e06efcd5944261a16b102f1c0ad299c61ed))
+* **website:** return 500 (not 200) when PayPal IPN fails verification ([6d6fe99](https://github.com/Belphemur/SoundSwitch/commit/6d6fe99a5441a89ce817fd192abf4ff04830d0c9))
+
+### Tests
+
+* **audio:** adapt refresh tests to the mutable device cache ([296a752](https://github.com/Belphemur/SoundSwitch/commit/296a75266f6f52ba34a5d0810a23d6b3272099e0))
+
+## [7.3.1](https://github.com/Belphemur/SoundSwitch/compare/v7.3.0...v7.3.1) (2026-08-28)
+
+### Enhancements
+
+* **audio:** widen custom-sound picker to AAC (.aac/.m4a) ([#2384](https://github.com/Belphemur/SoundSwitch/issues/2384)) ([b6b38ee](https://github.com/Belphemur/SoundSwitch/commit/b6b38ee3a45119deddd934315078b2f3bf3e52f3))
+
+### Bug Fixes
+
+* **audio:** fall back to default endpoint when configured device is missing ([#2384](https://github.com/Belphemur/SoundSwitch/issues/2384)) ([e79e8ba](https://github.com/Belphemur/SoundSwitch/commit/e79e8ba73097deac502d42a8aee577b171bdf87a))
+* **audio:** include target device id in playback-failure Sentry logs ([#2384](https://github.com/Belphemur/SoundSwitch/issues/2384)) ([#2391](https://github.com/Belphemur/SoundSwitch/issues/2391)) ([ba429e5](https://github.com/Belphemur/SoundSwitch/commit/ba429e5fbe088a56bdae54418376aa0476a9deb5)), closes [#2388](https://github.com/Belphemur/SoundSwitch/issues/2388)
+* **audio:** log non-cancellation playback failures at Error so they reach Sentry ([#2384](https://github.com/Belphemur/SoundSwitch/issues/2384)) ([1ad3997](https://github.com/Belphemur/SoundSwitch/commit/1ad39976892dbb1b784f609cb8847c7716a4ed2d))
+* **audio:** pin NAudio via umbrella (Windows-asset fix) + address playback review threads ([#2384](https://github.com/Belphemur/SoundSwitch/issues/2384)) ([59a80d7](https://github.com/Belphemur/SoundSwitch/commit/59a80d7c1f3253e644e4e718de7e77fe1e8d40af)), closes [#1407](https://github.com/Belphemur/SoundSwitch/issues/1407)
+* **audio:** publish new device cache before disposing old devices in Refresh ([#2389](https://github.com/Belphemur/SoundSwitch/issues/2389)) ([#2393](https://github.com/Belphemur/SoundSwitch/issues/2393)) ([7914a3a](https://github.com/Belphemur/SoundSwitch/commit/7914a3a43e8179e3ca07f5d2d432930f499017fb)), closes [#2390](https://github.com/Belphemur/SoundSwitch/issues/2390)
+* **audio:** resolve notification IMMDevice via ComThread to kill InvalidCastException ([#2384](https://github.com/Belphemur/SoundSwitch/issues/2384)) ([#2397](https://github.com/Belphemur/SoundSwitch/issues/2397)) ([537fb1e](https://github.com/Belphemur/SoundSwitch/commit/537fb1e1dd1ee873c5b4f4a2c30d8287023746f6))
+* **audio:** serialize device-cache publication with a dedicated .NET 9 Lock ([#2389](https://github.com/Belphemur/SoundSwitch/issues/2389)) ([#2396](https://github.com/Belphemur/SoundSwitch/issues/2396)) ([c4b59b2](https://github.com/Belphemur/SoundSwitch/commit/c4b59b224d81abf5babe7b904927f671e6c12ee1))
+* **audio:** snapshot devices before disposal in Refresh to fix collection-modified race ([#2389](https://github.com/Belphemur/SoundSwitch/issues/2389)) ([#2390](https://github.com/Belphemur/SoundSwitch/issues/2390)) ([6dcf17d](https://github.com/Belphemur/SoundSwitch/commit/6dcf17d6bdddbcb36e4f3f65a355a425a88ccadd))
+* **audio:** treat empty deviceId as default in playback-failure logs ([#2384](https://github.com/Belphemur/SoundSwitch/issues/2384)) ([d3eb590](https://github.com/Belphemur/SoundSwitch/commit/d3eb59083bd5555aecaa739ee094c364e803cab6)), closes [#2391](https://github.com/Belphemur/SoundSwitch/issues/2391)
+* **audio:** use AudioFileReader for stream decode (handles WAV+MP3), drop unused IsMp3Stream ([d243ede](https://github.com/Belphemur/SoundSwitch/commit/d243ede37ff7fa03f9096aef08f8c80bac0ec4b2))
+
+## [7.3.0](https://github.com/Belphemur/SoundSwitch/compare/v7.2.1...v7.3.0) (2026-08-26)
+
+### Features
+
+* **audio:** add AudioDevice COM wrappers + AudioDeviceEnumerator (Phase 2) ([3defcfc](https://github.com/Belphemur/SoundSwitch/commit/3defcfcee9600a888b0b8962c8e8c81bc7defce9)), closes [#2371](https://github.com/Belphemur/SoundSwitch/issues/2371) [#401](https://github.com/Belphemur/SoundSwitch/issues/401)
+* **audio:** decode MP3 via vendored MP3Sharp (pure managed) ([d796683](https://github.com/Belphemur/SoundSwitch/commit/d796683c792f2175368d00f85ad938b32035bb90))
+* **audio:** replace NAudio notification playback with in-house WASAPI renderer ([f8e6792](https://github.com/Belphemur/SoundSwitch/commit/f8e6792dac92e4cba688ac2faacc26113d1ee44a))
+* **audio:** support MP3 custom notification sounds ([9b2e40d](https://github.com/Belphemur/SoundSwitch/commit/9b2e40dc95e7dfe178a7228a99dd682e19b16a22))
+* **nightly:** record sha512, commit and changelog per nightly artifact ([2f8f015](https://github.com/Belphemur/SoundSwitch/commit/2f8f015e621ab4bd83f7e8e4973466872335e09c))
+* **ui:** show nightly update channel indicator in settings ([bbc6332](https://github.com/Belphemur/SoundSwitch/commit/bbc6332fc46f58c980e41906ecfd9b95c610a5c5))
+* **updater:** add nightly update channel with SHA-512 verification ([443206a](https://github.com/Belphemur/SoundSwitch/commit/443206a6500bb8fde1c02ba9246833f6a735919f))
+* **updater:** offer release-train updates to nightly builds as a beta track ([fe599bb](https://github.com/Belphemur/SoundSwitch/commit/fe599bb3a253f46e6dee2c8add5e7eee89d6af31))
+* **website:** show nightly changelog and SHA-512 checksum ([2535e7a](https://github.com/Belphemur/SoundSwitch/commit/2535e7a948f25a96c470c97a7b09d0530502f18d))
+
+### Enhancements
+
+* **notification:** render Windows notification as native toast with balloon fallback ([#2370](https://github.com/Belphemur/SoundSwitch/issues/2370)) ([3fb1282](https://github.com/Belphemur/SoundSwitch/commit/3fb1282d988a3cd5a7b8d5eeee741733d4bac653))
+* **telemetry:** track update subsystem usage and startup config snapshot ([#2369](https://github.com/Belphemur/SoundSwitch/issues/2369)) ([1f43f32](https://github.com/Belphemur/SoundSwitch/commit/1f43f32e4d0d3505bc0590b6e73aeedaa6130db0)), closes [#1](https://github.com/Belphemur/SoundSwitch/issues/1) [#4](https://github.com/Belphemur/SoundSwitch/issues/4) [#2](https://github.com/Belphemur/SoundSwitch/issues/2) [#5](https://github.com/Belphemur/SoundSwitch/issues/5) [#7](https://github.com/Belphemur/SoundSwitch/issues/7)
+
+### Bug Fixes
+
+* **audio:** address Copilot review — SeletedDevicesList typo + EndpointVolume null guard ([e0b32b5](https://github.com/Belphemur/SoundSwitch/commit/e0b32b58f3c92cde7d5a494c6fa387267b1146a1))
+* **audio:** correct ERole profile matching + NameClean in mic response ([8583f2d](https://github.com/Belphemur/SoundSwitch/commit/8583f2de79c3d1b42c0ffb1e8f3ae81fce7ed43a))
+* **audio:** correct IMFSourceReader.ReadSample native signature (MP3 crash) ([0a0cdb3](https://github.com/Belphemur/SoundSwitch/commit/0a0cdb31b77b2166b0ffbd34e315b074fbbeb4f9))
+* **audio:** dispose DeviceFullInfo on all non-happy paths (COM leak) ([7841e7b](https://github.com/Belphemur/SoundSwitch/commit/7841e7bfed9bc8421134afaa9a630cce6eb4392f))
+* **audio:** guard nullable EndpointVolume in IPC microphone-state lambda ([f8ff7c4](https://github.com/Belphemur/SoundSwitch/commit/f8ff7c4aee01317184587cca5b52c52cd601ebd9))
+* **audio:** harden vendored MP3Sharp decoder (7 CodeRabbit findings) ([92e7920](https://github.com/Belphemur/SoundSwitch/commit/92e7920f0d96ed85a5360eca7ca66aaecfbdd47c))
+* **audio:** normalize truncated WAV errors + localize WAV filter label ([a3feb8b](https://github.com/Belphemur/SoundSwitch/commit/a3feb8bd3e5f4f39ca4b00e210979af80aa26478))
+* **audio:** prevent AudioDevice deadlock and finalizer crash in volume client ([b0d5199](https://github.com/Belphemur/SoundSwitch/commit/b0d5199582952d75c0717b41c4412704f93f1a8a))
+* **audio:** propagate registration failure + document MMNotificationClient ([e6229ab](https://github.com/Belphemur/SoundSwitch/commit/e6229abacb583bd4f250e2c989152be6ba4309a2))
+* **audio:** refresh default device after waking from sleep (issue [#2009](https://github.com/Belphemur/SoundSwitch/issues/2009)) ([3e3ac93](https://github.com/Belphemur/SoundSwitch/commit/3e3ac939d33342e6151219d2de44de315a13a35a))
+* **audio:** reset seekable stream + handle non-EOS null samples (MP3) ([6ccb148](https://github.com/Belphemur/SoundSwitch/commit/6ccb148dcd6ff885b68104a0406e48909fe55f53))
+* **audio:** use FluentAssertions v8 ThrowAsync for async null-data test ([7b48ee6](https://github.com/Belphemur/SoundSwitch/commit/7b48ee676d788853c3c8f1a341853c27b0d4c326))
+* **audio:** use nullable tuple for volume-copy + Serilog for conversion warnings ([b8df9f1](https://github.com/Belphemur/SoundSwitch/commit/b8df9f11d3042d41938b31f87faf841b952f282e))
+* **audio:** use typeof() for the static-class Serilog context ([b2abcf2](https://github.com/Belphemur/SoundSwitch/commit/b2abcf212184481044a05538ed1ebbde108d3c47))
+* **ci:** stamp version via AssemblyInfo rewrite and tag-relative revision ([19c0604](https://github.com/Belphemur/SoundSwitch/commit/19c060493d84b6eb86d107d7152650fbbced7389))
+* **ci:** validate all -Version components against the 16-bit limit ([d8db090](https://github.com/Belphemur/SoundSwitch/commit/d8db09089df292a2eb3d8d9ebef53589d5b6635a))
+* **model:** fully remove misspelled seletedDevicesList (param + property) ([ceaef69](https://github.com/Belphemur/SoundSwitch/commit/ceaef69c9664970ee1197cd9032a20bd467f39d4))
+* **model:** rename misspelled SeletedDevicesList property to SelectedDevicesList ([a3c949e](https://github.com/Belphemur/SoundSwitch/commit/a3c949e5ed45abe3c94f3b617618d323f76c2b43))
+* **nightly:** use installer version in issue comment so the build number matches the download link ([373cd27](https://github.com/Belphemur/SoundSwitch/commit/373cd27703d0901b36331eb333a83af0f321c077))
+* **reliability:** harden audio device object and single-instance IPC against transient failures ([#2371](https://github.com/Belphemur/SoundSwitch/issues/2371)) ([06fe289](https://github.com/Belphemur/SoundSwitch/commit/06fe289b7a29334edee5a1a726172eed16fb8bcf))
+* **updater:** address review findings on nightly release-train fallback ([436c8af](https://github.com/Belphemur/SoundSwitch/commit/436c8afa194c2751d9be6e8061079a9200f0b8b0))
+* **updater:** encode nightly revision as prerelease identifier ([8bccc3e](https://github.com/Belphemur/SoundSwitch/commit/8bccc3eb12598cddea1a2de761eb1fe3c955412e))
+* **updater:** normalize integrity-check failure to string in nightly ternary ([d03435d](https://github.com/Belphemur/SoundSwitch/commit/d03435d49354fcbc45283dd4aa04ccc5da135baa))
+* **website:** parse bold/italic and bullet markers in nightly changelog ([4b4b18a](https://github.com/Belphemur/SoundSwitch/commit/4b4b18aeb211114aad1303dc67277a27e76ad1a2))
+
+### Tests
+
+* **audio:** migrate tests to in-house enums, add PROPVARIANT contract tests ([89fd591](https://github.com/Belphemur/SoundSwitch/commit/89fd5915a6cecb6df44643da001661cd1dbc0515))
+
+## [7.2.1](https://github.com/Belphemur/SoundSwitch/compare/v7.2.0...v7.2.1) (2026-08-22)
+
+### Enhancements
+
+* **telemetry:** add App Rules activation, creation, and deletion metrics ([#2348](https://github.com/Belphemur/SoundSwitch/issues/2348)) ([5b5b8a0](https://github.com/Belphemur/SoundSwitch/commit/5b5b8a0846a42ab2bcbbe72307cf24db8637f581))
+
+### Bug Fixes
+
+* **audio:** decode default WAV and migrate WasapiOut to WasapiPlayer (issue [#2351](https://github.com/Belphemur/SoundSwitch/issues/2351)) ([#2356](https://github.com/Belphemur/SoundSwitch/issues/2356)) ([d9052c8](https://github.com/Belphemur/SoundSwitch/commit/d9052c81c473ea66fca15b3f53c5b8ff9b83fa24))
+* **audio:** report persistent-policy routing failures from SwitchProcessTo ([#2350](https://github.com/Belphemur/SoundSwitch/issues/2350)) ([9dfe5b3](https://github.com/Belphemur/SoundSwitch/commit/9dfe5b36eef6838d5a7912d1c2d7ff41890c9dfe)), closes [#2349](https://github.com/Belphemur/SoundSwitch/issues/2349)
+* **common:** remove case-colliding duplicate icon resources ([91bcc50](https://github.com/Belphemur/SoundSwitch/commit/91bcc50d4078f3d3691ede51c9321e4e205542a6))
+* **updater:** install update into the running app directory (issue [#2353](https://github.com/Belphemur/SoundSwitch/issues/2353)) ([#2354](https://github.com/Belphemur/SoundSwitch/issues/2354)) ([3f61d69](https://github.com/Belphemur/SoundSwitch/commit/3f61d69cc0f970729dbf294427102f783627e6f8))
+
+## [7.2.0](https://github.com/Belphemur/SoundSwitch/compare/v7.1.0...v7.2.0) (2026-08-20)
+
+### Features
+
+* **cli:** add global --json output option and devices command ([44c421a](https://github.com/Belphemur/SoundSwitch/commit/44c421add3fe02f987eda77e698b4867938cf765))
+* **cli:** add status command for active profile and current audio devices ([09f9d77](https://github.com/Belphemur/SoundSwitch/commit/09f9d7762d6a3bfb03436299c4d1e4a5e97c3b0f))
+* **telemetry:** add feature-usage telemetry via Sentry Metrics ([#2346](https://github.com/Belphemur/SoundSwitch/issues/2346)) ([e0a5585](https://github.com/Belphemur/SoundSwitch/commit/e0a558561ec370f491ea19ea0c01642f53f15050))
+* **tray-icon:** draw theme-based speaker icon at runtime with Segoe glyph ([7a48f44](https://github.com/Belphemur/SoundSwitch/commit/7a48f44300346599adc245850d1af8d33d504e83))
+* **tray-icon:** replace monochrome icon with theme-based icon that adapts to Windows dark mode ([1e27c61](https://github.com/Belphemur/SoundSwitch/commit/1e27c61f2f8d400e1a753a9da8a6d7b66b6de20b))
+
+### Enhancements
+
+* Added Toggle Microphone Mute as Double-click Action option ([9fec9f2](https://github.com/Belphemur/SoundSwitch/commit/9fec9f2f2ba3106b77f9d434e748c2ea7bb0fbba))
+* **tray:** reduce click delay to 250ms, add Disabled double-click option ([aa2c03b](https://github.com/Belphemur/SoundSwitch/commit/aa2c03b318692bf9b2d76af367ec3027ef40633a))
+
+### Bug Fixes
+
+* address PR feedback and release dry-run errors ([fd43a13](https://github.com/Belphemur/SoundSwitch/commit/fd43a139a9368dff0499efc447d7537e835cb584))
+* **app-rules:** fallback to glob when regex pattern is invalid ([4672c6b](https://github.com/Belphemur/SoundSwitch/commit/4672c6b8a8a409f0cd8a26d6e0431afcc6a35a6c))
+* **banner:** apply display option to notification banners ([5a5c1a9](https://github.com/Belphemur/SoundSwitch/commit/5a5c1a93782fc6e0148a5c3d199071a3efc6266f)), closes [#2306](https://github.com/Belphemur/SoundSwitch/issues/2306)
+* **banner:** clear stale image when reusing banner forms ([2a3713c](https://github.com/Belphemur/SoundSwitch/commit/2a3713c088883b720f3914a0073b1c9857231537)), closes [#2308](https://github.com/Belphemur/SoundSwitch/issues/2308)
+* **banner:** Disable layer approach. Banner is staggered. ([638bd1e](https://github.com/Belphemur/SoundSwitch/commit/638bd1e4a085d788f1b9d6e90781e7d1ac3019a3))
+* **banner:** precisely detect true exclusive fullscreen, show banners in borderless windowed ([#2259](https://github.com/Belphemur/SoundSwitch/issues/2259)) ([514088d](https://github.com/Belphemur/SoundSwitch/commit/514088db7ff594031542f9768afc7f1ec22c046b)), closes [#2240](https://github.com/Belphemur/SoundSwitch/issues/2240)
+* **banner:** prevent focus stealing and fix drag-position/NRE bugs in BannerForm ([feefcd6](https://github.com/Belphemur/SoundSwitch/commit/feefcd6b658b9cc8796d49393196bd9f2937e5c8))
+* **banner:** prevent focus stealing in fullscreen games with multi-layer defense ([#2241](https://github.com/Belphemur/SoundSwitch/issues/2241)) ([a81f169](https://github.com/Belphemur/SoundSwitch/commit/a81f169d508fca830e65b0e469ded36b30514dea)), closes [#2240](https://github.com/Belphemur/SoundSwitch/issues/2240)
+* build error and review feedback ([6f4ef44](https://github.com/Belphemur/SoundSwitch/commit/6f4ef44227ebf421827c95e77434f3422d1aff3e))
+* **build:** avoid CS8417 compiler bug with using var and await using in PlaySoundJob.cs ([9b7e9a9](https://github.com/Belphemur/SoundSwitch/commit/9b7e9a9b60f4eabc796350f9e4f3bca67c577ce5))
+* **ci:** add PR merge gate for docs and dotnet checks ([adbef45](https://github.com/Belphemur/SoundSwitch/commit/adbef45edb9186e3fafe2bb866f6afdef57f1402))
+* **ci:** address all nightly workflow review comments ([170e38b](https://github.com/Belphemur/SoundSwitch/commit/170e38b1d82d9d6ab319a1e01f1a700f278dd300))
+* **ci:** define semantic-release branches for dry-run checks ([2674993](https://github.com/Belphemur/SoundSwitch/commit/2674993d019de1f445d08e8a1415775acc0de27f))
+* **ci:** grant contents write to release-dry-run for semantic-release push check ([03106c9](https://github.com/Belphemur/SoundSwitch/commit/03106c95290d1bbd401f59b41470bf7901c5e56e))
+* **ci:** pin conventionalcommits preset to v9 to restore changelog generation ([47d910a](https://github.com/Belphemur/SoundSwitch/commit/47d910a172ce10d4e871731b0765e6ac432b7c58)), closes [semantic-release/release-notes-generator#992](https://github.com/semantic-release/release-notes-generator/issues/992)
+* **ci:** release stable versions from master branch ([5d47634](https://github.com/Belphemur/SoundSwitch/commit/5d47634ec31ba499427f6ee3e96bdc2ecd1b1989))
+* **ci:** scope workflow token permissions ([bb3a56c](https://github.com/Belphemur/SoundSwitch/commit/bb3a56c288e14f80572d3ca3e704a488560f13e1))
+* **ci:** use semantic-release CLI dry run in PR gate ([ed88743](https://github.com/Belphemur/SoundSwitch/commit/ed887433f176d6844fa2471e5553e532e2a33132))
+* clean up doc comments and add dispose idempotency ([366ecb4](https://github.com/Belphemur/SoundSwitch/commit/366ecb4a99513c899f5572134c16b9081f099c28))
+* **cli:** address PR review — JSON output safety, COM disposal, NameClean, failure contract ([3d20e3f](https://github.com/Belphemur/SoundSwitch/commit/3d20e3fa0a8e980265b128188a37fc36851e208b))
+* **cli:** cache JsonSerializerOptions static field, address reviewer nitpick ([ea63fbd](https://github.com/Belphemur/SoundSwitch/commit/ea63fbd9f0739e1c01ac69bd6b578756d1cdb58c))
+* **cli:** document empty-string device values in status --json output ([b97b1d7](https://github.com/Belphemur/SoundSwitch/commit/b97b1d72bdd2bf07d163e04d6d762956caffb663))
+* **common:** avoid icon extractor type-init crash on invalid fallback resources ([01a7a43](https://github.com/Belphemur/SoundSwitch/commit/01a7a435acb14dd7607ed3486b54c8af9589e30d)), closes [#2243](https://github.com/Belphemur/SoundSwitch/issues/2243)
+* **device:** allow hotkey to force switch to only configured device ([5fc53d3](https://github.com/Belphemur/SoundSwitch/commit/5fc53d3984f912dca9338d99af4a9ceeef8f6a4e)), closes [#2211](https://github.com/Belphemur/SoundSwitch/issues/2211)
+* Force switch to the only configured device when current Windows default mismatches ([3630da0](https://github.com/Belphemur/SoundSwitch/commit/3630da0dbfb8126477fbf98ac2a5f176a3145277))
+* **installer:** bump required .NET runtime to 10.0.11 ([7274b93](https://github.com/Belphemur/SoundSwitch/commit/7274b934eef59674983794e1e4c037f12d2b59d4))
+* **installer:** update required .NET version to 10.0.9 in installer scripts ([385819b](https://github.com/Belphemur/SoundSwitch/commit/385819b4b375a686218835ff476f1068584f883d))
+* **notification:** implement mic mute sound notification and harden PlaySoundJob ([d030236](https://github.com/Belphemur/SoundSwitch/commit/d030236d53765165d0666f7336c7a25588592af2)), closes [#2187](https://github.com/Belphemur/SoundSwitch/issues/2187)
+* **pipe:** always respond to IPC requests and close startup race ([ec4add7](https://github.com/Belphemur/SoundSwitch/commit/ec4add7a7a2b6e2d4dd5afa01b8e477c0317dd53))
+* **pipe:** exit accept loop cleanly if shutdown hits during retry delay ([62a752b](https://github.com/Belphemur/SoundSwitch/commit/62a752b968022b4883ce79caaec97aefd173ca2c))
+* **pipe:** validate message length prefixes and harden accept loop ([27ef90c](https://github.com/Belphemur/SoundSwitch/commit/27ef90cb9f857f789033d16fb7e691e17119ba50))
+* **profile:** Add reset per-app audio settings on profile switch ([#2262](https://github.com/Belphemur/SoundSwitch/issues/2262)) ([d39b88f](https://github.com/Belphemur/SoundSwitch/commit/d39b88fc24dafb59448490957d142fbd2aeb8b57)), closes [#2258](https://github.com/Belphemur/SoundSwitch/issues/2258) [#2258](https://github.com/Belphemur/SoundSwitch/issues/2258)
+* **profile:** trigger on startup on session change ([85ae6ba](https://github.com/Belphemur/SoundSwitch/commit/85ae6ba6f9fac0c9d7dca48d7eee0b2e215961b6))
+* review feedback improvements ([ddc896f](https://github.com/Belphemur/SoundSwitch/commit/ddc896f5dfe6662d9710f9bf9f1523afd087dea2))
+* **tray-icon:** add monochrome systray icon option ([05e08e5](https://github.com/Belphemur/SoundSwitch/commit/05e08e51f0e4a5b5517bbf4df0c2e37fecad6781)), closes [#2029](https://github.com/Belphemur/SoundSwitch/issues/2029)
+* **tray-icon:** prevent TypeInitializationException in SpeakerIconGenerator static cctor ([a559e7b](https://github.com/Belphemur/SoundSwitch/commit/a559e7b87799c54d951ff62e42ae51d8cf423f42))
+* **updater:** handle 4-part version strings for nightly builds ([9b55ab1](https://github.com/Belphemur/SoundSwitch/commit/9b55ab185bf32253e94d6f8fcf7d82bab714ac15)), closes [#2248](https://github.com/Belphemur/SoundSwitch/issues/2248)
+* **updater:** use last 5 digits of nightly revision as patch version ([1382766](https://github.com/Belphemur/SoundSwitch/commit/1382766d981df0b8b91fa5de2d47fb59595426e2))
+* **website:** finding-soundswitch FAQ — reopening opens settings ([#2221](https://github.com/Belphemur/SoundSwitch/issues/2221)) ([590b247](https://github.com/Belphemur/SoundSwitch/commit/590b2470fbd273b872d10455a7830854f5f9c47a))
+
+### Languages
+
+* **Bulgarian:** Translated Settings using Weblate ([f833f4d](https://github.com/Belphemur/SoundSwitch/commit/f833f4d97ec74a7835ade681db6462a6b8309a1c))
+* **Chinese (Simplified Han script):** Translated Settings using Weblate ([99cb9be](https://github.com/Belphemur/SoundSwitch/commit/99cb9be40550705771016a1cc0dd83784d1046ce))
+* **Chinese (Simplified Han script):** Translated Settings using Weblate ([e1286cf](https://github.com/Belphemur/SoundSwitch/commit/e1286cf7b1f2646708ea5d96f90ac69a846ccd20))
+* **Chinese (Simplified Han script):** Translated Tray Icon using Weblate ([5cb5e90](https://github.com/Belphemur/SoundSwitch/commit/5cb5e90498312b41ecb9efa2687d1166410ce2f8))
+* **Dutch:** Translated Settings using Weblate ([a150073](https://github.com/Belphemur/SoundSwitch/commit/a150073fa760ba5e20c920aaa6d0362c4451d6f6))
+* **Dutch:** Translated Settings using Weblate ([dd17cbf](https://github.com/Belphemur/SoundSwitch/commit/dd17cbf2c638584c815963eb980fd37eaa06a3bc))
+* **Dutch:** Translated Settings using Weblate ([f30a384](https://github.com/Belphemur/SoundSwitch/commit/f30a384b454ff0b8b24cbfecfd0b6faad22fc5a7))
+* **Dutch:** Translated Settings using Weblate ([6174238](https://github.com/Belphemur/SoundSwitch/commit/6174238c78fef58e36e6e678acb0af2aba22190e))
+* **Dutch:** Translated Tray Icon using Weblate ([85084d5](https://github.com/Belphemur/SoundSwitch/commit/85084d530db507ef492f5b74ea51cde7b0fab7d9))
+* **Dutch:** Translated Update Download using Weblate ([6eeda3a](https://github.com/Belphemur/SoundSwitch/commit/6eeda3a35f4c2ed2a2d704b0f983559419ad8006))
+* **French:** Translated Settings using Weblate ([d823469](https://github.com/Belphemur/SoundSwitch/commit/d8234695ce43196f10dfcf717f824680192f5a1b))
+* **Hebrew:** Translated Tray Icon using Weblate ([385e059](https://github.com/Belphemur/SoundSwitch/commit/385e0598d301bb948108511a12fe84a2ddef261c))
+* **Italian:** Translated Settings using Weblate ([e8dfb91](https://github.com/Belphemur/SoundSwitch/commit/e8dfb91a58b3046cd813bf1878ff825eda5c545a))
+* **Italian:** Translated Settings using Weblate ([0541491](https://github.com/Belphemur/SoundSwitch/commit/0541491c9ce3610ea4fc498b5829c73505ec66cd))
+* **Italian:** Translated Tray Icon using Weblate ([c83eb2b](https://github.com/Belphemur/SoundSwitch/commit/c83eb2b1f3e4598596cb4a5ac3b9b0fb5cd10a9f))
+* **Japanese:** Translated About using Weblate ([3753e3e](https://github.com/Belphemur/SoundSwitch/commit/3753e3e6c6408e84579be4e32bb28eef2dab9ddc))
+* **Japanese:** Translated Settings using Weblate ([2bfdf54](https://github.com/Belphemur/SoundSwitch/commit/2bfdf542ec6ac67f00c21d57ef9d796b522595c9))
+* **Japanese:** Translated Settings using Weblate ([3d52068](https://github.com/Belphemur/SoundSwitch/commit/3d52068b4350b3e5a665d6afee2aae5c93f2b3ed))
+* **Japanese:** Translated Settings using Weblate ([3acc682](https://github.com/Belphemur/SoundSwitch/commit/3acc682d09e47f5100cd2c78c4ec5837ff4e341f))
+* **Japanese:** Translated Settings using Weblate ([50f2037](https://github.com/Belphemur/SoundSwitch/commit/50f2037d62ca59f8b508d260e1fcd45a33d3a560))
+* **Japanese:** Translated Tray Icon using Weblate ([ba89f4a](https://github.com/Belphemur/SoundSwitch/commit/ba89f4a582dee8c3e09c3049595e2d508971e0b9))
+* **Japanese:** Translated Tray Icon using Weblate ([0479f4e](https://github.com/Belphemur/SoundSwitch/commit/0479f4e724b52f590e41274ac81705f15f0c677f))
+* **Japanese:** Translated Update Download using Weblate ([0650f7c](https://github.com/Belphemur/SoundSwitch/commit/0650f7cbac95bb910db979aa166cc95438cb9b3b))
+* **Korean:** Translated Settings using Weblate ([be49871](https://github.com/Belphemur/SoundSwitch/commit/be49871845e636e758e53609307f22da452effce))
+* **Korean:** Translated Settings using Weblate ([eb218c6](https://github.com/Belphemur/SoundSwitch/commit/eb218c630585564cf89207d3dad2260a84fec953))
+* **localization:** update tray icon option label to Theme Based ([20180f5](https://github.com/Belphemur/SoundSwitch/commit/20180f58422d1a4a6e5eaba1a0d9b1dad07dc23a))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([b5145af](https://github.com/Belphemur/SoundSwitch/commit/b5145af054034b3e11b8eac29a2020d38aed7b2d))
+* **Portuguese (Brazil):** Translated Tray Icon using Weblate ([f18b4dd](https://github.com/Belphemur/SoundSwitch/commit/f18b4dd6ac290880eecdda06e8bbb5ee601448a7))
+* **Spanish:** Translated Settings using Weblate ([44bbb0e](https://github.com/Belphemur/SoundSwitch/commit/44bbb0e8034e8b981566764396ce641ac301108d))
+* **Spanish:** Translated Tray Icon using Weblate ([a38c28c](https://github.com/Belphemur/SoundSwitch/commit/a38c28ca5086a17cc45970289fc273b956fa50fc))
+* **Spanish:** Translated Update Download using Weblate ([906b4ac](https://github.com/Belphemur/SoundSwitch/commit/906b4ac4d1a274f8717626bf9cb255f8ad31f0e5))
+* **Swedish:** Translated Settings using Weblate ([0696a33](https://github.com/Belphemur/SoundSwitch/commit/0696a332fbc07923bdfc1bb209fb6a945b79dd50))
+* **Swedish:** Translated Settings using Weblate ([11674cb](https://github.com/Belphemur/SoundSwitch/commit/11674cb76ceddda2260119db6ec7d8f7d20189bc))
+* **Swedish:** Translated Settings using Weblate ([7932972](https://github.com/Belphemur/SoundSwitch/commit/79329723de7292b4e2b2bcde2a69e0ea6e079e11))
+* **Swedish:** Translated Tray Icon using Weblate ([c038b30](https://github.com/Belphemur/SoundSwitch/commit/c038b30372f6315226f2c81327a58809aeba113c))
+
+### Tests
+
+* **cycler:** deterministic single-device tests with proper resource cleanup ([6eecdcc](https://github.com/Belphemur/SoundSwitch/commit/6eecdcc3cd94d456b87c2d3c306d72b4d50b9cc9))
+* **downloader:** serve download test from local server instead of blender.org ([b0c5f13](https://github.com/Belphemur/SoundSwitch/commit/b0c5f1356be067b2c2689bbc3e7916d3133a4252))
+
+## [7.2.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v7.1.1-beta.4...v7.2.0-beta.1) (2026-07-22)
+
+### Features
+
+* **cli:** add global --json output option and devices command ([44c421a](https://github.com/Belphemur/SoundSwitch/commit/44c421add3fe02f987eda77e698b4867938cf765))
+* **cli:** add status command for active profile and current audio devices ([09f9d77](https://github.com/Belphemur/SoundSwitch/commit/09f9d7762d6a3bfb03436299c4d1e4a5e97c3b0f))
+* **tray-icon:** draw theme-based speaker icon at runtime with Segoe glyph ([7a48f44](https://github.com/Belphemur/SoundSwitch/commit/7a48f44300346599adc245850d1af8d33d504e83))
+* **tray-icon:** replace monochrome icon with theme-based icon that adapts to Windows dark mode ([1e27c61](https://github.com/Belphemur/SoundSwitch/commit/1e27c61f2f8d400e1a753a9da8a6d7b66b6de20b))
+
+### Bug Fixes
+
+* **banner:** precisely detect true exclusive fullscreen, show banners in borderless windowed ([#2259](https://github.com/Belphemur/SoundSwitch/issues/2259)) ([514088d](https://github.com/Belphemur/SoundSwitch/commit/514088db7ff594031542f9768afc7f1ec22c046b)), closes [#2240](https://github.com/Belphemur/SoundSwitch/issues/2240)
+* **ci:** pin conventionalcommits preset to v9 to restore changelog generation ([47d910a](https://github.com/Belphemur/SoundSwitch/commit/47d910a172ce10d4e871731b0765e6ac432b7c58)), closes [semantic-release/release-notes-generator#992](https://github.com/semantic-release/release-notes-generator/issues/992)
+* **cli:** address PR review — JSON output safety, COM disposal, NameClean, failure contract ([3d20e3f](https://github.com/Belphemur/SoundSwitch/commit/3d20e3fa0a8e980265b128188a37fc36851e208b))
+* **cli:** cache JsonSerializerOptions static field, address reviewer nitpick ([ea63fbd](https://github.com/Belphemur/SoundSwitch/commit/ea63fbd9f0739e1c01ac69bd6b578756d1cdb58c))
+* **cli:** document empty-string device values in status --json output ([b97b1d7](https://github.com/Belphemur/SoundSwitch/commit/b97b1d72bdd2bf07d163e04d6d762956caffb663))
+* **profile:** Add reset per-app audio settings on profile switch ([#2262](https://github.com/Belphemur/SoundSwitch/issues/2262)) ([d39b88f](https://github.com/Belphemur/SoundSwitch/commit/d39b88fc24dafb59448490957d142fbd2aeb8b57)), closes [#2258](https://github.com/Belphemur/SoundSwitch/issues/2258) [#2258](https://github.com/Belphemur/SoundSwitch/issues/2258)
+* **tray-icon:** prevent TypeInitializationException in SpeakerIconGenerator static cctor ([a559e7b](https://github.com/Belphemur/SoundSwitch/commit/a559e7b87799c54d951ff62e42ae51d8cf423f42))
+
+### Languages
+
+* **localization:** update tray icon option label to Theme Based ([20180f5](https://github.com/Belphemur/SoundSwitch/commit/20180f58422d1a4a6e5eaba1a0d9b1dad07dc23a))
+
+## [7.1.1-beta.4](https://github.com/Belphemur/SoundSwitch/compare/v7.1.1-beta.3...v7.1.1-beta.4) (2026-06-23)
+
+### Bug Fixes
+
+* **common:** avoid icon extractor type-init crash on invalid fallback resources ([01a7a43](https://github.com/Belphemur/SoundSwitch/commit/01a7a435acb14dd7607ed3486b54c8af9589e30d)), closes [#2243](https://github.com/Belphemur/SoundSwitch/issues/2243)
+* **updater:** handle 4-part version strings for nightly builds ([9b55ab1](https://github.com/Belphemur/SoundSwitch/commit/9b55ab185bf32253e94d6f8fcf7d82bab714ac15)), closes [#2248](https://github.com/Belphemur/SoundSwitch/issues/2248)
+* **updater:** use last 5 digits of nightly revision as patch version ([1382766](https://github.com/Belphemur/SoundSwitch/commit/1382766d981df0b8b91fa5de2d47fb59595426e2))
+
+## [7.1.1-beta.3](https://github.com/Belphemur/SoundSwitch/compare/v7.1.1-beta.2...v7.1.1-beta.3) (2026-06-22)
+
+### Bug Fixes
+
+* **banner:** Disable layer approach. Banner is staggered. ([638bd1e](https://github.com/Belphemur/SoundSwitch/commit/638bd1e4a085d788f1b9d6e90781e7d1ac3019a3))
+
+## [7.1.1-beta.2](https://github.com/Belphemur/SoundSwitch/compare/v7.1.1-beta.1...v7.1.1-beta.2) (2026-06-21)
+
+### Enhancements
+
+* **tray:** reduce click delay to 250ms, add Disabled double-click option ([aa2c03b](https://github.com/Belphemur/SoundSwitch/commit/aa2c03b318692bf9b2d76af367ec3027ef40633a))
+
+### Bug Fixes
+
+* **app-rules:** fallback to glob when regex pattern is invalid ([4672c6b](https://github.com/Belphemur/SoundSwitch/commit/4672c6b8a8a409f0cd8a26d6e0431afcc6a35a6c))
+* **banner:** prevent focus stealing and fix drag-position/NRE bugs in BannerForm ([feefcd6](https://github.com/Belphemur/SoundSwitch/commit/feefcd6b658b9cc8796d49393196bd9f2937e5c8))
+* **banner:** prevent focus stealing in fullscreen games with multi-layer defense ([#2241](https://github.com/Belphemur/SoundSwitch/issues/2241)) ([a81f169](https://github.com/Belphemur/SoundSwitch/commit/a81f169d508fca830e65b0e469ded36b30514dea)), closes [#2240](https://github.com/Belphemur/SoundSwitch/issues/2240)
+* build error and review feedback ([6f4ef44](https://github.com/Belphemur/SoundSwitch/commit/6f4ef44227ebf421827c95e77434f3422d1aff3e))
+* **build:** avoid CS8417 compiler bug with using var and await using in PlaySoundJob.cs ([9b7e9a9](https://github.com/Belphemur/SoundSwitch/commit/9b7e9a9b60f4eabc796350f9e4f3bca67c577ce5))
+* clean up doc comments and add dispose idempotency ([366ecb4](https://github.com/Belphemur/SoundSwitch/commit/366ecb4a99513c899f5572134c16b9081f099c28))
+* **installer:** update required .NET version to 10.0.9 in installer scripts ([385819b](https://github.com/Belphemur/SoundSwitch/commit/385819b4b375a686218835ff476f1068584f883d))
+* **notification:** implement mic mute sound notification and harden PlaySoundJob ([d030236](https://github.com/Belphemur/SoundSwitch/commit/d030236d53765165d0666f7336c7a25588592af2)), closes [#2187](https://github.com/Belphemur/SoundSwitch/issues/2187)
+* review feedback improvements ([ddc896f](https://github.com/Belphemur/SoundSwitch/commit/ddc896f5dfe6662d9710f9bf9f1523afd087dea2))
+* **tray-icon:** add monochrome systray icon option ([05e08e5](https://github.com/Belphemur/SoundSwitch/commit/05e08e51f0e4a5b5517bbf4df0c2e37fecad6781)), closes [#2029](https://github.com/Belphemur/SoundSwitch/issues/2029)
+* **website:** finding-soundswitch FAQ — reopening opens settings ([#2221](https://github.com/Belphemur/SoundSwitch/issues/2221)) ([590b247](https://github.com/Belphemur/SoundSwitch/commit/590b2470fbd273b872d10455a7830854f5f9c47a))
+
+### Languages
+
+* **Chinese (Simplified Han script):** Translated Settings using Weblate ([99cb9be](https://github.com/Belphemur/SoundSwitch/commit/99cb9be40550705771016a1cc0dd83784d1046ce))
+* **Chinese (Simplified Han script):** Translated Tray Icon using Weblate ([5cb5e90](https://github.com/Belphemur/SoundSwitch/commit/5cb5e90498312b41ecb9efa2687d1166410ce2f8))
+* **French:** Translated Settings using Weblate ([d823469](https://github.com/Belphemur/SoundSwitch/commit/d8234695ce43196f10dfcf717f824680192f5a1b))
+* **Hebrew:** Translated Tray Icon using Weblate ([385e059](https://github.com/Belphemur/SoundSwitch/commit/385e0598d301bb948108511a12fe84a2ddef261c))
+* **Italian:** Translated Settings using Weblate ([e8dfb91](https://github.com/Belphemur/SoundSwitch/commit/e8dfb91a58b3046cd813bf1878ff825eda5c545a))
+* **Italian:** Translated Settings using Weblate ([0541491](https://github.com/Belphemur/SoundSwitch/commit/0541491c9ce3610ea4fc498b5829c73505ec66cd))
+* **Italian:** Translated Tray Icon using Weblate ([c83eb2b](https://github.com/Belphemur/SoundSwitch/commit/c83eb2b1f3e4598596cb4a5ac3b9b0fb5cd10a9f))
+* **Japanese:** Translated Settings using Weblate ([2bfdf54](https://github.com/Belphemur/SoundSwitch/commit/2bfdf542ec6ac67f00c21d57ef9d796b522595c9))
+* **Japanese:** Translated Tray Icon using Weblate ([ba89f4a](https://github.com/Belphemur/SoundSwitch/commit/ba89f4a582dee8c3e09c3049595e2d508971e0b9))
+* **Portuguese (Brazil):** Translated Tray Icon using Weblate ([f18b4dd](https://github.com/Belphemur/SoundSwitch/commit/f18b4dd6ac290880eecdda06e8bbb5ee601448a7))
+* **Spanish:** Translated Settings using Weblate ([44bbb0e](https://github.com/Belphemur/SoundSwitch/commit/44bbb0e8034e8b981566764396ce641ac301108d))
+* **Spanish:** Translated Tray Icon using Weblate ([a38c28c](https://github.com/Belphemur/SoundSwitch/commit/a38c28ca5086a17cc45970289fc273b956fa50fc))
+* **Spanish:** Translated Update Download using Weblate ([906b4ac](https://github.com/Belphemur/SoundSwitch/commit/906b4ac4d1a274f8717626bf9cb255f8ad31f0e5))
+* **Swedish:** Translated Settings using Weblate ([0696a33](https://github.com/Belphemur/SoundSwitch/commit/0696a332fbc07923bdfc1bb209fb6a945b79dd50))
+* **Swedish:** Translated Tray Icon using Weblate ([c038b30](https://github.com/Belphemur/SoundSwitch/commit/c038b30372f6315226f2c81327a58809aeba113c))
+
+## [7.1.1-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v7.1.0...v7.1.1-beta.1) (2026-06-14)
+
+### Enhancements
+
+* Added Toggle Microphone Mute as Double-click Action option ([9fec9f2](https://github.com/Belphemur/SoundSwitch/commit/9fec9f2f2ba3106b77f9d434e748c2ea7bb0fbba))
+
+### Bug Fixes
+
+* address PR feedback and release dry-run errors ([fd43a13](https://github.com/Belphemur/SoundSwitch/commit/fd43a139a9368dff0499efc447d7537e835cb584))
+* **ci:** add PR merge gate for docs and dotnet checks ([adbef45](https://github.com/Belphemur/SoundSwitch/commit/adbef45edb9186e3fafe2bb866f6afdef57f1402))
+* **ci:** address all nightly workflow review comments ([170e38b](https://github.com/Belphemur/SoundSwitch/commit/170e38b1d82d9d6ab319a1e01f1a700f278dd300))
+* **ci:** define semantic-release branches for dry-run checks ([2674993](https://github.com/Belphemur/SoundSwitch/commit/2674993d019de1f445d08e8a1415775acc0de27f))
+* **ci:** scope workflow token permissions ([bb3a56c](https://github.com/Belphemur/SoundSwitch/commit/bb3a56c288e14f80572d3ca3e704a488560f13e1))
+* **ci:** use semantic-release CLI dry run in PR gate ([ed88743](https://github.com/Belphemur/SoundSwitch/commit/ed887433f176d6844fa2471e5553e532e2a33132))
+* **device:** allow hotkey to force switch to only configured device ([5fc53d3](https://github.com/Belphemur/SoundSwitch/commit/5fc53d3984f912dca9338d99af4a9ceeef8f6a4e)), closes [#2211](https://github.com/Belphemur/SoundSwitch/issues/2211)
+* Force switch to the only configured device when current Windows default mismatches ([3630da0](https://github.com/Belphemur/SoundSwitch/commit/3630da0dbfb8126477fbf98ac2a5f176a3145277))
+* **profile:** trigger on startup on session change ([85ae6ba](https://github.com/Belphemur/SoundSwitch/commit/85ae6ba6f9fac0c9d7dca48d7eee0b2e215961b6))
+
+### Languages
+
+* **Bulgarian:** Translated Settings using Weblate ([f833f4d](https://github.com/Belphemur/SoundSwitch/commit/f833f4d97ec74a7835ade681db6462a6b8309a1c))
+* **Chinese (Simplified Han script):** Translated Settings using Weblate ([e1286cf](https://github.com/Belphemur/SoundSwitch/commit/e1286cf7b1f2646708ea5d96f90ac69a846ccd20))
+* **Dutch:** Translated Settings using Weblate ([a150073](https://github.com/Belphemur/SoundSwitch/commit/a150073fa760ba5e20c920aaa6d0362c4451d6f6))
+* **Dutch:** Translated Settings using Weblate ([dd17cbf](https://github.com/Belphemur/SoundSwitch/commit/dd17cbf2c638584c815963eb980fd37eaa06a3bc))
+* **Dutch:** Translated Settings using Weblate ([f30a384](https://github.com/Belphemur/SoundSwitch/commit/f30a384b454ff0b8b24cbfecfd0b6faad22fc5a7))
+* **Dutch:** Translated Settings using Weblate ([6174238](https://github.com/Belphemur/SoundSwitch/commit/6174238c78fef58e36e6e678acb0af2aba22190e))
+* **Dutch:** Translated Tray Icon using Weblate ([85084d5](https://github.com/Belphemur/SoundSwitch/commit/85084d530db507ef492f5b74ea51cde7b0fab7d9))
+* **Dutch:** Translated Update Download using Weblate ([6eeda3a](https://github.com/Belphemur/SoundSwitch/commit/6eeda3a35f4c2ed2a2d704b0f983559419ad8006))
+* **Japanese:** Translated About using Weblate ([3753e3e](https://github.com/Belphemur/SoundSwitch/commit/3753e3e6c6408e84579be4e32bb28eef2dab9ddc))
+* **Japanese:** Translated Settings using Weblate ([3d52068](https://github.com/Belphemur/SoundSwitch/commit/3d52068b4350b3e5a665d6afee2aae5c93f2b3ed))
+* **Japanese:** Translated Settings using Weblate ([3acc682](https://github.com/Belphemur/SoundSwitch/commit/3acc682d09e47f5100cd2c78c4ec5837ff4e341f))
+* **Japanese:** Translated Settings using Weblate ([50f2037](https://github.com/Belphemur/SoundSwitch/commit/50f2037d62ca59f8b508d260e1fcd45a33d3a560))
+* **Japanese:** Translated Tray Icon using Weblate ([0479f4e](https://github.com/Belphemur/SoundSwitch/commit/0479f4e724b52f590e41274ac81705f15f0c677f))
+* **Japanese:** Translated Update Download using Weblate ([0650f7c](https://github.com/Belphemur/SoundSwitch/commit/0650f7cbac95bb910db979aa166cc95438cb9b3b))
+* **Korean:** Translated Settings using Weblate ([be49871](https://github.com/Belphemur/SoundSwitch/commit/be49871845e636e758e53609307f22da452effce))
+* **Korean:** Translated Settings using Weblate ([eb218c6](https://github.com/Belphemur/SoundSwitch/commit/eb218c630585564cf89207d3dad2260a84fec953))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([b5145af](https://github.com/Belphemur/SoundSwitch/commit/b5145af054034b3e11b8eac29a2020d38aed7b2d))
+* **Swedish:** Translated Settings using Weblate ([11674cb](https://github.com/Belphemur/SoundSwitch/commit/11674cb76ceddda2260119db6ec7d8f7d20189bc))
+* **Swedish:** Translated Settings using Weblate ([7932972](https://github.com/Belphemur/SoundSwitch/commit/79329723de7292b4e2b2bcde2a69e0ea6e079e11))
+
+### Tests
+
+* **cycler:** deterministic single-device tests with proper resource cleanup ([6eecdcc](https://github.com/Belphemur/SoundSwitch/commit/6eecdcc3cd94d456b87c2d3c306d72b4d50b9cc9))
+
+## [7.1.0](https://github.com/Belphemur/SoundSwitch/compare/v7.0.0...v7.1.0) (2026-05-21)
+
+### Features
+
+* **website:** add Advanced nightly downloads page ([#2148](https://github.com/Belphemur/SoundSwitch/issues/2148)) ([4287d87](https://github.com/Belphemur/SoundSwitch/commit/4287d87c74962e70d440fd4dd8e4c7f7a7d7d063))
+
+### Bug Fixes
+
+* **banner:** Prevent banner notifications from stealing focus in exclusive fullscreen games ([#2156](https://github.com/Belphemur/SoundSwitch/issues/2156)) ([acfec27](https://github.com/Belphemur/SoundSwitch/commit/acfec2769bfa4da7d346d7e41593db8b6ffe8f29))
+* **build:** ship separate x64 and arm64 publish directories; installer selects correct one at install time ([#2143](https://github.com/Belphemur/SoundSwitch/issues/2143)) ([ba8dd75](https://github.com/Belphemur/SoundSwitch/commit/ba8dd7559ffd413e4e2d4402732b55f35038d456))
+* **ci:** prevent nightly devVersion failure under strict mode ([#2146](https://github.com/Belphemur/SoundSwitch/issues/2146)) ([4089154](https://github.com/Belphemur/SoundSwitch/commit/40891540478c9be3252ced617b25fdbc0ea9f691))
+* **settings:** DPI scaling for the Notifications settings layout ([#2154](https://github.com/Belphemur/SoundSwitch/issues/2154)) ([311fdbb](https://github.com/Belphemur/SoundSwitch/commit/311fdbb1638e48d3f2e165a116a170ba2b3135e2))
+* **website:** add temporary homepage banner to .NET 7.0.0 FAQ ([37963b2](https://github.com/Belphemur/SoundSwitch/commit/37963b2c368c333da24ab029e3038d035bb0c152))
+* **website:** place .NET FAQ banner before home hero ([d697a3f](https://github.com/Belphemur/SoundSwitch/commit/d697a3f849b27b75b2fac33a2315b7ea4eac25ed))
+
+## [7.0.0](https://github.com/Belphemur/SoundSwitch/compare/v6.14.2...v7.0.0) (2026-05-19)
+
+### ⚠ BREAKING CHANGES
+
+* support arm64 architecture
+
+### Features
+
+* add copilot-setup-steps.yml to run Copilot agent on Windows ([6dbc87f](https://github.com/Belphemur/SoundSwitch/commit/6dbc87f598e0c6e7268e2865c7f5f2ec5b38cceb))
+* add FAQ-from-discussion Copilot skill ([c1ef56e](https://github.com/Belphemur/SoundSwitch/commit/c1ef56ef608a668a022d6f598b110bb1ba59e798))
+* add Sign-Binary.ps1 with SHA-256 signing, move code signing out of Inno Setup ([95cc05b](https://github.com/Belphemur/SoundSwitch/commit/95cc05b5f949e3043dd465642f66a64d07d14358))
+* **app-rules:** auto-open process picker and add description when creating a new App Rule ([#2050](https://github.com/Belphemur/SoundSwitch/issues/2050)) ([0431a44](https://github.com/Belphemur/SoundSwitch/commit/0431a44ffe01e8a7a4d05f3c1be78d09d0b4671a))
+* **app-sound-lock:** decouple process polling and implement notification batching ([05b9f57](https://github.com/Belphemur/SoundSwitch/commit/05b9f573ecbff4aff5a48af3c96e9665e4111529))
+* **audio-manager:** add ProcessMonitor for periodic process polling ([202aa72](https://github.com/Belphemur/SoundSwitch/commit/202aa72b915caa84ba781dbf468ad62cd3779f25))
+* **build-tools:** detect .NET SDK version from csproj and migrate copilot setup to Linux ([62be3ca](https://github.com/Belphemur/SoundSwitch/commit/62be3ca66b0c6360f26f42adc4f0047c3ebe9d58))
+* **build:** add ARM64 support with framework-dependent publish and winget-managed runtime ([bc048f1](https://github.com/Belphemur/SoundSwitch/commit/bc048f18c65d7a401bc77b00268be93b3fd65418))
+* **hotkey:** WH_KEYBOARD_LL fallback for RegisterHotKey conflicts ([#2105](https://github.com/Belphemur/SoundSwitch/issues/2105)) ([#2112](https://github.com/Belphemur/SoundSwitch/issues/2112)) ([2c74501](https://github.com/Belphemur/SoundSwitch/commit/2c745012e610f11996d7e216930c9a1336594410))
+* **notification:** add support for App Rule triggers and configuration ([4fafaec](https://github.com/Belphemur/SoundSwitch/commit/4fafaeceef2f9d6a71f7bc0a56a56ae09948d0eb))
+* **release:** add parserOpts breakingHeaderPattern for ! breaking change notation ([8a32b16](https://github.com/Belphemur/SoundSwitch/commit/8a32b169cae4c10e20755565f2ac0d320c917228))
+* rethink release pipeline with zip artifact, Python markdown tool, and PowerShell download script ([98a2a16](https://github.com/Belphemur/SoundSwitch/commit/98a2a16c915eca2c3413b405dac3ede8b36a1715))
+* **settings:** auto-refresh device lists when CachedDeviceLister refreshes ([#2114](https://github.com/Belphemur/SoundSwitch/issues/2114)) ([e1a63b8](https://github.com/Belphemur/SoundSwitch/commit/e1a63b867c78b6c35d3e5e7cf798324f858959f8))
+* support arm64 architecture ([9afc160](https://github.com/Belphemur/SoundSwitch/commit/9afc160bc3f895ebb664546b5e4d0393b5888651)), closes [#2094](https://github.com/Belphemur/SoundSwitch/issues/2094)
+* **tools:** add GitHub CLI as dependency in Install-BuildTools.ps1 ([9a98686](https://github.com/Belphemur/SoundSwitch/commit/9a9868697b45c87aea4c41bb6067ecc6d8f3c610))
+* **tools:** add Publish-Release.ps1, refactor Build-Installer.ps1, enforce PS 7.0+ ([09a9e5b](https://github.com/Belphemur/SoundSwitch/commit/09a9e5b89a2301715f6257a7a3deeca98e8c64e4))
+* **ui:** improve app rules grid, add process selection icons, and clear buttons ([e48b47f](https://github.com/Belphemur/SoundSwitch/commit/e48b47f03ec43d252cbb3ab91fcd607413d45dcf))
+* **website:** add backend-driven y-axis ticks for download chart ([633fd2c](https://github.com/Belphemur/SoundSwitch/commit/633fd2c84d531b478f678490178c0797d0f65cf2))
+* **website:** add custom theme layouts for ads ([3436be3](https://github.com/Belphemur/SoundSwitch/commit/3436be3acae69ba1e171b0df1d0cf69e3ff2cdda))
+* **website:** add durable download history ([b6fa8bc](https://github.com/Belphemur/SoundSwitch/commit/b6fa8bcdbe19d47cbbe017029a90a0bd3ad3b138))
+* **website:** add FAQ section and changelog page ([698f02a](https://github.com/Belphemur/SoundSwitch/commit/698f02a749e9f14a1655dc2f6004b4a0a113298f))
+* **website:** add quick start section to home page ([0cb75f1](https://github.com/Belphemur/SoundSwitch/commit/0cb75f14ad0f17e3746937a29addb240cf1fc6af))
+* **website:** add SEO title and description frontmatter to every doc page ([9e6455e](https://github.com/Belphemur/SoundSwitch/commit/9e6455ee354853ae571aaddbf7e896b61cc2d132))
+* **website:** add vuepress llms plugin to generate llms.txt ([22197f7](https://github.com/Belphemur/SoundSwitch/commit/22197f7fd125e03c0eda09f6cf58206d27c18f57))
+* **website:** add Weblate languages list with smart placement ([221e405](https://github.com/Belphemur/SoundSwitch/commit/221e4058525027342e92e21a7dbb8e9752f2376f))
+* **website:** blue theme, search, GitHub link and home redesign ([03522c2](https://github.com/Belphemur/SoundSwitch/commit/03522c2dd8e8a11ea3a4ca0e5fa820422a570ffc)), closes [#2196f3](https://github.com/Belphemur/SoundSwitch/issues/2196f3)
+* **website:** configure SEO plugin, sitemap and home metadata ([be2b5be](https://github.com/Belphemur/SoundSwitch/commit/be2b5be1f7011ccd012be1035a3f4f457ad6acb5))
+* **website:** make GoogleAd configurable, add :key for route reload, add AGENTS.md ([b106756](https://github.com/Belphemur/SoundSwitch/commit/b106756c0d9765fe85180e3b42e732f232df3ff2))
+* **website:** migrate to vuepress-theme-hope with built-in footer, drop --legacy-peer-deps ([0f9513f](https://github.com/Belphemur/SoundSwitch/commit/0f9513f05cf9983062f564ba7bed944bc72fb4ba))
+* **website:** redesign homepage with custom hero, feature cards, and Font Awesome icons ([a25d6dd](https://github.com/Belphemur/SoundSwitch/commit/a25d6dddf3d7c36eb6ba409193b73e32e1a5a136))
+* **website:** show total GitHub download count on the home page ([9a752eb](https://github.com/Belphemur/SoundSwitch/commit/9a752eb8f6b00264be1b3dda575a5dc47a90b80f))
+
+### Enhancements
+
+* **.net:** Update .NET dependencies to version 10.0.8 ([ffb8883](https://github.com/Belphemur/SoundSwitch/commit/ffb8883b4170cea0c27c98e845a8a5489b765d0a))
+* bump version to 6.14.3 for app rules patches ([f6ba43c](https://github.com/Belphemur/SoundSwitch/commit/f6ba43cad977e4f86598d34e4c59e26a02975a6d))
+* **icon:** refactor icon extraction into general-purpose ref-counted GDI infrastructure ([#2039](https://github.com/Belphemur/SoundSwitch/issues/2039)) ([a44433a](https://github.com/Belphemur/SoundSwitch/commit/a44433ac77b30f0550c91eb41ebc9c762919229a))
+* move to .NET 10 ([0942d7c](https://github.com/Belphemur/SoundSwitch/commit/0942d7c6149e5be0a3e9724c8ad9d7b3c4642a08))
+* Notifications Tab ([877bd41](https://github.com/Belphemur/SoundSwitch/commit/877bd41d3366a0e778f1eede556416c4cc6ec1ff))
+
+### Bug Fixes
+
+* add missing [Code] section header to winget-dotnet-runtime.iss ([427a50a](https://github.com/Belphemur/SoundSwitch/commit/427a50a9c0424bea21ab532d24e9fc3358353e9e))
+* add Switch Recording Device option for tray icon double-click ([615e354](https://github.com/Belphemur/SoundSwitch/commit/615e3547f8f69fbeb1eb3c59d811bd69eb305b61))
+* address PR review feedback - revert Make.bat, add Build-Installer.ps1 and Install-BuildTools.ps1, fix LASTEXITCODE check, add permissions, auto-detect framework ([0fcc4c7](https://github.com/Belphemur/SoundSwitch/commit/0fcc4c72b4d069bc8af6c559f5ee12d6941b1147))
+* **app-rules:** add logging to empty catch blocks ([37e4867](https://github.com/Belphemur/SoundSwitch/commit/37e48672a19263120b0900da7133e58f9756cd00))
+* **app-rules:** fix NU1510 compiler warnings ([bbffe63](https://github.com/Belphemur/SoundSwitch/commit/bbffe63441e319eb5f2ab86d5a7493a85f6d32e8))
+* apply review feedback — error checks, LiteralPath, fix CI winget failure, document PowerShell 7+ ([f349ea4](https://github.com/Belphemur/SoundSwitch/commit/f349ea47a950964d2be77a74146f7cffd56213a9))
+* auto-detect .NET SDK version in copilot-setup-steps.yml from csproj TargetFramework ([f064d96](https://github.com/Belphemur/SoundSwitch/commit/f064d968a4036f376bcadfcd9783398d5f4d0998))
+* **banner:** reuse custom position notification and improve keyboard hints ([551c45f](https://github.com/Belphemur/SoundSwitch/commit/551c45f73bf51e0d931f7de6afac003f5266a011))
+* **build:** replace NuGet signtool with Windows Driver Kit (WDK) installation via winget ([8903306](https://github.com/Belphemur/SoundSwitch/commit/89033069137aa051ff97d5831dcc235a45dd9839))
+* **ci:** align installer log artifact path ([d8de8c4](https://github.com/Belphemur/SoundSwitch/commit/d8de8c4595f582d8dd36edeab7e7daee80d6e804))
+* **ci:** build the full solution instead of individual projects ([17a0c35](https://github.com/Belphemur/SoundSwitch/commit/17a0c3525977baad60c7e0fbe98bb71b465ee0a7))
+* **ci:** check Inno Setup registry before running winget install ([85b17db](https://github.com/Belphemur/SoundSwitch/commit/85b17db95bb5b3ace6c883c5755114b5e73424cb))
+* **ci:** finding the right version of the framework ([cfc8f32](https://github.com/Belphemur/SoundSwitch/commit/cfc8f32b5aff1c737e18225a73f321b618d2cecb))
+* **ci:** reset exit code after handling already-installed Inno Setup in test-installer-build ([4e97121](https://github.com/Belphemur/SoundSwitch/commit/4e97121cfe7b26eeb6722083adda356134e1319c))
+* **ci:** trigger build on root-level NuGet/SDK configuration file changes ([fcf1cc3](https://github.com/Belphemur/SoundSwitch/commit/fcf1cc3d450202e9b18c4aeb521a0a20f924d593))
+* **ci:** upload installer artifacts and improve dotnet install logging ([e02e9c5](https://github.com/Belphemur/SoundSwitch/commit/e02e9c5db54d581b9a082f7125cf6e76966138fa))
+* **cli:** change ExecuteAsync to protected for Spectre.Console 0.55.0 and build CLI in normal CI ([4c9ab27](https://github.com/Belphemur/SoundSwitch/commit/4c9ab2759194b2a1b383c11629af9f605312bdfc))
+* **cli:** fix cli lib update ([a93a131](https://github.com/Belphemur/SoundSwitch/commit/a93a131da0e277406d5f28baca31590231193cb2))
+* **copilot-setup:** add EnableWindowsTargeting=true to dotnet restore on Linux ([8af7cce](https://github.com/Belphemur/SoundSwitch/commit/8af7cce057e059f2707c79cce373708626481318))
+* **copilot-setup:** replace variable-length lookbehind with sed for .NET version extraction ([90de88c](https://github.com/Belphemur/SoundSwitch/commit/90de88c78be176aaf1e5d32a2bfa0ffc6da4e777))
+* **docs:** resolve PR review comments and fix CI build ([72bd74c](https://github.com/Belphemur/SoundSwitch/commit/72bd74cb3a87eb6821b074c3cb4477e8326c7649))
+* **double-click:** fix naming of double click feature ([6101c48](https://github.com/Belphemur/SoundSwitch/commit/6101c4828671cb2bc133da736e2697385626fdb5))
+* download signtool from GitHub with smoke test, fallback to Windows SDK ([7bed774](https://github.com/Belphemur/SoundSwitch/commit/7bed774945a12eb0a9f606dbccf07c084f708611))
+* filter null TargetFramework values, rename winget methods to version-agnostic names ([4f94862](https://github.com/Belphemur/SoundSwitch/commit/4f94862cf557b509d6e650a1822bfdf76404332d))
+* **hotkey:** reject AltGr input in hotkey capture to prevent blocking international key sequences on Windows 11 ([#2075](https://github.com/Belphemur/SoundSwitch/issues/2075)) ([21f66ba](https://github.com/Belphemur/SoundSwitch/commit/21f66bad7ab916ff7957221b3c96f774168cfd49))
+* **icon:** use the new way to extract icons ([8e53fa9](https://github.com/Belphemur/SoundSwitch/commit/8e53fa93f1d9be9bc9c8efa16176db524a1f7504))
+* improve error message consistency and winget exit code handling ([547fcc4](https://github.com/Belphemur/SoundSwitch/commit/547fcc4c9fa8994ecc7d79dffd5b3d954b05062e))
+* improve footer ([b95c45f](https://github.com/Belphemur/SoundSwitch/commit/b95c45f9c56aef43b5773efe52d739427115784f))
+* **instaler:** fix new light installer (requires internet for .NET framework) ([d0156cf](https://github.com/Belphemur/SoundSwitch/commit/d0156cf9520056c16e70b9eb5942ebf146b381d1)), closes [#2095](https://github.com/Belphemur/SoundSwitch/issues/2095)
+* **installer:** address code review feedback ([490b326](https://github.com/Belphemur/SoundSwitch/commit/490b3263f96ebe983573679e0dddc79e317f5abb))
+* **installer:** check uninstall ResultCode with proper logging ([7a771a6](https://github.com/Belphemur/SoundSwitch/commit/7a771a6ce73e73e90f202311b03ea72181d3350d))
+* **installer:** clean app directory before install ([e6311ef](https://github.com/Belphemur/SoundSwitch/commit/e6311ef0a3eed146160e6b02617c16111ed81a91))
+* **installer:** use Dependency_ArchTitle for uninstall display name suffix matching ([3048506](https://github.com/Belphemur/SoundSwitch/commit/30485060e88001b065ee3449631dfea712f9fb6d))
+* **installer:** wrap QuietUninstallString in quotes for safer cmd execution ([5b9ef83](https://github.com/Belphemur/SoundSwitch/commit/5b9ef836c4759b247988c8f848654245924db7d5))
+* **localization:** Add fallback mechanism for missing localized strings ([5a36295](https://github.com/Belphemur/SoundSwitch/commit/5a3629567bdf5018aceb5ddef172df9867f15e4f))
+* missing designer file for switch Recording device ([a04c624](https://github.com/Belphemur/SoundSwitch/commit/a04c624059266610e86e08977803d03f34a7d71e))
+* **notifications:** address PR review feedback ([3ec10e7](https://github.com/Belphemur/SoundSwitch/commit/3ec10e7e08803d0126d50e57c85fa4555b380c67))
+* null-safe PATH refresh in Install-BuildTools.ps1 ([4a669ca](https://github.com/Belphemur/SoundSwitch/commit/4a669caf17dc3c67112b8b9c17f99217a4532fd8))
+* parameterize .NET version for winget, remove stale win-x64 references ([3e1daaa](https://github.com/Belphemur/SoundSwitch/commit/3e1daaa33e1db0099c7faac8e87c0b1e704570f5))
+* pass DotNetMajorVersion from CI to installer, add include guard, fix repoRoot init order ([31a041b](https://github.com/Belphemur/SoundSwitch/commit/31a041b36519db012df78f3e38d2943c6ddaf4c7))
+* pin System.Security.Cryptography.Xml 10.0.7 to resolve CVE-2026-33116 and CVE-2026-26171 ([5df71f9](https://github.com/Belphemur/SoundSwitch/commit/5df71f95b3fb14dcd37dbae10def9cb92d4183ea))
+* proper config for website ([a894e16](https://github.com/Belphemur/SoundSwitch/commit/a894e163e7eac17aac03078db6a5a04d72beb3c7))
+* **publish:** disambiguate $tag variable in Read-Host string interpolation ([c86b702](https://github.com/Belphemur/SoundSwitch/commit/c86b7022371756e2182272aa52de5059b88b28bd))
+* **publish:** resolve Count property error when uploading single installer ([#2081](https://github.com/Belphemur/SoundSwitch/issues/2081)) ([f58f15a](https://github.com/Belphemur/SoundSwitch/commit/f58f15ade0e3c27e87fc97efda32734d546f14e7))
+* remove ready to run ([640b5b4](https://github.com/Belphemur/SoundSwitch/commit/640b5b4185809e18a83dfd795136a4e9bd0f74c7))
+* remove SelfContained from CLI, exclude arch-suffixed installers from fallback ([d46d93b](https://github.com/Belphemur/SoundSwitch/commit/d46d93b852d5bdd4c7631d0fc319eddea3dd1a39))
+* remove unsupported --scope from winget runtime install ([43caf63](https://github.com/Belphemur/SoundSwitch/commit/43caf63d85d4ae5921c519ad019c2157fb9bbb32))
+* replace full Windows SDK with lightweight NuGet signtool, add Certum SimplySign Desktop ([1884ebf](https://github.com/Belphemur/SoundSwitch/commit/1884ebf23d62582e322f85fcbde11e4b54e11ff7))
+* replace ternary operator in Install-BuildTools.ps1 and add Pester tests ([0b69f88](https://github.com/Belphemur/SoundSwitch/commit/0b69f8887afd5c4e49ca6b987cc58029a907012d))
+* restore localized dropdown fallback behavior ([63ffe2b](https://github.com/Belphemur/SoundSwitch/commit/63ffe2bc8641a2dd0fedaec812ed546eddc22c62))
+* scope mismatch in callCount variable and add Directory.Parent mock properties ([9f18897](https://github.com/Belphemur/SoundSwitch/commit/9f18897b1c362c68fb4ad5d83b1b91682ee36327))
+* **settings:** align split notification settings with model and runtime ([c3e2c9a](https://github.com/Belphemur/SoundSwitch/commit/c3e2c9a7ec27cd8d6ba67e8dd2c9b67a113ff14b))
+* **signing:** switch to DigiCert timestamp server with SHA-512 timestamp digest ([ef978a1](https://github.com/Belphemur/SoundSwitch/commit/ef978a1bf4aca69994295a65d594bd2f8528bedb))
+* **tools:** streamline responsibilities, invoke ISCC directly, derive release state from channel ([83ef154](https://github.com/Belphemur/SoundSwitch/commit/83ef154b2ac200a282426815b2365e36f132e4ba))
+* typo on switch device hotkey labels ([e16a206](https://github.com/Belphemur/SoundSwitch/commit/e16a206bfdc212530dc7f9aa3a581ee0748afb41))
+* update CodeQL SDK to 10.0.x, remove unused ARCH env var ([bf71d15](https://github.com/Belphemur/SoundSwitch/commit/bf71d155da38eb74700fcf1347437829621ffc56))
+* update Python version to 3.14 in Install-BuildTools.ps1 ([e77b965](https://github.com/Belphemur/SoundSwitch/commit/e77b965e1e549d446305a6314522851cfd09be68))
+* use {pf} not {commonpf}, FileSearch for winget PATH, NeedRestart on 3010 ([5002a75](https://github.com/Belphemur/SoundSwitch/commit/5002a7584b72144d669fcd5427df02ece3425cf7))
+* use underscore for arch suffix in auto-updater, prefer arch-specific first ([4a524f7](https://github.com/Belphemur/SoundSwitch/commit/4a524f7ce37edc52d243c7f4e01025877c04078d))
+* use windows-latest runner instead of windows-2025 in test-installer-build.yml ([7f2061c](https://github.com/Belphemur/SoundSwitch/commit/7f2061c65bb015943e92e599a1b7bd47dc50c3c2))
+* **website:** add llm.txt alias build step and document llms endpoint ([09c44b0](https://github.com/Belphemur/SoundSwitch/commit/09c44b0bdc79d36d50d2d57cf44f2963a018c7c5))
+* **website:** correct AdSense slot id and defer push until laid out ([1d5a495](https://github.com/Belphemur/SoundSwitch/commit/1d5a4955a30557ae64a513c7890b5f56bd0d70d8))
+* **website:** defer adsense slot init to next tick ([d786044](https://github.com/Belphemur/SoundSwitch/commit/d786044b18f2d1f42d10a900a5f917380288d76b))
+* **website:** disable theme-hope drop-in animation on page mount ([6cb7712](https://github.com/Belphemur/SoundSwitch/commit/6cb7712afed840e9d83688b4e2e24686900a55c2))
+* **website:** fix base path ([ab5c4f1](https://github.com/Belphemur/SoundSwitch/commit/ab5c4f1a791bd40d9dbd8d3026eb69ed8360f5b4))
+* **website:** force homepage to use Home layout ([5602d8e](https://github.com/Belphemur/SoundSwitch/commit/5602d8e9694785e9571b79663c8af90113deb4be))
+* **website:** generate changelog page from CHANGELOG.md instead of symlinking ([77a2884](https://github.com/Belphemur/SoundSwitch/commit/77a288458809c0726b0c3e64d2917936dce02395))
+* **website:** guard adsense slot initialization against duplicate push ([9d9260c](https://github.com/Belphemur/SoundSwitch/commit/9d9260c5d62775ff639dd97cc403f96c87fd6433))
+* **website:** log adsense init errors in console ([91d5f44](https://github.com/Belphemur/SoundSwitch/commit/91d5f445190f88f00d4a00e134a6044de95f7645))
+* **website:** pin vuepress deps to compatible exact versions, add home page footer ([1af1b4e](https://github.com/Belphemur/SoundSwitch/commit/1af1b4eb244746ba8c272be1c0f4000af4808aae))
+* **website:** prevent SSR hydration mismatch in HomeHero ([e5685a8](https://github.com/Belphemur/SoundSwitch/commit/e5685a84e3c902dd47e94490b6a8406094be366e))
+* **website:** refine ad layout integration ([60e4027](https://github.com/Belphemur/SoundSwitch/commit/60e4027e85dffc9a5d4e4bf4779dff314e75ad17))
+* **website:** refine download count card ([6ca8fe8](https://github.com/Belphemur/SoundSwitch/commit/6ca8fe89880ccdc6cca1331199a1e65a62635d0f))
+* **website:** remove llm.txt alias - llms.txt is sufficient ([b7409fe](https://github.com/Belphemur/SoundSwitch/commit/b7409fe79cec2358d137898f5e8ba66b0399eaae))
+* **website:** remove page level ads ([#2109](https://github.com/Belphemur/SoundSwitch/issues/2109)) ([82ce157](https://github.com/Belphemur/SoundSwitch/commit/82ce1570f91718ece3a9f0ad99680b4da70a7bab))
+* **website:** render banner position table correctly ([18650e9](https://github.com/Belphemur/SoundSwitch/commit/18650e974974b2855b3bc952d369ddd9401f608f))
+* **website:** restore adsense component to snippet flow ([e57cf3b](https://github.com/Belphemur/SoundSwitch/commit/e57cf3b15aedda9aa807f79c9b5c589aeca986e6))
+* **website:** retry Google Ad push when ad slot has no width ([808dace](https://github.com/Belphemur/SoundSwitch/commit/808dace19531867ab5deef4652010568363caa15))
+* **website:** use shared type, clamp max>=min, validate ticks against floor ([1cc076b](https://github.com/Belphemur/SoundSwitch/commit/1cc076b402222556c7ce571589f7ff07f648b97f))
+* **website:** use Unicode chars in footer string instead of HTML entities ([219d7d7](https://github.com/Belphemur/SoundSwitch/commit/219d7d7e5887227ddd1f1f3de5de6bfb3a4c729f))
+* winsdk detection ([f664d00](https://github.com/Belphemur/SoundSwitch/commit/f664d003313be1917eb04fe58aa612997a04a71a))
+
+### Languages
+
+* **Slovak:** Added About translation using Weblate ([3c41295](https://github.com/Belphemur/SoundSwitch/commit/3c412959f153b396f2c593532d854a4fd28df088))
+* **Slovak:** Added Settings translation using Weblate ([1e9c83c](https://github.com/Belphemur/SoundSwitch/commit/1e9c83cf472df04303b2f20e005880fb7b2513db))
+* **Slovak:** Added Tray Icon translation using Weblate ([6fda308](https://github.com/Belphemur/SoundSwitch/commit/6fda30822b953c55784c2bb352009a9e319b8893))
+* **Slovak:** Added Update Download translation using Weblate ([3765663](https://github.com/Belphemur/SoundSwitch/commit/3765663b6bfb279c961db8b527bbd0fa65562ccc))
+
+## [7.0.0-beta.4](https://github.com/Belphemur/SoundSwitch/compare/v7.0.0-beta.3...v7.0.0-beta.4) (2026-05-12)
+
+### Features
+
+* add FAQ-from-discussion Copilot skill ([c1ef56e](https://github.com/Belphemur/SoundSwitch/commit/c1ef56ef608a668a022d6f598b110bb1ba59e798))
+* **hotkey:** WH_KEYBOARD_LL fallback for RegisterHotKey conflicts ([#2105](https://github.com/Belphemur/SoundSwitch/issues/2105)) ([#2112](https://github.com/Belphemur/SoundSwitch/issues/2112)) ([2c74501](https://github.com/Belphemur/SoundSwitch/commit/2c745012e610f11996d7e216930c9a1336594410))
+* **website:** add backend-driven y-axis ticks for download chart ([633fd2c](https://github.com/Belphemur/SoundSwitch/commit/633fd2c84d531b478f678490178c0797d0f65cf2))
+* **website:** add custom theme layouts for ads ([3436be3](https://github.com/Belphemur/SoundSwitch/commit/3436be3acae69ba1e171b0df1d0cf69e3ff2cdda))
+* **website:** add durable download history ([b6fa8bc](https://github.com/Belphemur/SoundSwitch/commit/b6fa8bcdbe19d47cbbe017029a90a0bd3ad3b138))
+* **website:** add vuepress llms plugin to generate llms.txt ([22197f7](https://github.com/Belphemur/SoundSwitch/commit/22197f7fd125e03c0eda09f6cf58206d27c18f57))
+* **website:** add Weblate languages list with smart placement ([221e405](https://github.com/Belphemur/SoundSwitch/commit/221e4058525027342e92e21a7dbb8e9752f2376f))
+* **website:** make GoogleAd configurable, add :key for route reload, add AGENTS.md ([b106756](https://github.com/Belphemur/SoundSwitch/commit/b106756c0d9765fe85180e3b42e732f232df3ff2))
+
+### Bug Fixes
+
+* **website:** add llm.txt alias build step and document llms endpoint ([09c44b0](https://github.com/Belphemur/SoundSwitch/commit/09c44b0bdc79d36d50d2d57cf44f2963a018c7c5))
+* **website:** defer adsense slot init to next tick ([d786044](https://github.com/Belphemur/SoundSwitch/commit/d786044b18f2d1f42d10a900a5f917380288d76b))
+* **website:** force homepage to use Home layout ([5602d8e](https://github.com/Belphemur/SoundSwitch/commit/5602d8e9694785e9571b79663c8af90113deb4be))
+* **website:** guard adsense slot initialization against duplicate push ([9d9260c](https://github.com/Belphemur/SoundSwitch/commit/9d9260c5d62775ff639dd97cc403f96c87fd6433))
+* **website:** log adsense init errors in console ([91d5f44](https://github.com/Belphemur/SoundSwitch/commit/91d5f445190f88f00d4a00e134a6044de95f7645))
+* **website:** refine ad layout integration ([60e4027](https://github.com/Belphemur/SoundSwitch/commit/60e4027e85dffc9a5d4e4bf4779dff314e75ad17))
+* **website:** refine download count card ([6ca8fe8](https://github.com/Belphemur/SoundSwitch/commit/6ca8fe89880ccdc6cca1331199a1e65a62635d0f))
+* **website:** remove llm.txt alias - llms.txt is sufficient ([b7409fe](https://github.com/Belphemur/SoundSwitch/commit/b7409fe79cec2358d137898f5e8ba66b0399eaae))
+* **website:** remove page level ads ([#2109](https://github.com/Belphemur/SoundSwitch/issues/2109)) ([82ce157](https://github.com/Belphemur/SoundSwitch/commit/82ce1570f91718ece3a9f0ad99680b4da70a7bab))
+* **website:** restore adsense component to snippet flow ([e57cf3b](https://github.com/Belphemur/SoundSwitch/commit/e57cf3b15aedda9aa807f79c9b5c589aeca986e6))
+* **website:** retry Google Ad push when ad slot has no width ([808dace](https://github.com/Belphemur/SoundSwitch/commit/808dace19531867ab5deef4652010568363caa15))
+* **website:** use shared type, clamp max>=min, validate ticks against floor ([1cc076b](https://github.com/Belphemur/SoundSwitch/commit/1cc076b402222556c7ce571589f7ff07f648b97f))
+
+## [7.0.0-beta.3](https://github.com/Belphemur/SoundSwitch/compare/v7.0.0-beta.2...v7.0.0-beta.3) (2026-05-08)
+
+### Features
+
+* **website:** add FAQ section and changelog page ([698f02a](https://github.com/Belphemur/SoundSwitch/commit/698f02a749e9f14a1655dc2f6004b4a0a113298f))
+* **website:** add quick start section to home page ([0cb75f1](https://github.com/Belphemur/SoundSwitch/commit/0cb75f14ad0f17e3746937a29addb240cf1fc6af))
+* **website:** add SEO title and description frontmatter to every doc page ([9e6455e](https://github.com/Belphemur/SoundSwitch/commit/9e6455ee354853ae571aaddbf7e896b61cc2d132))
+* **website:** blue theme, search, GitHub link and home redesign ([03522c2](https://github.com/Belphemur/SoundSwitch/commit/03522c2dd8e8a11ea3a4ca0e5fa820422a570ffc)), closes [#2196f3](https://github.com/Belphemur/SoundSwitch/issues/2196f3)
+* **website:** configure SEO plugin, sitemap and home metadata ([be2b5be](https://github.com/Belphemur/SoundSwitch/commit/be2b5be1f7011ccd012be1035a3f4f457ad6acb5))
+* **website:** migrate to vuepress-theme-hope with built-in footer, drop --legacy-peer-deps ([0f9513f](https://github.com/Belphemur/SoundSwitch/commit/0f9513f05cf9983062f564ba7bed944bc72fb4ba))
+* **website:** redesign homepage with custom hero, feature cards, and Font Awesome icons ([a25d6dd](https://github.com/Belphemur/SoundSwitch/commit/a25d6dddf3d7c36eb6ba409193b73e32e1a5a136))
+* **website:** show total GitHub download count on the home page ([9a752eb](https://github.com/Belphemur/SoundSwitch/commit/9a752eb8f6b00264be1b3dda575a5dc47a90b80f))
+
+### Bug Fixes
+
+* **ci:** align installer log artifact path ([d8de8c4](https://github.com/Belphemur/SoundSwitch/commit/d8de8c4595f582d8dd36edeab7e7daee80d6e804))
+* **ci:** upload installer artifacts and improve dotnet install logging ([e02e9c5](https://github.com/Belphemur/SoundSwitch/commit/e02e9c5db54d581b9a082f7125cf6e76966138fa))
+* **docs:** resolve PR review comments and fix CI build ([72bd74c](https://github.com/Belphemur/SoundSwitch/commit/72bd74cb3a87eb6821b074c3cb4477e8326c7649))
+* improve footer ([b95c45f](https://github.com/Belphemur/SoundSwitch/commit/b95c45f9c56aef43b5773efe52d739427115784f))
+* **installer:** clean app directory before install ([e6311ef](https://github.com/Belphemur/SoundSwitch/commit/e6311ef0a3eed146160e6b02617c16111ed81a91))
+* proper config for website ([a894e16](https://github.com/Belphemur/SoundSwitch/commit/a894e163e7eac17aac03078db6a5a04d72beb3c7))
+* **website:** correct AdSense slot id and defer push until laid out ([1d5a495](https://github.com/Belphemur/SoundSwitch/commit/1d5a4955a30557ae64a513c7890b5f56bd0d70d8))
+* **website:** disable theme-hope drop-in animation on page mount ([6cb7712](https://github.com/Belphemur/SoundSwitch/commit/6cb7712afed840e9d83688b4e2e24686900a55c2))
+* **website:** fix base path ([ab5c4f1](https://github.com/Belphemur/SoundSwitch/commit/ab5c4f1a791bd40d9dbd8d3026eb69ed8360f5b4))
+* **website:** generate changelog page from CHANGELOG.md instead of symlinking ([77a2884](https://github.com/Belphemur/SoundSwitch/commit/77a288458809c0726b0c3e64d2917936dce02395))
+* **website:** pin vuepress deps to compatible exact versions, add home page footer ([1af1b4e](https://github.com/Belphemur/SoundSwitch/commit/1af1b4eb244746ba8c272be1c0f4000af4808aae))
+* **website:** prevent SSR hydration mismatch in HomeHero ([e5685a8](https://github.com/Belphemur/SoundSwitch/commit/e5685a84e3c902dd47e94490b6a8406094be366e))
+* **website:** render banner position table correctly ([18650e9](https://github.com/Belphemur/SoundSwitch/commit/18650e974974b2855b3bc952d369ddd9401f608f))
+* **website:** use Unicode chars in footer string instead of HTML entities ([219d7d7](https://github.com/Belphemur/SoundSwitch/commit/219d7d7e5887227ddd1f1f3de5de6bfb3a4c729f))
+
+## [7.0.0-beta.2](https://github.com/Belphemur/SoundSwitch/compare/v7.0.0-beta.1...v7.0.0-beta.2) (2026-05-07)
+
+### Bug Fixes
+
+* **instaler:** fix new light installer (requires internet for .NET framework) ([d0156cf](https://github.com/Belphemur/SoundSwitch/commit/d0156cf9520056c16e70b9eb5942ebf146b381d1)), closes [#2095](https://github.com/Belphemur/SoundSwitch/issues/2095)
+* **installer:** address code review feedback ([490b326](https://github.com/Belphemur/SoundSwitch/commit/490b3263f96ebe983573679e0dddc79e317f5abb))
+* **installer:** check uninstall ResultCode with proper logging ([7a771a6](https://github.com/Belphemur/SoundSwitch/commit/7a771a6ce73e73e90f202311b03ea72181d3350d))
+* **installer:** use Dependency_ArchTitle for uninstall display name suffix matching ([3048506](https://github.com/Belphemur/SoundSwitch/commit/30485060e88001b065ee3449631dfea712f9fb6d))
+* **installer:** wrap QuietUninstallString in quotes for safer cmd execution ([5b9ef83](https://github.com/Belphemur/SoundSwitch/commit/5b9ef836c4759b247988c8f848654245924db7d5))
+
+## [7.0.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.15.0-beta.1...v7.0.0-beta.1) (2026-05-07)
+
+### ⚠ BREAKING CHANGES
+
+* support arm64 architecture
+
+### Features
+
+* **build-tools:** detect .NET SDK version from csproj and migrate copilot setup to Linux ([62be3ca](https://github.com/Belphemur/SoundSwitch/commit/62be3ca66b0c6360f26f42adc4f0047c3ebe9d58))
+* **build:** add ARM64 support with framework-dependent publish and winget-managed runtime ([bc048f1](https://github.com/Belphemur/SoundSwitch/commit/bc048f18c65d7a401bc77b00268be93b3fd65418))
+* **release:** add parserOpts breakingHeaderPattern for ! breaking change notation ([8a32b16](https://github.com/Belphemur/SoundSwitch/commit/8a32b169cae4c10e20755565f2ac0d320c917228))
+* support arm64 architecture ([9afc160](https://github.com/Belphemur/SoundSwitch/commit/9afc160bc3f895ebb664546b5e4d0393b5888651)), closes [#2094](https://github.com/Belphemur/SoundSwitch/issues/2094)
+
+### Bug Fixes
+
+* add missing [Code] section header to winget-dotnet-runtime.iss ([427a50a](https://github.com/Belphemur/SoundSwitch/commit/427a50a9c0424bea21ab532d24e9fc3358353e9e))
+* **copilot-setup:** add EnableWindowsTargeting=true to dotnet restore on Linux ([8af7cce](https://github.com/Belphemur/SoundSwitch/commit/8af7cce057e059f2707c79cce373708626481318))
+* **copilot-setup:** replace variable-length lookbehind with sed for .NET version extraction ([90de88c](https://github.com/Belphemur/SoundSwitch/commit/90de88c78be176aaf1e5d32a2bfa0ffc6da4e777))
+* filter null TargetFramework values, rename winget methods to version-agnostic names ([4f94862](https://github.com/Belphemur/SoundSwitch/commit/4f94862cf557b509d6e650a1822bfdf76404332d))
+* parameterize .NET version for winget, remove stale win-x64 references ([3e1daaa](https://github.com/Belphemur/SoundSwitch/commit/3e1daaa33e1db0099c7faac8e87c0b1e704570f5))
+* pass DotNetMajorVersion from CI to installer, add include guard, fix repoRoot init order ([31a041b](https://github.com/Belphemur/SoundSwitch/commit/31a041b36519db012df78f3e38d2943c6ddaf4c7))
+* pin System.Security.Cryptography.Xml 10.0.7 to resolve CVE-2026-33116 and CVE-2026-26171 ([5df71f9](https://github.com/Belphemur/SoundSwitch/commit/5df71f95b3fb14dcd37dbae10def9cb92d4183ea))
+* **publish:** disambiguate $tag variable in Read-Host string interpolation ([c86b702](https://github.com/Belphemur/SoundSwitch/commit/c86b7022371756e2182272aa52de5059b88b28bd))
+* **publish:** resolve Count property error when uploading single installer ([#2081](https://github.com/Belphemur/SoundSwitch/issues/2081)) ([f58f15a](https://github.com/Belphemur/SoundSwitch/commit/f58f15ade0e3c27e87fc97efda32734d546f14e7))
+* remove ready to run ([640b5b4](https://github.com/Belphemur/SoundSwitch/commit/640b5b4185809e18a83dfd795136a4e9bd0f74c7))
+* remove SelfContained from CLI, exclude arch-suffixed installers from fallback ([d46d93b](https://github.com/Belphemur/SoundSwitch/commit/d46d93b852d5bdd4c7631d0fc319eddea3dd1a39))
+* remove unsupported --scope from winget runtime install ([43caf63](https://github.com/Belphemur/SoundSwitch/commit/43caf63d85d4ae5921c519ad019c2157fb9bbb32))
+* typo on switch device hotkey labels ([e16a206](https://github.com/Belphemur/SoundSwitch/commit/e16a206bfdc212530dc7f9aa3a581ee0748afb41))
+* update CodeQL SDK to 10.0.x, remove unused ARCH env var ([bf71d15](https://github.com/Belphemur/SoundSwitch/commit/bf71d155da38eb74700fcf1347437829621ffc56))
+* use {pf} not {commonpf}, FileSearch for winget PATH, NeedRestart on 3010 ([5002a75](https://github.com/Belphemur/SoundSwitch/commit/5002a7584b72144d669fcd5427df02ece3425cf7))
+* use underscore for arch suffix in auto-updater, prefer arch-specific first ([4a524f7](https://github.com/Belphemur/SoundSwitch/commit/4a524f7ce37edc52d243c7f4e01025877c04078d))
+* use windows-latest runner instead of windows-2025 in test-installer-build.yml ([7f2061c](https://github.com/Belphemur/SoundSwitch/commit/7f2061c65bb015943e92e599a1b7bd47dc50c3c2))
+
+### Languages
+
+* **Slovak:** Added About translation using Weblate ([3c41295](https://github.com/Belphemur/SoundSwitch/commit/3c412959f153b396f2c593532d854a4fd28df088))
+* **Slovak:** Added Settings translation using Weblate ([1e9c83c](https://github.com/Belphemur/SoundSwitch/commit/1e9c83cf472df04303b2f20e005880fb7b2513db))
+* **Slovak:** Added Tray Icon translation using Weblate ([6fda308](https://github.com/Belphemur/SoundSwitch/commit/6fda30822b953c55784c2bb352009a9e319b8893))
+* **Slovak:** Added Update Download translation using Weblate ([3765663](https://github.com/Belphemur/SoundSwitch/commit/3765663b6bfb279c961db8b527bbd0fa65562ccc))
+
+## [6.15.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.14.2...v6.15.0-beta.1) (2026-04-21)
+
+### Features
+
+* add copilot-setup-steps.yml to run Copilot agent on Windows ([6dbc87f](https://github.com/Belphemur/SoundSwitch/commit/6dbc87f598e0c6e7268e2865c7f5f2ec5b38cceb))
+* add Sign-Binary.ps1 with SHA-256 signing, move code signing out of Inno Setup ([95cc05b](https://github.com/Belphemur/SoundSwitch/commit/95cc05b5f949e3043dd465642f66a64d07d14358))
+* **app-rules:** auto-open process picker and add description when creating a new App Rule ([#2050](https://github.com/Belphemur/SoundSwitch/issues/2050)) ([0431a44](https://github.com/Belphemur/SoundSwitch/commit/0431a44ffe01e8a7a4d05f3c1be78d09d0b4671a))
+* **app-sound-lock:** decouple process polling and implement notification batching ([05b9f57](https://github.com/Belphemur/SoundSwitch/commit/05b9f573ecbff4aff5a48af3c96e9665e4111529))
+* **audio-manager:** add ProcessMonitor for periodic process polling ([202aa72](https://github.com/Belphemur/SoundSwitch/commit/202aa72b915caa84ba781dbf468ad62cd3779f25))
+* **notification:** add support for App Rule triggers and configuration ([4fafaec](https://github.com/Belphemur/SoundSwitch/commit/4fafaeceef2f9d6a71f7bc0a56a56ae09948d0eb))
+* rethink release pipeline with zip artifact, Python markdown tool, and PowerShell download script ([98a2a16](https://github.com/Belphemur/SoundSwitch/commit/98a2a16c915eca2c3413b405dac3ede8b36a1715))
+* **tools:** add GitHub CLI as dependency in Install-BuildTools.ps1 ([9a98686](https://github.com/Belphemur/SoundSwitch/commit/9a9868697b45c87aea4c41bb6067ecc6d8f3c610))
+* **tools:** add Publish-Release.ps1, refactor Build-Installer.ps1, enforce PS 7.0+ ([09a9e5b](https://github.com/Belphemur/SoundSwitch/commit/09a9e5b89a2301715f6257a7a3deeca98e8c64e4))
+* **ui:** improve app rules grid, add process selection icons, and clear buttons ([e48b47f](https://github.com/Belphemur/SoundSwitch/commit/e48b47f03ec43d252cbb3ab91fcd607413d45dcf))
+
+### Enhancements
+
+* bump version to 6.14.3 for app rules patches ([f6ba43c](https://github.com/Belphemur/SoundSwitch/commit/f6ba43cad977e4f86598d34e4c59e26a02975a6d))
+* **icon:** refactor icon extraction into general-purpose ref-counted GDI infrastructure ([#2039](https://github.com/Belphemur/SoundSwitch/issues/2039)) ([a44433a](https://github.com/Belphemur/SoundSwitch/commit/a44433ac77b30f0550c91eb41ebc9c762919229a))
+* move to .NET 10 ([0942d7c](https://github.com/Belphemur/SoundSwitch/commit/0942d7c6149e5be0a3e9724c8ad9d7b3c4642a08))
+* Notifications Tab ([877bd41](https://github.com/Belphemur/SoundSwitch/commit/877bd41d3366a0e778f1eede556416c4cc6ec1ff))
+
+### Bug Fixes
+
+* add Switch Recording Device option for tray icon double-click ([615e354](https://github.com/Belphemur/SoundSwitch/commit/615e3547f8f69fbeb1eb3c59d811bd69eb305b61))
+* address PR review feedback - revert Make.bat, add Build-Installer.ps1 and Install-BuildTools.ps1, fix LASTEXITCODE check, add permissions, auto-detect framework ([0fcc4c7](https://github.com/Belphemur/SoundSwitch/commit/0fcc4c72b4d069bc8af6c559f5ee12d6941b1147))
+* **app-rules:** add logging to empty catch blocks ([37e4867](https://github.com/Belphemur/SoundSwitch/commit/37e48672a19263120b0900da7133e58f9756cd00))
+* **app-rules:** fix NU1510 compiler warnings ([bbffe63](https://github.com/Belphemur/SoundSwitch/commit/bbffe63441e319eb5f2ab86d5a7493a85f6d32e8))
+* apply review feedback — error checks, LiteralPath, fix CI winget failure, document PowerShell 7+ ([f349ea4](https://github.com/Belphemur/SoundSwitch/commit/f349ea47a950964d2be77a74146f7cffd56213a9))
+* auto-detect .NET SDK version in copilot-setup-steps.yml from csproj TargetFramework ([f064d96](https://github.com/Belphemur/SoundSwitch/commit/f064d968a4036f376bcadfcd9783398d5f4d0998))
+* **banner:** reuse custom position notification and improve keyboard hints ([551c45f](https://github.com/Belphemur/SoundSwitch/commit/551c45f73bf51e0d931f7de6afac003f5266a011))
+* **build:** replace NuGet signtool with Windows Driver Kit (WDK) installation via winget ([8903306](https://github.com/Belphemur/SoundSwitch/commit/89033069137aa051ff97d5831dcc235a45dd9839))
+* **ci:** build the full solution instead of individual projects ([17a0c35](https://github.com/Belphemur/SoundSwitch/commit/17a0c3525977baad60c7e0fbe98bb71b465ee0a7))
+* **ci:** check Inno Setup registry before running winget install ([85b17db](https://github.com/Belphemur/SoundSwitch/commit/85b17db95bb5b3ace6c883c5755114b5e73424cb))
+* **ci:** finding the right version of the framework ([cfc8f32](https://github.com/Belphemur/SoundSwitch/commit/cfc8f32b5aff1c737e18225a73f321b618d2cecb))
+* **ci:** reset exit code after handling already-installed Inno Setup in test-installer-build ([4e97121](https://github.com/Belphemur/SoundSwitch/commit/4e97121cfe7b26eeb6722083adda356134e1319c))
+* **ci:** trigger build on root-level NuGet/SDK configuration file changes ([fcf1cc3](https://github.com/Belphemur/SoundSwitch/commit/fcf1cc3d450202e9b18c4aeb521a0a20f924d593))
+* **cli:** change ExecuteAsync to protected for Spectre.Console 0.55.0 and build CLI in normal CI ([4c9ab27](https://github.com/Belphemur/SoundSwitch/commit/4c9ab2759194b2a1b383c11629af9f605312bdfc))
+* **cli:** fix cli lib update ([a93a131](https://github.com/Belphemur/SoundSwitch/commit/a93a131da0e277406d5f28baca31590231193cb2))
+* **double-click:** fix naming of double click feature ([6101c48](https://github.com/Belphemur/SoundSwitch/commit/6101c4828671cb2bc133da736e2697385626fdb5))
+* download signtool from GitHub with smoke test, fallback to Windows SDK ([7bed774](https://github.com/Belphemur/SoundSwitch/commit/7bed774945a12eb0a9f606dbccf07c084f708611))
+* **hotkey:** reject AltGr input in hotkey capture to prevent blocking international key sequences on Windows 11 ([#2075](https://github.com/Belphemur/SoundSwitch/issues/2075)) ([21f66ba](https://github.com/Belphemur/SoundSwitch/commit/21f66bad7ab916ff7957221b3c96f774168cfd49))
+* **icon:** use the new way to extract icons ([8e53fa9](https://github.com/Belphemur/SoundSwitch/commit/8e53fa93f1d9be9bc9c8efa16176db524a1f7504))
+* improve error message consistency and winget exit code handling ([547fcc4](https://github.com/Belphemur/SoundSwitch/commit/547fcc4c9fa8994ecc7d79dffd5b3d954b05062e))
+* **localization:** Add fallback mechanism for missing localized strings ([5a36295](https://github.com/Belphemur/SoundSwitch/commit/5a3629567bdf5018aceb5ddef172df9867f15e4f))
+* missing designer file for switch Recording device ([a04c624](https://github.com/Belphemur/SoundSwitch/commit/a04c624059266610e86e08977803d03f34a7d71e))
+* **notifications:** address PR review feedback ([3ec10e7](https://github.com/Belphemur/SoundSwitch/commit/3ec10e7e08803d0126d50e57c85fa4555b380c67))
+* null-safe PATH refresh in Install-BuildTools.ps1 ([4a669ca](https://github.com/Belphemur/SoundSwitch/commit/4a669caf17dc3c67112b8b9c17f99217a4532fd8))
+* replace full Windows SDK with lightweight NuGet signtool, add Certum SimplySign Desktop ([1884ebf](https://github.com/Belphemur/SoundSwitch/commit/1884ebf23d62582e322f85fcbde11e4b54e11ff7))
+* replace ternary operator in Install-BuildTools.ps1 and add Pester tests ([0b69f88](https://github.com/Belphemur/SoundSwitch/commit/0b69f8887afd5c4e49ca6b987cc58029a907012d))
+* restore localized dropdown fallback behavior ([63ffe2b](https://github.com/Belphemur/SoundSwitch/commit/63ffe2bc8641a2dd0fedaec812ed546eddc22c62))
+* scope mismatch in callCount variable and add Directory.Parent mock properties ([9f18897](https://github.com/Belphemur/SoundSwitch/commit/9f18897b1c362c68fb4ad5d83b1b91682ee36327))
+* **settings:** align split notification settings with model and runtime ([c3e2c9a](https://github.com/Belphemur/SoundSwitch/commit/c3e2c9a7ec27cd8d6ba67e8dd2c9b67a113ff14b))
+* **signing:** switch to DigiCert timestamp server with SHA-512 timestamp digest ([ef978a1](https://github.com/Belphemur/SoundSwitch/commit/ef978a1bf4aca69994295a65d594bd2f8528bedb))
+* **tools:** streamline responsibilities, invoke ISCC directly, derive release state from channel ([83ef154](https://github.com/Belphemur/SoundSwitch/commit/83ef154b2ac200a282426815b2365e36f132e4ba))
+* update Python version to 3.14 in Install-BuildTools.ps1 ([e77b965](https://github.com/Belphemur/SoundSwitch/commit/e77b965e1e549d446305a6314522851cfd09be68))
+* winsdk detection ([f664d00](https://github.com/Belphemur/SoundSwitch/commit/f664d003313be1917eb04fe58aa612997a04a71a))
+
+## [6.14.2](https://github.com/Belphemur/SoundSwitch/compare/v6.14.1...v6.14.2) (2025-09-15)
+
+### Enhancements
+
+* **double-click:** eliminate switch statement using factory pattern for double-click actions ([a8e9bbd](https://github.com/Belphemur/SoundSwitch/commit/a8e9bbd4be1f443858e3dcb80bd4eecf111d13a9)), closes [#491](https://github.com/Belphemur/SoundSwitch/issues/491) [#1800](https://github.com/Belphemur/SoundSwitch/issues/1800)
+* **hotkey:** Add Subtract (-) and Add (+) as valid hotkey on a num pad ([ad7e2ae](https://github.com/Belphemur/SoundSwitch/commit/ad7e2aeaa2114325a3dd68583dbec86323f0ef33))
+
+### Bug Fixes
+
+* **banner:** Fix issue where the banner might not be Top Most. ([889c9a0](https://github.com/Belphemur/SoundSwitch/commit/889c9a0718c46b99094aaab870a2b81c7fbe56a7))
+* **double-click:** use singleton factory instance to maintain profile cycling state ([0591e4e](https://github.com/Belphemur/SoundSwitch/commit/0591e4e331c16a60e8081def9025b0a2980cf557)), closes [#491](https://github.com/Belphemur/SoundSwitch/issues/491) [#1800](https://github.com/Belphemur/SoundSwitch/issues/1800)
+* **hotkey:** Fix not being able to use Multiply and Device for hotkey ([f323d90](https://github.com/Belphemur/SoundSwitch/commit/f323d903a37241d76876a0be0e9a04d475be6701)), closes [#1853](https://github.com/Belphemur/SoundSwitch/issues/1853)
+
+### Languages
+
+* Add Armenian ([d232247](https://github.com/Belphemur/SoundSwitch/commit/d23224749255a71ecfa207860480cb6014dad0b1))
+* **Amharic:** Translated About using Weblate ([1e0cf10](https://github.com/Belphemur/SoundSwitch/commit/1e0cf10e28971235c1cb1873b6b7bb9ec5c8bae6))
+* **Armenian:** Added About translation using Weblate ([61695d2](https://github.com/Belphemur/SoundSwitch/commit/61695d26d71ff66377159df879a7cd5ee2686dda))
+* **Armenian:** Added Settings translation using Weblate ([fabee80](https://github.com/Belphemur/SoundSwitch/commit/fabee8043abb0f6788647ec86220c290a50b5372))
+* **Armenian:** Added Tray Icon translation using Weblate ([fac6327](https://github.com/Belphemur/SoundSwitch/commit/fac63272b380614f51aef64b3c25b210ba63ea46))
+* **Armenian:** Added Update Download translation using Weblate ([8130310](https://github.com/Belphemur/SoundSwitch/commit/8130310d07c69962c0c0222574061ea30cd82ff3))
+* **Armenian:** Translated Settings using Weblate ([e3000ca](https://github.com/Belphemur/SoundSwitch/commit/e3000cad0380e74c2862b713b2b9847ac6e16f4f))
+* **Armenian:** Translated Settings using Weblate ([ce4adc1](https://github.com/Belphemur/SoundSwitch/commit/ce4adc16e6e9045837042595c400b22c8c0c7b6e))
+* **Armenian:** Translated Settings using Weblate ([abe0eb3](https://github.com/Belphemur/SoundSwitch/commit/abe0eb3f85eb5622bd11351b6e1ed1f93559027f))
+* **Armenian:** Translated Tray Icon using Weblate ([4eb5fd7](https://github.com/Belphemur/SoundSwitch/commit/4eb5fd757dbc8c58fdd6d763235cc040d41843ba))
+* **Armenian:** Translated Tray Icon using Weblate ([49dbffb](https://github.com/Belphemur/SoundSwitch/commit/49dbffbf855f29ad5edc12986bc134d45622e0bc))
+* **Armenian:** Translated Update Download using Weblate ([7831db5](https://github.com/Belphemur/SoundSwitch/commit/7831db5ecacb3b9e758c7f0353ab98ffdb4d7190))
+* **Chinese (Traditional Han script):** Translated Settings using Weblate ([d3fbfdb](https://github.com/Belphemur/SoundSwitch/commit/d3fbfdb2e8cd3772496e9e763edaa1a2679d86a1))
+* **Chinese (Traditional Han script):** Translated Settings using Weblate ([46cbc62](https://github.com/Belphemur/SoundSwitch/commit/46cbc624348faf48f94f3f25ef1355b71a1afdd4))
+* **Chinese (Traditional Han script):** Translated Settings using Weblate ([eede079](https://github.com/Belphemur/SoundSwitch/commit/eede079f88bd8aeb99efeb40ab7db4ecadeeb2dc))
+* **Croatian:** Translated Settings using Weblate ([686089e](https://github.com/Belphemur/SoundSwitch/commit/686089ea1f4e5f7ca3b9014f600f350495e33f81))
+* **Danish:** Translated Settings using Weblate ([fa13761](https://github.com/Belphemur/SoundSwitch/commit/fa137614ebebcce46f51fef4ab8f929b6fe67287))
+* **Danish:** Translated Tray Icon using Weblate ([2a589e1](https://github.com/Belphemur/SoundSwitch/commit/2a589e1e17ce7efe835562cd9c291cd8c72167b4))
+* **Danish:** Translated Update Download using Weblate ([4324bf6](https://github.com/Belphemur/SoundSwitch/commit/4324bf6ffb498526b7d3ba91351d583ae9df5c1b))
+* **Dutch:** Translated Settings using Weblate ([0382374](https://github.com/Belphemur/SoundSwitch/commit/0382374abe2b30db6d4a87f40ff96a3b98ee348b))
+* **French:** Translated Settings using Weblate ([cfa5014](https://github.com/Belphemur/SoundSwitch/commit/cfa5014d9cc51f56598c52058afdc413a0742070))
+* **Italian:** Translated Settings using Weblate ([2919196](https://github.com/Belphemur/SoundSwitch/commit/2919196e33583353d046bc40975903edc659e334))
+* **Japanese:** Translated Settings using Weblate ([58caf63](https://github.com/Belphemur/SoundSwitch/commit/58caf63d9054aa459fba9e627e7cd7e50ffaf8c4))
+* **Japanese:** Translated Settings using Weblate ([56f8417](https://github.com/Belphemur/SoundSwitch/commit/56f8417374174cec431666782614b6e5972b313b))
+* **Korean:** Translated Settings using Weblate ([2cfea16](https://github.com/Belphemur/SoundSwitch/commit/2cfea16ac56f160ae8665aab41988929d833a2db))
+* **Korean:** Translated Settings using Weblate ([fc4d827](https://github.com/Belphemur/SoundSwitch/commit/fc4d8278d8d2f2079295c7023b7e69ed942dbca7))
+* **Korean:** Translated Settings using Weblate ([45f2fd2](https://github.com/Belphemur/SoundSwitch/commit/45f2fd20e276782cb9c54433d095576026b24242))
+* **Korean:** Translated Settings using Weblate ([ccc03aa](https://github.com/Belphemur/SoundSwitch/commit/ccc03aa31a9165c3d218e11af9f56c0fa9b4a3a5))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([bfeda5d](https://github.com/Belphemur/SoundSwitch/commit/bfeda5db8ea3288cab956803fabd189e35517748))
+* **Polish:** Translated Settings using Weblate ([ed920f6](https://github.com/Belphemur/SoundSwitch/commit/ed920f604dbd993f8b420a298a6ded82844ec476))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([1712e65](https://github.com/Belphemur/SoundSwitch/commit/1712e655a3ef82aa2ebf251295a650d3f839e3fe))
+* **Portuguese:** Translated Settings using Weblate ([e9916b1](https://github.com/Belphemur/SoundSwitch/commit/e9916b13f0a4b923b927d55a7b244184179e734f))
+* **Russian:** Translated Settings using Weblate ([12cd94e](https://github.com/Belphemur/SoundSwitch/commit/12cd94ee2d2b0b265df77dbae80b54549f8f005b))
+* **Swedish:** Translated Settings using Weblate ([f8ff6ba](https://github.com/Belphemur/SoundSwitch/commit/f8ff6ba083f189f28144984a8f0003e9ffbbbecc))
+* **Tamil:** Translated Settings using Weblate ([eb9d573](https://github.com/Belphemur/SoundSwitch/commit/eb9d573aa0c5adb9f62948ed4e70fd897686d5bb))
+* **Tamil:** Translated Settings using Weblate ([40b9c4d](https://github.com/Belphemur/SoundSwitch/commit/40b9c4de855f248f204e4f48e151317db6800b5a))
+
+## [6.14.2-beta.3](https://github.com/Belphemur/SoundSwitch/compare/v6.14.2-beta.2...v6.14.2-beta.3) (2025-08-12)
+
+### Enhancements
+
+* **hotkey:** Add Subtract (-) and Add (+) as valid hotkey on a num pad ([ad7e2ae](https://github.com/Belphemur/SoundSwitch/commit/ad7e2aeaa2114325a3dd68583dbec86323f0ef33))
+
+### Bug Fixes
+
+* **banner:** Fix issue where the banner might not be Top Most. ([889c9a0](https://github.com/Belphemur/SoundSwitch/commit/889c9a0718c46b99094aaab870a2b81c7fbe56a7))
+* **hotkey:** Fix not being able to use Multiply and Device for hotkey ([f323d90](https://github.com/Belphemur/SoundSwitch/commit/f323d903a37241d76876a0be0e9a04d475be6701)), closes [#1853](https://github.com/Belphemur/SoundSwitch/issues/1853)
+
+### Languages
+
+* Add Armenian ([d232247](https://github.com/Belphemur/SoundSwitch/commit/d23224749255a71ecfa207860480cb6014dad0b1))
+* **Armenian:** Added About translation using Weblate ([61695d2](https://github.com/Belphemur/SoundSwitch/commit/61695d26d71ff66377159df879a7cd5ee2686dda))
+* **Armenian:** Added Settings translation using Weblate ([fabee80](https://github.com/Belphemur/SoundSwitch/commit/fabee8043abb0f6788647ec86220c290a50b5372))
+* **Armenian:** Added Tray Icon translation using Weblate ([fac6327](https://github.com/Belphemur/SoundSwitch/commit/fac63272b380614f51aef64b3c25b210ba63ea46))
+* **Armenian:** Added Update Download translation using Weblate ([8130310](https://github.com/Belphemur/SoundSwitch/commit/8130310d07c69962c0c0222574061ea30cd82ff3))
+* **Armenian:** Translated Settings using Weblate ([ce4adc1](https://github.com/Belphemur/SoundSwitch/commit/ce4adc16e6e9045837042595c400b22c8c0c7b6e))
+* **Armenian:** Translated Settings using Weblate ([abe0eb3](https://github.com/Belphemur/SoundSwitch/commit/abe0eb3f85eb5622bd11351b6e1ed1f93559027f))
+* **Armenian:** Translated Tray Icon using Weblate ([49dbffb](https://github.com/Belphemur/SoundSwitch/commit/49dbffbf855f29ad5edc12986bc134d45622e0bc))
+* **Armenian:** Translated Update Download using Weblate ([7831db5](https://github.com/Belphemur/SoundSwitch/commit/7831db5ecacb3b9e758c7f0353ab98ffdb4d7190))
+* **Chinese (Traditional Han script):** Translated Settings using Weblate ([d3fbfdb](https://github.com/Belphemur/SoundSwitch/commit/d3fbfdb2e8cd3772496e9e763edaa1a2679d86a1))
+* **Chinese (Traditional Han script):** Translated Settings using Weblate ([46cbc62](https://github.com/Belphemur/SoundSwitch/commit/46cbc624348faf48f94f3f25ef1355b71a1afdd4))
+* **Chinese (Traditional Han script):** Translated Settings using Weblate ([eede079](https://github.com/Belphemur/SoundSwitch/commit/eede079f88bd8aeb99efeb40ab7db4ecadeeb2dc))
+* **Dutch:** Translated Settings using Weblate ([0382374](https://github.com/Belphemur/SoundSwitch/commit/0382374abe2b30db6d4a87f40ff96a3b98ee348b))
+* **Italian:** Translated Settings using Weblate ([2919196](https://github.com/Belphemur/SoundSwitch/commit/2919196e33583353d046bc40975903edc659e334))
+* **Korean:** Translated Settings using Weblate ([2cfea16](https://github.com/Belphemur/SoundSwitch/commit/2cfea16ac56f160ae8665aab41988929d833a2db))
+* **Korean:** Translated Settings using Weblate ([fc4d827](https://github.com/Belphemur/SoundSwitch/commit/fc4d8278d8d2f2079295c7023b7e69ed942dbca7))
+* **Korean:** Translated Settings using Weblate ([45f2fd2](https://github.com/Belphemur/SoundSwitch/commit/45f2fd20e276782cb9c54433d095576026b24242))
+* **Korean:** Translated Settings using Weblate ([ccc03aa](https://github.com/Belphemur/SoundSwitch/commit/ccc03aa31a9165c3d218e11af9f56c0fa9b4a3a5))
+* **Tamil:** Translated Settings using Weblate ([eb9d573](https://github.com/Belphemur/SoundSwitch/commit/eb9d573aa0c5adb9f62948ed4e70fd897686d5bb))
+* **Tamil:** Translated Settings using Weblate ([40b9c4d](https://github.com/Belphemur/SoundSwitch/commit/40b9c4de855f248f204e4f48e151317db6800b5a))
+
+## [6.14.2-beta.2](https://github.com/Belphemur/SoundSwitch/compare/v6.14.2-beta.1...v6.14.2-beta.2) (2025-06-25)
+
+### Enhancements
+
+* **double-click:** eliminate switch statement using factory pattern for double-click actions ([a8e9bbd](https://github.com/Belphemur/SoundSwitch/commit/a8e9bbd4be1f443858e3dcb80bd4eecf111d13a9)), closes [#491](https://github.com/Belphemur/SoundSwitch/issues/491) [#1800](https://github.com/Belphemur/SoundSwitch/issues/1800)
+
+### Bug Fixes
+
+* **double-click:** use singleton factory instance to maintain profile cycling state ([0591e4e](https://github.com/Belphemur/SoundSwitch/commit/0591e4e331c16a60e8081def9025b0a2980cf557)), closes [#491](https://github.com/Belphemur/SoundSwitch/issues/491) [#1800](https://github.com/Belphemur/SoundSwitch/issues/1800)
+
+## [6.14.2-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.14.1...v6.14.2-beta.1) (2025-06-24)
+
+### Languages
+
+* **Amharic:** Translated About using Weblate ([1e0cf10](https://github.com/Belphemur/SoundSwitch/commit/1e0cf10e28971235c1cb1873b6b7bb9ec5c8bae6))
+* **Danish:** Translated Settings using Weblate ([fa13761](https://github.com/Belphemur/SoundSwitch/commit/fa137614ebebcce46f51fef4ab8f929b6fe67287))
+* **Danish:** Translated Tray Icon using Weblate ([2a589e1](https://github.com/Belphemur/SoundSwitch/commit/2a589e1e17ce7efe835562cd9c291cd8c72167b4))
+* **Danish:** Translated Update Download using Weblate ([4324bf6](https://github.com/Belphemur/SoundSwitch/commit/4324bf6ffb498526b7d3ba91351d583ae9df5c1b))
+* **French:** Translated Settings using Weblate ([cfa5014](https://github.com/Belphemur/SoundSwitch/commit/cfa5014d9cc51f56598c52058afdc413a0742070))
+* **Japanese:** Translated Settings using Weblate ([58caf63](https://github.com/Belphemur/SoundSwitch/commit/58caf63d9054aa459fba9e627e7cd7e50ffaf8c4))
+* **Japanese:** Translated Settings using Weblate ([56f8417](https://github.com/Belphemur/SoundSwitch/commit/56f8417374174cec431666782614b6e5972b313b))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([bfeda5d](https://github.com/Belphemur/SoundSwitch/commit/bfeda5db8ea3288cab956803fabd189e35517748))
+* **Polish:** Translated Settings using Weblate ([ed920f6](https://github.com/Belphemur/SoundSwitch/commit/ed920f604dbd993f8b420a298a6ded82844ec476))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([1712e65](https://github.com/Belphemur/SoundSwitch/commit/1712e655a3ef82aa2ebf251295a650d3f839e3fe))
+* **Russian:** Translated Settings using Weblate ([12cd94e](https://github.com/Belphemur/SoundSwitch/commit/12cd94ee2d2b0b265df77dbae80b54549f8f005b))
+* **Swedish:** Translated Settings using Weblate ([f8ff6ba](https://github.com/Belphemur/SoundSwitch/commit/f8ff6ba083f189f28144984a8f0003e9ffbbbecc))
+
+## [6.14.1](https://github.com/Belphemur/SoundSwitch/compare/v6.14.0...v6.14.1) (2025-06-04)
+
+### Bug Fixes
+
+* **settings:** fix opening settings crashing the application when using CLI or opening SoundSwitch again ([b3dca74](https://github.com/Belphemur/SoundSwitch/commit/b3dca747e6434c21e0f88148abbf4723707388db))
+
+### Languages
+
+* **Amharic:** Added About translation using Weblate ([8a40dab](https://github.com/Belphemur/SoundSwitch/commit/8a40dab606120fa0c34d8ef5063d30ed5a9151ca))
+* **Japanese:** Translated About using Weblate ([3541994](https://github.com/Belphemur/SoundSwitch/commit/3541994b9b8f59c83272e3da7983c3f7a1efd92a))
+* **Japanese:** Translated Settings using Weblate ([ca5b2fe](https://github.com/Belphemur/SoundSwitch/commit/ca5b2fefb88d7a4c1db149f7f0b4d8e10fd7ac8f))
+* **Japanese:** Translated Settings using Weblate ([39a2340](https://github.com/Belphemur/SoundSwitch/commit/39a2340cacb22bac9e6097faceaa9485a8ae2b7a))
+* **Japanese:** Translated Tray Icon using Weblate ([1286b92](https://github.com/Belphemur/SoundSwitch/commit/1286b92a9b970eecd6c87e4948235d044c9e4acc))
+* **Japanese:** Translated Update Download using Weblate ([1c2c658](https://github.com/Belphemur/SoundSwitch/commit/1c2c6586aa4897ac7571210c83fddc31dc2af2da))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([5aaf243](https://github.com/Belphemur/SoundSwitch/commit/5aaf243b4d0ec6c5d09158138cf6f4d07a3744e8))
+* **Portuguese:** Translated Settings using Weblate ([e11f18d](https://github.com/Belphemur/SoundSwitch/commit/e11f18d5f183ffbd9d52214dc7791dd9f3524e4d))
+* **Swedish:** Translated Settings using Weblate ([8b7b738](https://github.com/Belphemur/SoundSwitch/commit/8b7b7381075ffca73003630712ec5eed3429bc2e))
+
+## [6.14.0](https://github.com/Belphemur/SoundSwitch/compare/v6.13.0...v6.14.0) (2025-05-25)
+
+### Enhancements
+
+* **logging:** Improve logging of setting up the volume listener. ([f36fc56](https://github.com/Belphemur/SoundSwitch/commit/f36fc56c0e86e6b93111c0a15dc86e20dc9abb48))
+* Microphone Muted is now a drop down; ([9fb0659](https://github.com/Belphemur/SoundSwitch/commit/9fb0659ee65babbdd5101fbf73a6c59ee75f3f81))
+* **troubleshooting:** export configuration file for troubleshooting ([8f13c26](https://github.com/Belphemur/SoundSwitch/commit/8f13c26e05027480d66e3a1787d2d134fbee00c2))
+* **troubleshooting:** Import configuration file ([8a82ad7](https://github.com/Belphemur/SoundSwitch/commit/8a82ad76207fe57bcde8f14fea7a5ac9d39f0c60))
+* **troubleshooting:** Import configuration file ([88f2e1a](https://github.com/Belphemur/SoundSwitch/commit/88f2e1a485f327255c01cb16ca6dd9a88c29cfc6))
+
+### Languages
+
+* **Arabic:** Translated Settings using Weblate ([2c29b85](https://github.com/Belphemur/SoundSwitch/commit/2c29b85d911cd77947463993d4b4c01bbbf8f8fc))
+* **Bulgarian:** Translated Settings using Weblate ([3a4656c](https://github.com/Belphemur/SoundSwitch/commit/3a4656cc5a913df71e3e945187adb30f382ec0e3))
+* **Chinese (Simplified Han script):** Translated Settings using Weblate ([2175efc](https://github.com/Belphemur/SoundSwitch/commit/2175efc3bb1fb7aa5bc19aeb488688692e22e2fe))
+* **Chinese (Traditional Han script):** Translated Settings using Weblate ([f81ce81](https://github.com/Belphemur/SoundSwitch/commit/f81ce81ad16d931e021a3b8a6ed16f08eddbd7da))
+* **Croatian:** Translated Settings using Weblate ([a8ca4d2](https://github.com/Belphemur/SoundSwitch/commit/a8ca4d2378076c43a9cdad48537d288309c5a47f))
+* **Czech:** Translated Settings using Weblate ([5f792a6](https://github.com/Belphemur/SoundSwitch/commit/5f792a6fee79216bb875fd6425c780fb3155fa8d))
+* **Danish:** Translated Settings using Weblate ([ee3a78c](https://github.com/Belphemur/SoundSwitch/commit/ee3a78c72387626fab1e13d220ead18fdd31b836))
+* **Dutch:** Translated Settings using Weblate ([1ef9918](https://github.com/Belphemur/SoundSwitch/commit/1ef991847100115f86aa7f967262ec62dd766c30))
+* **French:** Translated Settings using Weblate ([5a3fdfd](https://github.com/Belphemur/SoundSwitch/commit/5a3fdfdd830cc05cc26cb67b2e418a98f8d50095))
+* **French:** Translated Settings using Weblate ([ae5e32c](https://github.com/Belphemur/SoundSwitch/commit/ae5e32c7243155681d41c754cb311c69539b401e))
+* **German:** Translated Settings using Weblate ([40deacd](https://github.com/Belphemur/SoundSwitch/commit/40deacd095e2fa2119f1877ec5c44ecc932b83a3))
+* **Greek:** Translated About using Weblate ([99956a6](https://github.com/Belphemur/SoundSwitch/commit/99956a6023ab1ebad8b85c2ee44c01aeb6404eac))
+* **Greek:** Translated Settings using Weblate ([0aa6656](https://github.com/Belphemur/SoundSwitch/commit/0aa6656cb5781127531ba5f4b97828b08ddc77e1))
+* **Greek:** Translated Settings using Weblate ([d9c1ffe](https://github.com/Belphemur/SoundSwitch/commit/d9c1ffe3b867f7f5b4c8ccf058758640f7f0f2e3))
+* **Greek:** Translated Tray Icon using Weblate ([720dde0](https://github.com/Belphemur/SoundSwitch/commit/720dde0a0a4ed2e7a31ad10eb1603818e542f096))
+* **Greek:** Translated Update Download using Weblate ([b4a1647](https://github.com/Belphemur/SoundSwitch/commit/b4a16470c4a278344aa412f0d2b407a49966df1f))
+* **Hebrew:** Translated Settings using Weblate ([9c4c254](https://github.com/Belphemur/SoundSwitch/commit/9c4c254c259f0898fc65965dc872f8ceafb2cf02))
+* **Hebrew:** Translated Settings using Weblate ([df461d6](https://github.com/Belphemur/SoundSwitch/commit/df461d699a4f8c26795cba6d0463309f442fcb2d))
+* **Hungarian:** Translated Settings using Weblate ([6a6ff2b](https://github.com/Belphemur/SoundSwitch/commit/6a6ff2bb2f6818bfdbf348918782bcbca09afa2c))
+* **Italian:** Translated Settings using Weblate ([41e46ff](https://github.com/Belphemur/SoundSwitch/commit/41e46ffcb807625d8e67a2e9aa021140699a3fb1))
+* **Italian:** Translated Settings using Weblate ([9917b1f](https://github.com/Belphemur/SoundSwitch/commit/9917b1f35e398a75ed9769e862d05bc0c3f2b7b1))
+* **Italian:** Translated Settings using Weblate ([72763ea](https://github.com/Belphemur/SoundSwitch/commit/72763ea08cfb131bb82b6e79b50f23704a8f8ff9))
+* **Italian:** Translated Settings using Weblate ([8d6f52b](https://github.com/Belphemur/SoundSwitch/commit/8d6f52b46c5ecf91e589b8a26b5d9b127a9e8eff))
+* **Japanese:** Translated About using Weblate ([08d15e3](https://github.com/Belphemur/SoundSwitch/commit/08d15e3b58396616589910b6f11df24a5a09bcbd))
+* **Japanese:** Translated Settings using Weblate ([dc8aa59](https://github.com/Belphemur/SoundSwitch/commit/dc8aa59f7b4952d9e15ec03c7013ba16c7895f9b))
+* **Japanese:** Translated Settings using Weblate ([f2d0c04](https://github.com/Belphemur/SoundSwitch/commit/f2d0c045a538906e32a82f9535cb9c95948808c4))
+* **Korean:** Translated Settings using Weblate ([1251740](https://github.com/Belphemur/SoundSwitch/commit/1251740978fac4a6b6f1f49e430e3252696c066c))
+* **Norwegian Bokmål:** Translated About using Weblate ([6b618be](https://github.com/Belphemur/SoundSwitch/commit/6b618be41be350eb1e73643cca8a7c8497cca00c))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([263ff53](https://github.com/Belphemur/SoundSwitch/commit/263ff5385d8998fb9ea64f50e418058513fa9df9))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([f087a20](https://github.com/Belphemur/SoundSwitch/commit/f087a200cc0a7852f251724cec503f92d24b79ce))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([be6a36d](https://github.com/Belphemur/SoundSwitch/commit/be6a36d485a825f30a8f858f9b0e47bb440361a0))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([7befd0b](https://github.com/Belphemur/SoundSwitch/commit/7befd0b6bf95f2569e35208f32a56e768fe5a3c9))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([c18788f](https://github.com/Belphemur/SoundSwitch/commit/c18788f339c98cf15714c4c7f85fb8c4609a1ba1))
+* **Norwegian Bokmål:** Translated Tray Icon using Weblate ([6493bbb](https://github.com/Belphemur/SoundSwitch/commit/6493bbbe21767d98c754f275b6b41aea079524de))
+* **Norwegian Bokmål:** Translated Update Download using Weblate ([933e9b9](https://github.com/Belphemur/SoundSwitch/commit/933e9b92d3343a0feec42b1abbbef77a5699db23))
+* **Polish:** Translated Settings using Weblate ([99dcf0b](https://github.com/Belphemur/SoundSwitch/commit/99dcf0b010a2db111c9800eb3b5444eb3204a8db))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([76a7a83](https://github.com/Belphemur/SoundSwitch/commit/76a7a839aaf229f11a171ad4371622b500560e01))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([18fb33b](https://github.com/Belphemur/SoundSwitch/commit/18fb33b09c19f7729fc608ab09ff6732e98dc4a4))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([b73e5b2](https://github.com/Belphemur/SoundSwitch/commit/b73e5b25ef0008bd96c6d056f0313fc1e26a6819))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([ee81ba4](https://github.com/Belphemur/SoundSwitch/commit/ee81ba4af2e62462c926c00a36fdeea26e5d7e4a))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([9342c9d](https://github.com/Belphemur/SoundSwitch/commit/9342c9d414a97613b0eb0ddad9f2698ac288e3aa))
+* **Portuguese:** Translated Settings using Weblate ([dec3dc3](https://github.com/Belphemur/SoundSwitch/commit/dec3dc33eeecbd23aed80a0a25aa0db1a2394b13))
+* **Russian:** Translated Settings using Weblate ([12dbe7b](https://github.com/Belphemur/SoundSwitch/commit/12dbe7b891b481fcf35ec5e8011bdef264f9b84a))
+* **Russian:** Translated Settings using Weblate ([87f494a](https://github.com/Belphemur/SoundSwitch/commit/87f494ae02432d39166ae02daede399d2b9916e7))
+* **Serbian:** Translated Settings using Weblate ([8e60d30](https://github.com/Belphemur/SoundSwitch/commit/8e60d3050aa9ad0567824ec6c8b858450271ecc5))
+* **Slovenian:** Translated Settings using Weblate ([19e9405](https://github.com/Belphemur/SoundSwitch/commit/19e940514d13dc7e85de839c722be93f509fe6f4))
+* **Spanish:** Translated Settings using Weblate ([05065ac](https://github.com/Belphemur/SoundSwitch/commit/05065accd6daa02152e49e5577205896eea5c2e9))
+* **Swedish:** Translated Settings using Weblate ([e4deb36](https://github.com/Belphemur/SoundSwitch/commit/e4deb36b44cc7068f2f408016810c97707bdd281))
+* **Swedish:** Translated Settings using Weblate ([607c843](https://github.com/Belphemur/SoundSwitch/commit/607c843d4b11c22b1e1872ac1f410ddfb2c60244))
+* **Tamil:** Translated Settings using Weblate ([66a6be0](https://github.com/Belphemur/SoundSwitch/commit/66a6be001751e87bcdd4cd7cd2a0f588aed8ff1c))
+* **Tamil:** Translated Settings using Weblate ([6760569](https://github.com/Belphemur/SoundSwitch/commit/676056910a8d8b6e58e8116104d99e19f923eab4))
+* **Thai:** Translated Settings using Weblate ([e6bb066](https://github.com/Belphemur/SoundSwitch/commit/e6bb066b7ed1a9a9da34574ff866aafb38a280fe))
+* **Turkish:** Translated Settings using Weblate ([30a2747](https://github.com/Belphemur/SoundSwitch/commit/30a274710627a1c6f2af4b76a07851b3ecb98306))
+* **Ukrainian:** Translated Settings using Weblate ([a0ec425](https://github.com/Belphemur/SoundSwitch/commit/a0ec425959ada37f72dd8ac20bab86199f9c5f9e))
+
+### Bug Fixes
+
+* **audio:** Subscribe to OS-level volume notifications for devices ([f59cc2c](https://github.com/Belphemur/SoundSwitch/commit/f59cc2cf14d187bd7e47ec38b28d710cff5d1da6))
+* **banner settings:** Banner Settings now properly disabled when notification type not set to banner ([f7b9305](https://github.com/Belphemur/SoundSwitch/commit/f7b93058be785793e3499f3f02b00d69002ee296))
+* **cli:** fix building CLI ([0f8232d](https://github.com/Belphemur/SoundSwitch/commit/0f8232d2c36cab3d7c3e2a4ae163075cc6e2e7b3))
+* **config:** fix migrating to new configuration for persistent mute ([465a0c9](https://github.com/Belphemur/SoundSwitch/commit/465a0c94adb9adf45f81e9143fa97ee40f7e2868))
+* Dialog box won't show when current UI language is selected ([2956336](https://github.com/Belphemur/SoundSwitch/commit/29563364b785d74f37091294ff6dcf4588447846))
+* **double-click:** fix issue where double-clicking on the icon triggered the switching menu ([b85adca](https://github.com/Belphemur/SoundSwitch/commit/b85adca12930132a74d6518e5cf527625b9f9d3e))
+* FullBanner(), MicrophoneMuteManager renamed, PersistentMuteNotification migrated ([7a03b2c](https://github.com/Belphemur/SoundSwitch/commit/7a03b2cb9031ec29b9b5c83fafd206cc05134592))
+* **import/export:** Verify that the configuration is valid before importing it. ([3786395](https://github.com/Belphemur/SoundSwitch/commit/3786395e4860f642747778ad991511404da5fa9a))
+* NotifyIcon.MouseDoubleClick() ([08405c8](https://github.com/Belphemur/SoundSwitch/commit/08405c8e700f265dc2a2b2d84d09544d43a14dd2))
+* refine update search criteria and add sanity check in Invoke-KBInstall function ([beaeca3](https://github.com/Belphemur/SoundSwitch/commit/beaeca3e890738ac0a60ea50ef6c213ee24e79eb))
+* remove redundant sanity check in Invoke-KBInstall function ([1e74c3c](https://github.com/Belphemur/SoundSwitch/commit/1e74c3c689976d692e6685b39c9adba3af2f7989))
+* secondsLabel ready for localization ([7cd7221](https://github.com/Belphemur/SoundSwitch/commit/7cd7221e49a917cbe3330209e82533132299585e))
+* **settings:** fix systray icon selection being blank even when set ([28b12a4](https://github.com/Belphemur/SoundSwitch/commit/28b12a4a6e52ca0b30d3d32a95fc7fae0afdc76b))
+* single and double click properly distinguished on tray icon ([64711ef](https://github.com/Belphemur/SoundSwitch/commit/64711ef3ef4326aa154d8a8332d13349d7d352e8))
+* **tooltip:** fix volume tooltip stuck at 0% on the systray ([c33793d](https://github.com/Belphemur/SoundSwitch/commit/c33793d147b6f738b0958f7082f2459bd20e30b5))
+
+### Features
+
+* Add PowerShell script for Windows Update management ([b81371a](https://github.com/Belphemur/SoundSwitch/commit/b81371a504d3b02dc1e65729f067aab0659e18cf))
+* add workflow for testing installer build without signing ([12324fe](https://github.com/Belphemur/SoundSwitch/commit/12324fef97167209f87faaa6a54fcbbaf4385fbb))
+* **installer:** Detect Win10 LTSC and if the right Windows Update is present ([26173ef](https://github.com/Belphemur/SoundSwitch/commit/26173ef8b2279607f1215de9ff78cb0c8b578650))
+* Integrate Windows Update check into InnoSetup installer ([f65b438](https://github.com/Belphemur/SoundSwitch/commit/f65b43838cd22ea5121284175e0d903210ca5bda))
+* **mute:** choose the style of banner for the mute or no banner at all. ([227b70b](https://github.com/Belphemur/SoundSwitch/commit/227b70b899788c2ccc0fd9b7a8d55dc3ce890ba5)), closes [#1746](https://github.com/Belphemur/SoundSwitch/issues/1746)
+
+## [6.14.0-beta.4](https://github.com/Belphemur/SoundSwitch/compare/v6.14.0-beta.3...v6.14.0-beta.4) (2025-05-22)
+
+### Enhancements
+
+* **troubleshooting:** export configuration file for troubleshooting ([8f13c26](https://github.com/Belphemur/SoundSwitch/commit/8f13c26e05027480d66e3a1787d2d134fbee00c2))
+* **troubleshooting:** Import configuration file ([8a82ad7](https://github.com/Belphemur/SoundSwitch/commit/8a82ad76207fe57bcde8f14fea7a5ac9d39f0c60))
+* **troubleshooting:** Import configuration file ([88f2e1a](https://github.com/Belphemur/SoundSwitch/commit/88f2e1a485f327255c01cb16ca6dd9a88c29cfc6))
+
+### Languages
+
+* **Italian:** Translated Settings using Weblate ([9917b1f](https://github.com/Belphemur/SoundSwitch/commit/9917b1f35e398a75ed9769e862d05bc0c3f2b7b1))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([18fb33b](https://github.com/Belphemur/SoundSwitch/commit/18fb33b09c19f7729fc608ab09ff6732e98dc4a4))
+
+### Bug Fixes
+
+* **import/export:** Verify that the configuration is valid before importing it. ([3786395](https://github.com/Belphemur/SoundSwitch/commit/3786395e4860f642747778ad991511404da5fa9a))
+
+## [6.14.0-beta.3](https://github.com/Belphemur/SoundSwitch/compare/v6.14.0-beta.2...v6.14.0-beta.3) (2025-05-10)
+
+### Languages
+
+* **French:** Translated Settings using Weblate ([5a3fdfd](https://github.com/Belphemur/SoundSwitch/commit/5a3fdfdd830cc05cc26cb67b2e418a98f8d50095))
+
+### Bug Fixes
+
+* **banner settings:** Banner Settings now properly disabled when notification type not set to banner ([f7b9305](https://github.com/Belphemur/SoundSwitch/commit/f7b93058be785793e3499f3f02b00d69002ee296))
+* **double-click:** fix issue where double-clicking on the icon triggered the switching menu ([b85adca](https://github.com/Belphemur/SoundSwitch/commit/b85adca12930132a74d6518e5cf527625b9f9d3e))
+* **settings:** fix systray icon selection being blank even when set ([28b12a4](https://github.com/Belphemur/SoundSwitch/commit/28b12a4a6e52ca0b30d3d32a95fc7fae0afdc76b))
+* single and double click properly distinguished on tray icon ([64711ef](https://github.com/Belphemur/SoundSwitch/commit/64711ef3ef4326aa154d8a8332d13349d7d352e8))
+* **tooltip:** fix volume tooltip stuck at 0% on the systray ([c33793d](https://github.com/Belphemur/SoundSwitch/commit/c33793d147b6f738b0958f7082f2459bd20e30b5))
+
+## [6.14.0-beta.2](https://github.com/Belphemur/SoundSwitch/compare/v6.14.0-beta.1...v6.14.0-beta.2) (2025-05-06)
+
+### Languages
+
+* **Arabic:** Translated Settings using Weblate ([2c29b85](https://github.com/Belphemur/SoundSwitch/commit/2c29b85d911cd77947463993d4b4c01bbbf8f8fc))
+* **Bulgarian:** Translated Settings using Weblate ([3a4656c](https://github.com/Belphemur/SoundSwitch/commit/3a4656cc5a913df71e3e945187adb30f382ec0e3))
+* **Chinese (Simplified Han script):** Translated Settings using Weblate ([2175efc](https://github.com/Belphemur/SoundSwitch/commit/2175efc3bb1fb7aa5bc19aeb488688692e22e2fe))
+* **Chinese (Traditional Han script):** Translated Settings using Weblate ([f81ce81](https://github.com/Belphemur/SoundSwitch/commit/f81ce81ad16d931e021a3b8a6ed16f08eddbd7da))
+* **Croatian:** Translated Settings using Weblate ([a8ca4d2](https://github.com/Belphemur/SoundSwitch/commit/a8ca4d2378076c43a9cdad48537d288309c5a47f))
+* **Czech:** Translated Settings using Weblate ([5f792a6](https://github.com/Belphemur/SoundSwitch/commit/5f792a6fee79216bb875fd6425c780fb3155fa8d))
+* **Danish:** Translated Settings using Weblate ([ee3a78c](https://github.com/Belphemur/SoundSwitch/commit/ee3a78c72387626fab1e13d220ead18fdd31b836))
+* **Dutch:** Translated Settings using Weblate ([1ef9918](https://github.com/Belphemur/SoundSwitch/commit/1ef991847100115f86aa7f967262ec62dd766c30))
+* **French:** Translated Settings using Weblate ([ae5e32c](https://github.com/Belphemur/SoundSwitch/commit/ae5e32c7243155681d41c754cb311c69539b401e))
+* **German:** Translated Settings using Weblate ([40deacd](https://github.com/Belphemur/SoundSwitch/commit/40deacd095e2fa2119f1877ec5c44ecc932b83a3))
+* **Greek:** Translated Settings using Weblate ([0aa6656](https://github.com/Belphemur/SoundSwitch/commit/0aa6656cb5781127531ba5f4b97828b08ddc77e1))
+* **Hebrew:** Translated Settings using Weblate ([9c4c254](https://github.com/Belphemur/SoundSwitch/commit/9c4c254c259f0898fc65965dc872f8ceafb2cf02))
+* **Hebrew:** Translated Settings using Weblate ([df461d6](https://github.com/Belphemur/SoundSwitch/commit/df461d699a4f8c26795cba6d0463309f442fcb2d))
+* **Hungarian:** Translated Settings using Weblate ([6a6ff2b](https://github.com/Belphemur/SoundSwitch/commit/6a6ff2bb2f6818bfdbf348918782bcbca09afa2c))
+* **Italian:** Translated Settings using Weblate ([72763ea](https://github.com/Belphemur/SoundSwitch/commit/72763ea08cfb131bb82b6e79b50f23704a8f8ff9))
+* **Italian:** Translated Settings using Weblate ([8d6f52b](https://github.com/Belphemur/SoundSwitch/commit/8d6f52b46c5ecf91e589b8a26b5d9b127a9e8eff))
+* **Japanese:** Translated Settings using Weblate ([dc8aa59](https://github.com/Belphemur/SoundSwitch/commit/dc8aa59f7b4952d9e15ec03c7013ba16c7895f9b))
+* **Korean:** Translated Settings using Weblate ([1251740](https://github.com/Belphemur/SoundSwitch/commit/1251740978fac4a6b6f1f49e430e3252696c066c))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([263ff53](https://github.com/Belphemur/SoundSwitch/commit/263ff5385d8998fb9ea64f50e418058513fa9df9))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([f087a20](https://github.com/Belphemur/SoundSwitch/commit/f087a200cc0a7852f251724cec503f92d24b79ce))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([be6a36d](https://github.com/Belphemur/SoundSwitch/commit/be6a36d485a825f30a8f858f9b0e47bb440361a0))
+* **Polish:** Translated Settings using Weblate ([99dcf0b](https://github.com/Belphemur/SoundSwitch/commit/99dcf0b010a2db111c9800eb3b5444eb3204a8db))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([b73e5b2](https://github.com/Belphemur/SoundSwitch/commit/b73e5b25ef0008bd96c6d056f0313fc1e26a6819))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([ee81ba4](https://github.com/Belphemur/SoundSwitch/commit/ee81ba4af2e62462c926c00a36fdeea26e5d7e4a))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([9342c9d](https://github.com/Belphemur/SoundSwitch/commit/9342c9d414a97613b0eb0ddad9f2698ac288e3aa))
+* **Portuguese:** Translated Settings using Weblate ([dec3dc3](https://github.com/Belphemur/SoundSwitch/commit/dec3dc33eeecbd23aed80a0a25aa0db1a2394b13))
+* **Russian:** Translated Settings using Weblate ([12dbe7b](https://github.com/Belphemur/SoundSwitch/commit/12dbe7b891b481fcf35ec5e8011bdef264f9b84a))
+* **Russian:** Translated Settings using Weblate ([87f494a](https://github.com/Belphemur/SoundSwitch/commit/87f494ae02432d39166ae02daede399d2b9916e7))
+* **Serbian:** Translated Settings using Weblate ([8e60d30](https://github.com/Belphemur/SoundSwitch/commit/8e60d3050aa9ad0567824ec6c8b858450271ecc5))
+* **Slovenian:** Translated Settings using Weblate ([19e9405](https://github.com/Belphemur/SoundSwitch/commit/19e940514d13dc7e85de839c722be93f509fe6f4))
+* **Spanish:** Translated Settings using Weblate ([05065ac](https://github.com/Belphemur/SoundSwitch/commit/05065accd6daa02152e49e5577205896eea5c2e9))
+* **Swedish:** Translated Settings using Weblate ([607c843](https://github.com/Belphemur/SoundSwitch/commit/607c843d4b11c22b1e1872ac1f410ddfb2c60244))
+* **Tamil:** Translated Settings using Weblate ([66a6be0](https://github.com/Belphemur/SoundSwitch/commit/66a6be001751e87bcdd4cd7cd2a0f588aed8ff1c))
+* **Thai:** Translated Settings using Weblate ([e6bb066](https://github.com/Belphemur/SoundSwitch/commit/e6bb066b7ed1a9a9da34574ff866aafb38a280fe))
+* **Turkish:** Translated Settings using Weblate ([30a2747](https://github.com/Belphemur/SoundSwitch/commit/30a274710627a1c6f2af4b76a07851b3ecb98306))
+* **Ukrainian:** Translated Settings using Weblate ([a0ec425](https://github.com/Belphemur/SoundSwitch/commit/a0ec425959ada37f72dd8ac20bab86199f9c5f9e))
+
+### Bug Fixes
+
+* NotifyIcon.MouseDoubleClick() ([08405c8](https://github.com/Belphemur/SoundSwitch/commit/08405c8e700f265dc2a2b2d84d09544d43a14dd2))
+
+## [6.14.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.13.0...v6.14.0-beta.1) (2025-04-21)
+
+### Enhancements
+
+* **logging:** Improve logging of setting up the volume listener. ([f36fc56](https://github.com/Belphemur/SoundSwitch/commit/f36fc56c0e86e6b93111c0a15dc86e20dc9abb48))
+* Microphone Muted is now a drop down; ([9fb0659](https://github.com/Belphemur/SoundSwitch/commit/9fb0659ee65babbdd5101fbf73a6c59ee75f3f81))
+
+### Languages
+
+* **Greek:** Translated About using Weblate ([99956a6](https://github.com/Belphemur/SoundSwitch/commit/99956a6023ab1ebad8b85c2ee44c01aeb6404eac))
+* **Greek:** Translated Settings using Weblate ([d9c1ffe](https://github.com/Belphemur/SoundSwitch/commit/d9c1ffe3b867f7f5b4c8ccf058758640f7f0f2e3))
+* **Greek:** Translated Tray Icon using Weblate ([720dde0](https://github.com/Belphemur/SoundSwitch/commit/720dde0a0a4ed2e7a31ad10eb1603818e542f096))
+* **Greek:** Translated Update Download using Weblate ([b4a1647](https://github.com/Belphemur/SoundSwitch/commit/b4a16470c4a278344aa412f0d2b407a49966df1f))
+* **Japanese:** Translated About using Weblate ([08d15e3](https://github.com/Belphemur/SoundSwitch/commit/08d15e3b58396616589910b6f11df24a5a09bcbd))
+* **Japanese:** Translated Settings using Weblate ([f2d0c04](https://github.com/Belphemur/SoundSwitch/commit/f2d0c045a538906e32a82f9535cb9c95948808c4))
+* **Norwegian Bokmål:** Translated About using Weblate ([6b618be](https://github.com/Belphemur/SoundSwitch/commit/6b618be41be350eb1e73643cca8a7c8497cca00c))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([7befd0b](https://github.com/Belphemur/SoundSwitch/commit/7befd0b6bf95f2569e35208f32a56e768fe5a3c9))
+* **Norwegian Bokmål:** Translated Settings using Weblate ([c18788f](https://github.com/Belphemur/SoundSwitch/commit/c18788f339c98cf15714c4c7f85fb8c4609a1ba1))
+* **Norwegian Bokmål:** Translated Tray Icon using Weblate ([6493bbb](https://github.com/Belphemur/SoundSwitch/commit/6493bbbe21767d98c754f275b6b41aea079524de))
+* **Norwegian Bokmål:** Translated Update Download using Weblate ([933e9b9](https://github.com/Belphemur/SoundSwitch/commit/933e9b92d3343a0feec42b1abbbef77a5699db23))
+* **Tamil:** Translated Settings using Weblate ([6760569](https://github.com/Belphemur/SoundSwitch/commit/676056910a8d8b6e58e8116104d99e19f923eab4))
+
+### Bug Fixes
+
+* **audio:** Subscribe to OS-level volume notifications for devices ([f59cc2c](https://github.com/Belphemur/SoundSwitch/commit/f59cc2cf14d187bd7e47ec38b28d710cff5d1da6))
+* **cli:** fix building CLI ([0f8232d](https://github.com/Belphemur/SoundSwitch/commit/0f8232d2c36cab3d7c3e2a4ae163075cc6e2e7b3))
+* **config:** fix migrating to new configuration for persistent mute ([465a0c9](https://github.com/Belphemur/SoundSwitch/commit/465a0c94adb9adf45f81e9143fa97ee40f7e2868))
+* Dialog box won't show when current UI language is selected ([2956336](https://github.com/Belphemur/SoundSwitch/commit/29563364b785d74f37091294ff6dcf4588447846))
+* FullBanner(), MicrophoneMuteManager renamed, PersistentMuteNotification migrated ([7a03b2c](https://github.com/Belphemur/SoundSwitch/commit/7a03b2cb9031ec29b9b5c83fafd206cc05134592))
+* secondsLabel ready for localization ([7cd7221](https://github.com/Belphemur/SoundSwitch/commit/7cd7221e49a917cbe3330209e82533132299585e))
+
+### Features
+
+* **mute:** choose the style of banner for the mute or no banner at all. ([227b70b](https://github.com/Belphemur/SoundSwitch/commit/227b70b899788c2ccc0fd9b7a8d55dc3ce890ba5)), closes [#1746](https://github.com/Belphemur/SoundSwitch/issues/1746)
+
+## [6.13.0](https://github.com/Belphemur/SoundSwitch/compare/v6.12.0...v6.13.0) (2025-04-08)
+
+### Enhancements
+
+* **hotkey:** accept alone keys for hot keys like PrintScr, Pause, Home, End, etc ... and any function key alone too. ([65c7863](https://github.com/Belphemur/SoundSwitch/commit/65c7863006dee941c57cfc416351b4e05a06e928))
+* **hotkey:** Change the display of hotkeys modifier to always follow ctrl, shift, alt, win. ([b518688](https://github.com/Belphemur/SoundSwitch/commit/b5186887ad536a4dc208b84c9ac854a75510631d))
+* **hotkey:** support setting only one key for hotkey ([c9e8131](https://github.com/Belphemur/SoundSwitch/commit/c9e81319fd17104272fcacb4e7ae987bf682ccbe))
+* **installer:** add global application definitions and update uninstall logic ([0d8a215](https://github.com/Belphemur/SoundSwitch/commit/0d8a215f2152439b7d7b3ccc69b54100f0ddb596))
+* **installer:** make installer compatible with ARM64 using compatibility layer ([fc31118](https://github.com/Belphemur/SoundSwitch/commit/fc311187ae154453fa7714e80d110ad8643db894))
+* **installer:** mordernize the look ([6496ee3](https://github.com/Belphemur/SoundSwitch/commit/6496ee30c330438a8e76c9a730ad389551c09d9f))
+* **ipc:** Be sure two instance of SoundSwitch can communicate. ([118681a](https://github.com/Belphemur/SoundSwitch/commit/118681a9a015e99f1580c6691641c8cecac0c2e5))
+* **Reset Audio:** Bring back shortcut to reset per app audio ([b87f96c](https://github.com/Belphemur/SoundSwitch/commit/b87f96c40cdb5b3b9efb75adf1fb146ff162790e)), closes [#1630](https://github.com/Belphemur/SoundSwitch/issues/1630) [#1539](https://github.com/Belphemur/SoundSwitch/issues/1539) [#860](https://github.com/Belphemur/SoundSwitch/issues/860) [#1107](https://github.com/Belphemur/SoundSwitch/issues/1107) [#1515](https://github.com/Belphemur/SoundSwitch/issues/1515)
+
+### Languages
+
+* **ai:** Add mising translation with Claude ([826da9a](https://github.com/Belphemur/SoundSwitch/commit/826da9a30fe1f4da74e421482e7ad8593a03e06b))
+* **Chinese (Traditional Han script):** Translated Settings using Weblate ([05b085b](https://github.com/Belphemur/SoundSwitch/commit/05b085b35a6fc986c90ca14f9aaff1c07ebc117b))
+* **Chinese (Traditional Han script):** Translated Tray Icon using Weblate ([986cfa8](https://github.com/Belphemur/SoundSwitch/commit/986cfa808802d0d9ef29ddf615fe4c12534f4718))
+* **Chinese (Traditional Han script):** Translated Update Download using Weblate ([dbf1303](https://github.com/Belphemur/SoundSwitch/commit/dbf13034418c9362a7b65f972ba37fab8dc181d7))
+* **French:** Translated Settings using Weblate ([6031996](https://github.com/Belphemur/SoundSwitch/commit/603199609113f88bf936db36e417ee04d0cffcec))
+* **German:** Translated Settings using Weblate ([9482857](https://github.com/Belphemur/SoundSwitch/commit/948285741777e37f2c2b0a0a9fb746eb4a14e249))
+* **Greek:** Translated Settings using Weblate ([4c1d3d2](https://github.com/Belphemur/SoundSwitch/commit/4c1d3d2abc934ad64cc2bb008b8451aedc18a8f6))
+* **Japanese:** Translated Settings using Weblate ([a031562](https://github.com/Belphemur/SoundSwitch/commit/a031562a4580a265cd0a2af30e63fc99faf4bf65))
+* **Spanish:** Translated Settings using Weblate ([5f4c381](https://github.com/Belphemur/SoundSwitch/commit/5f4c381d0ae16038003cb9464bc0aac293c5a69f))
+* **tamil:** Add tamil language to the application ([31a2f04](https://github.com/Belphemur/SoundSwitch/commit/31a2f04fa8fe2735a3502637a67125060843e9ca))
+* **Tamil:** Added About translation using Weblate ([7b16918](https://github.com/Belphemur/SoundSwitch/commit/7b1691803c1226a6354944a202500cb94b7930e2))
+* **Tamil:** Added Settings translation using Weblate ([fc63fb5](https://github.com/Belphemur/SoundSwitch/commit/fc63fb5cff5145bd1be6066f9ff8ff3b88e23f7a))
+* **Tamil:** Added Tray Icon translation using Weblate ([4b6b4df](https://github.com/Belphemur/SoundSwitch/commit/4b6b4dfc8b42e47f7c886f8066bac2fb27025e73))
+* **Tamil:** Added Update Download translation using Weblate ([c8ee970](https://github.com/Belphemur/SoundSwitch/commit/c8ee970be58c7caadc3a9956352e02cf6f14690e))
+* **Tamil:** Translated About using Weblate ([15ac998](https://github.com/Belphemur/SoundSwitch/commit/15ac998a35194f1686447c8177dc31bbed8d9e4f))
+* **Tamil:** Translated Settings using Weblate ([917d1ae](https://github.com/Belphemur/SoundSwitch/commit/917d1ae9ab0ae7bb5d749a6a228d0466acd0aeec))
+* **Tamil:** Translated Settings using Weblate ([e5fa0d8](https://github.com/Belphemur/SoundSwitch/commit/e5fa0d84645023da085b4bae0da7779aa9483891))
+* **Tamil:** Translated Tray Icon using Weblate ([2dd3920](https://github.com/Belphemur/SoundSwitch/commit/2dd3920feb443274a9810050dc9edf5cc7d87e79))
+* **Tamil:** Translated Update Download using Weblate ([afc7c76](https://github.com/Belphemur/SoundSwitch/commit/afc7c76ae423f9fdea73ad736a847ff7bd66b892))
+* **Thai:** Translated Settings using Weblate ([75a58b3](https://github.com/Belphemur/SoundSwitch/commit/75a58b3eccab2b533b278281c0f3b134a7e59831))
+
+### Bug Fixes
+
+* **banner:** add WS_EX_NOACTIVATE style to prevent focus stealing ([bf31371](https://github.com/Belphemur/SoundSwitch/commit/bf3137148c22f5a0707204bc5dac9d119ee2263a))
+* **banner:** implement double buffering to reduce flickering and improve click handling ([0cdb808](https://github.com/Belphemur/SoundSwitch/commit/0cdb808cb2485970a33b3bdad6b8b52ae70e9331))
+* **cli:mute:** notify on microphone muted state ([86e5843](https://github.com/Belphemur/SoundSwitch/commit/86e5843768a584496e833b5cd3d38f22c0c04942))
+* **cli:** add missing mute command ([8f298c5](https://github.com/Belphemur/SoundSwitch/commit/8f298c5ae97a67b106b729e4d1fccd343975ccbc))
+* **cli:** fix the name of the CLI application ([3daef8f](https://github.com/Belphemur/SoundSwitch/commit/3daef8f06c733940d8547e901840c00afb5c5b24))
+* **communication:** Possible crash on closing the software ([5b8fd5c](https://github.com/Belphemur/SoundSwitch/commit/5b8fd5c49c98d8766e2c8ec6134ae24a16cc0181))
+* **installer:** add missing section about deleting old settings ([7d2f567](https://github.com/Belphemur/SoundSwitch/commit/7d2f5676d5ab3c39c4ec5840a66126368a4fc175))
+* **installer:** Don't recreate desktop icon when VerySilent (from auto updater). ([00cc3b3](https://github.com/Belphemur/SoundSwitch/commit/00cc3b3d4e72d419a33b26b1a9048c03ff23341f)), closes [#1720](https://github.com/Belphemur/SoundSwitch/issues/1720)
+* **installer:** fix adding CLI to PATH ([4d1432b](https://github.com/Belphemur/SoundSwitch/commit/4d1432b99d95b2c1a179e7fe5c9f2a0306c41d46))
+* **installer:** Make the uninstaller delete any trace of the program ([464f05c](https://github.com/Belphemur/SoundSwitch/commit/464f05c6b356832b939d5e270fb77656b09d3557))
+* **localization:** correct formatting in SettingsStrings.ta.resx and improve bracket checking in check_brackets.py ([365c3b8](https://github.com/Belphemur/SoundSwitch/commit/365c3b8f7d1a700b459685c422dc40a55e07c0b1))
+* **localization:** improve formatting and correct placeholder in UpdateDownloadStrings.ta.resx ([74e0393](https://github.com/Belphemur/SoundSwitch/commit/74e03935dd30876b80b207d80043c2166da6b1c6))
+* **notification::mute:** mute microphone on clicking the banner when the microphone is On ([bfe5ece](https://github.com/Belphemur/SoundSwitch/commit/bfe5ece253ad43d68de04f4d30e00bb1c41ff021))
+* **notification::mute:** reduce microphone mute banner display time to 1.5 seconds ([e82ccc4](https://github.com/Belphemur/SoundSwitch/commit/e82ccc4cfc1df2785993a6a922cdd798e294bfa7))
+* **pipe:** be sure we can have full communication on the pipe ([1362535](https://github.com/Belphemur/SoundSwitch/commit/136253565858fdac0c6e9ecd9095bc8566eefaff))
+* **release:** fix building right version of application ([ba16256](https://github.com/Belphemur/SoundSwitch/commit/ba16256de99e4119b947a33a4175a6d13709c86f)), closes [#1669](https://github.com/Belphemur/SoundSwitch/issues/1669)
+* **Settings:** Ensure persistent mute notification checkbox visibility is correctly set ([96eb04b](https://github.com/Belphemur/SoundSwitch/commit/96eb04ba41aac1981a365029d2908c38e1ee4df3))
+* **update:** fix update ui crashing. ([70ba6c1](https://github.com/Belphemur/SoundSwitch/commit/70ba6c1d7015768aa3d775239ad45bc98d9f9b16)), closes [#1693](https://github.com/Belphemur/SoundSwitch/issues/1693)
+
+### Features
+
+* **audio:** add event for volume and mute state changes ([f7013a2](https://github.com/Belphemur/SoundSwitch/commit/f7013a258f67d4fbfb0de7342ed389ad4a4d860f))
+* **banner:** hide banner when clicked on ([3601270](https://github.com/Belphemur/SoundSwitch/commit/36012705b7788075d379072c5abcf1b8aec61023))
+* **cli::installer:** be sure the cli is installed and signed by the installer ([de470f6](https://github.com/Belphemur/SoundSwitch/commit/de470f63aed2c3d4c77e57f750a12f2b79f1dcc8))
+* **cli:** add microphone muting to the CLI ([6613d2a](https://github.com/Belphemur/SoundSwitch/commit/6613d2ab918b277af5888d16ba85492767ecb0c7))
+* **cli:** Add profile details like what device is setup in it ([0a3544d](https://github.com/Belphemur/SoundSwitch/commit/0a3544d1208908628c755b4b85f7891b5322fa92))
+* **cli:** Add the CLI to windows PATH ([fb4324e](https://github.com/Belphemur/SoundSwitch/commit/fb4324e8484d9b2c4eb90045e10eb6b07716acb3)), closes [#1730](https://github.com/Belphemur/SoundSwitch/issues/1730)
+* **cli:** First version of the CLI for SoundSwitch ([add5240](https://github.com/Belphemur/SoundSwitch/commit/add524091f7b86407cf72c6e40bde312085fd540)), closes [#1664](https://github.com/Belphemur/SoundSwitch/issues/1664)
+* **device:** track if the the device is muted. ([5b506d7](https://github.com/Belphemur/SoundSwitch/commit/5b506d786a36813a69e15a7181c8f40953ec9c23))
+* **microphone:** Notify on any microphone being muted. ([b464e2d](https://github.com/Belphemur/SoundSwitch/commit/b464e2dd0de50b5711f9a056eb7989aa2d15c3e5))
+* **mute:** add a compact banner for the microphone mute state ([48f0aa4](https://github.com/Belphemur/SoundSwitch/commit/48f0aa40ea8859df7e6fc7fa5226701b9655b403))
+* **mute:** Only show friendly name for the device for mute notification ([09eeffb](https://github.com/Belphemur/SoundSwitch/commit/09eeffb32cab571c5fe4d7a72b399af474144ffd))
+* **notification::mute:** Support clicking the banner to unmute. ([67e2b3f](https://github.com/Belphemur/SoundSwitch/commit/67e2b3fe1630294de949520455d19656b2cd0d56))
+* **notification::mute:** Use a compact notification for Mute that stays on the screen until the microphone is unmuted. ([7439388](https://github.com/Belphemur/SoundSwitch/commit/7439388e9d34c37e2248f9f87065c1b83d7821dd))
+* **Notification:** Add persistent mute notification configuration and update related logic ([3cecbf4](https://github.com/Belphemur/SoundSwitch/commit/3cecbf4af35f752be257582ef7d83caac1b2db4c))
+* **pipe:** implement MessagePack serialization for inter-process communication. Prepare the ground for a CLI. ([5b0f473](https://github.com/Belphemur/SoundSwitch/commit/5b0f473df5d064931e0372e4f0e8b7bf05257332))
+* **resources:** add microphone and mute images ([b221ab3](https://github.com/Belphemur/SoundSwitch/commit/b221ab3bada5c4703e91b815826e35897bfe0fe8))
+* **Settings:** Let the user choose what type of notification they have for mute ([a1e181f](https://github.com/Belphemur/SoundSwitch/commit/a1e181f698ba56fc5679bede167f6a5a1a58371b))
+* **Settings:** reopen settings when opening another SoundSwitch. ([22920cd](https://github.com/Belphemur/SoundSwitch/commit/22920cd2f9c2c279f612127245db433832963590)), closes [#850](https://github.com/Belphemur/SoundSwitch/issues/850)
+
+## [6.13.0-beta.7](https://github.com/Belphemur/SoundSwitch/compare/v6.13.0-beta.6...v6.13.0-beta.7) (2025-03-20)
+
+### Bug Fixes
+
+* **banner:** add WS_EX_NOACTIVATE style to prevent focus stealing ([bf31371](https://github.com/Belphemur/SoundSwitch/commit/bf3137148c22f5a0707204bc5dac9d119ee2263a))
+* **banner:** implement double buffering to reduce flickering and improve click handling ([0cdb808](https://github.com/Belphemur/SoundSwitch/commit/0cdb808cb2485970a33b3bdad6b8b52ae70e9331))
+* **installer:** Don't recreate desktop icon when VerySilent (from auto updater). ([00cc3b3](https://github.com/Belphemur/SoundSwitch/commit/00cc3b3d4e72d419a33b26b1a9048c03ff23341f)), closes [#1720](https://github.com/Belphemur/SoundSwitch/issues/1720)
+* **notification::mute:** mute microphone on clicking the banner when the microphone is On ([bfe5ece](https://github.com/Belphemur/SoundSwitch/commit/bfe5ece253ad43d68de04f4d30e00bb1c41ff021))
+* **notification::mute:** reduce microphone mute banner display time to 1.5 seconds ([e82ccc4](https://github.com/Belphemur/SoundSwitch/commit/e82ccc4cfc1df2785993a6a922cdd798e294bfa7))
+* **Settings:** Ensure persistent mute notification checkbox visibility is correctly set ([96eb04b](https://github.com/Belphemur/SoundSwitch/commit/96eb04ba41aac1981a365029d2908c38e1ee4df3))
+
+### Features
+
+* **banner:** hide banner when clicked on ([3601270](https://github.com/Belphemur/SoundSwitch/commit/36012705b7788075d379072c5abcf1b8aec61023))
+* **Notification:** Add persistent mute notification configuration and update related logic ([3cecbf4](https://github.com/Belphemur/SoundSwitch/commit/3cecbf4af35f752be257582ef7d83caac1b2db4c))
+* **Settings:** Let the user choose what type of notification they have for mute ([a1e181f](https://github.com/Belphemur/SoundSwitch/commit/a1e181f698ba56fc5679bede167f6a5a1a58371b))
+
+## [6.13.0-beta.6](https://github.com/Belphemur/SoundSwitch/compare/v6.13.0-beta.5...v6.13.0-beta.6) (2025-03-14)
+
+### Features
+
+* **mute:** add a compact banner for the microphone mute state ([48f0aa4](https://github.com/Belphemur/SoundSwitch/commit/48f0aa40ea8859df7e6fc7fa5226701b9655b403))
+* **mute:** Only show friendly name for the device for mute notification ([09eeffb](https://github.com/Belphemur/SoundSwitch/commit/09eeffb32cab571c5fe4d7a72b399af474144ffd))
+* **notification::mute:** Support clicking the banner to unmute. ([67e2b3f](https://github.com/Belphemur/SoundSwitch/commit/67e2b3fe1630294de949520455d19656b2cd0d56))
+* **notification::mute:** Use a compact notification for Mute that stays on the screen until the microphone is unmuted. ([7439388](https://github.com/Belphemur/SoundSwitch/commit/7439388e9d34c37e2248f9f87065c1b83d7821dd))
+* **resources:** add microphone and mute images ([b221ab3](https://github.com/Belphemur/SoundSwitch/commit/b221ab3bada5c4703e91b815826e35897bfe0fe8))
+
+## [6.13.0-beta.5](https://github.com/Belphemur/SoundSwitch/compare/v6.13.0-beta.4...v6.13.0-beta.5) (2025-03-12)
+
+### Languages
+
+* **tamil:** Add tamil language to the application ([31a2f04](https://github.com/Belphemur/SoundSwitch/commit/31a2f04fa8fe2735a3502637a67125060843e9ca))
+* **Tamil:** Added About translation using Weblate ([7b16918](https://github.com/Belphemur/SoundSwitch/commit/7b1691803c1226a6354944a202500cb94b7930e2))
+* **Tamil:** Added Settings translation using Weblate ([fc63fb5](https://github.com/Belphemur/SoundSwitch/commit/fc63fb5cff5145bd1be6066f9ff8ff3b88e23f7a))
+* **Tamil:** Added Tray Icon translation using Weblate ([4b6b4df](https://github.com/Belphemur/SoundSwitch/commit/4b6b4dfc8b42e47f7c886f8066bac2fb27025e73))
+* **Tamil:** Added Update Download translation using Weblate ([c8ee970](https://github.com/Belphemur/SoundSwitch/commit/c8ee970be58c7caadc3a9956352e02cf6f14690e))
+* **Tamil:** Translated About using Weblate ([15ac998](https://github.com/Belphemur/SoundSwitch/commit/15ac998a35194f1686447c8177dc31bbed8d9e4f))
+* **Tamil:** Translated Settings using Weblate ([e5fa0d8](https://github.com/Belphemur/SoundSwitch/commit/e5fa0d84645023da085b4bae0da7779aa9483891))
+* **Tamil:** Translated Tray Icon using Weblate ([2dd3920](https://github.com/Belphemur/SoundSwitch/commit/2dd3920feb443274a9810050dc9edf5cc7d87e79))
+* **Tamil:** Translated Update Download using Weblate ([afc7c76](https://github.com/Belphemur/SoundSwitch/commit/afc7c76ae423f9fdea73ad736a847ff7bd66b892))
+
+### Bug Fixes
+
+* **cli:mute:** notify on microphone muted state ([86e5843](https://github.com/Belphemur/SoundSwitch/commit/86e5843768a584496e833b5cd3d38f22c0c04942))
+* **localization:** correct formatting in SettingsStrings.ta.resx and improve bracket checking in check_brackets.py ([365c3b8](https://github.com/Belphemur/SoundSwitch/commit/365c3b8f7d1a700b459685c422dc40a55e07c0b1))
+* **localization:** improve formatting and correct placeholder in UpdateDownloadStrings.ta.resx ([74e0393](https://github.com/Belphemur/SoundSwitch/commit/74e03935dd30876b80b207d80043c2166da6b1c6))
+
+### Features
+
+* **audio:** add event for volume and mute state changes ([f7013a2](https://github.com/Belphemur/SoundSwitch/commit/f7013a258f67d4fbfb0de7342ed389ad4a4d860f))
+* **device:** track if the the device is muted. ([5b506d7](https://github.com/Belphemur/SoundSwitch/commit/5b506d786a36813a69e15a7181c8f40953ec9c23))
+* **microphone:** Notify on any microphone being muted. ([b464e2d](https://github.com/Belphemur/SoundSwitch/commit/b464e2dd0de50b5711f9a056eb7989aa2d15c3e5))
+
+## [6.13.0-beta.4](https://github.com/Belphemur/SoundSwitch/compare/v6.13.0-beta.3...v6.13.0-beta.4) (2025-03-03)
+
+### Bug Fixes
+
+* **update:** fix update ui crashing. ([70ba6c1](https://github.com/Belphemur/SoundSwitch/commit/70ba6c1d7015768aa3d775239ad45bc98d9f9b16)), closes [#1693](https://github.com/Belphemur/SoundSwitch/issues/1693)
+
+## [6.13.0-beta.3](https://github.com/Belphemur/SoundSwitch/compare/v6.13.0-beta.2...v6.13.0-beta.3) (2025-03-01)
+
+### Enhancements
+
+* **hotkey:** accept alone keys for hot keys like PrintScr, Pause, Home, End, etc ... and any function key alone too. ([65c7863](https://github.com/Belphemur/SoundSwitch/commit/65c7863006dee941c57cfc416351b4e05a06e928))
+* **hotkey:** Change the display of hotkeys modifier to always follow ctrl, shift, alt, win. ([b518688](https://github.com/Belphemur/SoundSwitch/commit/b5186887ad536a4dc208b84c9ac854a75510631d))
+* **hotkey:** support setting only one key for hotkey ([c9e8131](https://github.com/Belphemur/SoundSwitch/commit/c9e81319fd17104272fcacb4e7ae987bf682ccbe))
+
+### Languages
+
+* **Chinese (Traditional Han script):** Translated Settings using Weblate ([05b085b](https://github.com/Belphemur/SoundSwitch/commit/05b085b35a6fc986c90ca14f9aaff1c07ebc117b))
+* **Chinese (Traditional Han script):** Translated Tray Icon using Weblate ([986cfa8](https://github.com/Belphemur/SoundSwitch/commit/986cfa808802d0d9ef29ddf615fe4c12534f4718))
+* **Chinese (Traditional Han script):** Translated Update Download using Weblate ([dbf1303](https://github.com/Belphemur/SoundSwitch/commit/dbf13034418c9362a7b65f972ba37fab8dc181d7))
+
+## [6.13.0-beta.2](https://github.com/Belphemur/SoundSwitch/compare/v6.13.0-beta.1...v6.13.0-beta.2) (2025-02-24)
+
+### Languages
+
+* **German:** Translated Settings using Weblate ([9482857](https://github.com/Belphemur/SoundSwitch/commit/948285741777e37f2c2b0a0a9fb746eb4a14e249))
+
+### Bug Fixes
+
+* **cli:** add missing mute command ([8f298c5](https://github.com/Belphemur/SoundSwitch/commit/8f298c5ae97a67b106b729e4d1fccd343975ccbc))
+* **installer:** Make the uninstaller delete any trace of the program ([464f05c](https://github.com/Belphemur/SoundSwitch/commit/464f05c6b356832b939d5e270fb77656b09d3557))
+* **pipe:** be sure we can have full communication on the pipe ([1362535](https://github.com/Belphemur/SoundSwitch/commit/136253565858fdac0c6e9ecd9095bc8566eefaff))
+
+### Features
+
+* **cli::installer:** be sure the cli is installed and signed by the installer ([de470f6](https://github.com/Belphemur/SoundSwitch/commit/de470f63aed2c3d4c77e57f750a12f2b79f1dcc8))
+* **cli:** add microphone muting to the CLI ([6613d2a](https://github.com/Belphemur/SoundSwitch/commit/6613d2ab918b277af5888d16ba85492767ecb0c7))
+* **cli:** Add profile details like what device is setup in it ([0a3544d](https://github.com/Belphemur/SoundSwitch/commit/0a3544d1208908628c755b4b85f7891b5322fa92))
+* **cli:** First version of the CLI for SoundSwitch ([add5240](https://github.com/Belphemur/SoundSwitch/commit/add524091f7b86407cf72c6e40bde312085fd540)), closes [#1664](https://github.com/Belphemur/SoundSwitch/issues/1664)
+* **pipe:** implement MessagePack serialization for inter-process communication. Prepare the ground for a CLI. ([5b0f473](https://github.com/Belphemur/SoundSwitch/commit/5b0f473df5d064931e0372e4f0e8b7bf05257332))
+
+## [6.13.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.12.0...v6.13.0-beta.1) (2025-02-10)
+
+### Enhancements
+
+* **installer:** make installer compatible with ARM64 using compatibility layer ([fc31118](https://github.com/Belphemur/SoundSwitch/commit/fc311187ae154453fa7714e80d110ad8643db894))
+* **ipc:** Be sure two instance of SoundSwitch can communicate. ([118681a](https://github.com/Belphemur/SoundSwitch/commit/118681a9a015e99f1580c6691641c8cecac0c2e5))
+* **Reset Audio:** Bring back shortcut to reset per app audio ([b87f96c](https://github.com/Belphemur/SoundSwitch/commit/b87f96c40cdb5b3b9efb75adf1fb146ff162790e)), closes [#1630](https://github.com/Belphemur/SoundSwitch/issues/1630) [#1539](https://github.com/Belphemur/SoundSwitch/issues/1539) [#860](https://github.com/Belphemur/SoundSwitch/issues/860) [#1107](https://github.com/Belphemur/SoundSwitch/issues/1107) [#1515](https://github.com/Belphemur/SoundSwitch/issues/1515)
+
+### Languages
+
+* **Thai:** Translated Settings using Weblate ([75a58b3](https://github.com/Belphemur/SoundSwitch/commit/75a58b3eccab2b533b278281c0f3b134a7e59831))
+
+### Bug Fixes
+
+* **communication:** Possible crash on closing the software ([5b8fd5c](https://github.com/Belphemur/SoundSwitch/commit/5b8fd5c49c98d8766e2c8ec6134ae24a16cc0181))
+* **release:** fix building right version of application ([ba16256](https://github.com/Belphemur/SoundSwitch/commit/ba16256de99e4119b947a33a4175a6d13709c86f)), closes [#1669](https://github.com/Belphemur/SoundSwitch/issues/1669)
+
+### Features
+
+* **Settings:** reopen settings when opening another SoundSwitch. ([22920cd](https://github.com/Belphemur/SoundSwitch/commit/22920cd2f9c2c279f612127245db433832963590)), closes [#850](https://github.com/Belphemur/SoundSwitch/issues/850)
+
+## [6.12.0](https://github.com/Belphemur/SoundSwitch/compare/v6.11.0...v6.12.0) (2025-02-05)
+
+### Languages
+
+* **Arabic:** Translated Settings using Weblate ([f1fc3ff](https://github.com/Belphemur/SoundSwitch/commit/f1fc3ff797feff2a005966e621614e8a2f056b83))
+* **Croatian:** Translated Settings using Weblate ([bbf054b](https://github.com/Belphemur/SoundSwitch/commit/bbf054b6f068b5ad557ef081f7987e5f4daef929))
+* **Croatian:** Translated Settings using Weblate ([29b1c3f](https://github.com/Belphemur/SoundSwitch/commit/29b1c3f314d353a82269970fe8744da2a78ccf3e))
+* **Danish:** Added Tray Icon translation using Weblate ([e86d491](https://github.com/Belphemur/SoundSwitch/commit/e86d491500f5fdb8f776212fc479c2b29b16b920))
+* **Danish:** Added Update Download translation using Weblate ([fa179c9](https://github.com/Belphemur/SoundSwitch/commit/fa179c9a473432f7d12c61ba77943dceef2e7139))
+* **Danish:** Translated Settings using Weblate ([97b7cbd](https://github.com/Belphemur/SoundSwitch/commit/97b7cbd841a12c9d565b6e7f2b8ca59c3e9fb4c6))
+* **Danish:** Translated Settings using Weblate ([f9de1ab](https://github.com/Belphemur/SoundSwitch/commit/f9de1ab58680b299644b0befe570449b8f2e2121))
+* **Danish:** Translated Settings using Weblate ([8e79d8a](https://github.com/Belphemur/SoundSwitch/commit/8e79d8af036d5ea822bfb313f3a2f0dae33cad8a))
+* **Dutch:** Translated Settings using Weblate ([8e1e1be](https://github.com/Belphemur/SoundSwitch/commit/8e1e1be32e6ef848de19069aad1f99e3f2e350e3))
+* **Finnish:** Translated About using Weblate ([15b0003](https://github.com/Belphemur/SoundSwitch/commit/15b0003e11f5b20cfcafed12f2068845a87e85b9))
+* **Greek:** Translated About using Weblate ([9ba7cfb](https://github.com/Belphemur/SoundSwitch/commit/9ba7cfb63b3079ab55583e95b0c49791437df223))
+* **Hebrew:** Translated Settings using Weblate ([c12486c](https://github.com/Belphemur/SoundSwitch/commit/c12486cec92d75e41d17f89e6c801a21329586d3))
+* **Korean:** Translated Settings using Weblate ([dea1edb](https://github.com/Belphemur/SoundSwitch/commit/dea1edbdb5c00f50ae3479321f3b56f28d2060d1))
+* **Korean:** Translated Settings using Weblate ([547b10f](https://github.com/Belphemur/SoundSwitch/commit/547b10f136ff05a37d4c5b02cf2fe7cee7bb2b51))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([f1953c4](https://github.com/Belphemur/SoundSwitch/commit/f1953c42df2bc41b82f1ca176d032eafb1f8e6ba))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([f37ec33](https://github.com/Belphemur/SoundSwitch/commit/f37ec3388491c5f9364d685b7a9948a8f59f79eb))
+* **Russian:** Translated Settings using Weblate ([89ef328](https://github.com/Belphemur/SoundSwitch/commit/89ef3284fd69f1c535654a18986a220dddc8e629))
+* **Russian:** Translated Settings using Weblate ([006d8ec](https://github.com/Belphemur/SoundSwitch/commit/006d8ec6406888dffd41275e82c1067a5a4ffa81))
+* **Spanish:** Translated Settings using Weblate ([409ecd5](https://github.com/Belphemur/SoundSwitch/commit/409ecd5caafa72f2c09594e0b280544f04ce7b3b))
+* **Swedish:** Translated Settings using Weblate ([1595260](https://github.com/Belphemur/SoundSwitch/commit/1595260a9a68c600468bdae60cda0a8375875337))
+* **Swedish:** Translated Settings using Weblate ([101c56d](https://github.com/Belphemur/SoundSwitch/commit/101c56d9ac4a304ef8aec87835989a8869dce067))
+* **Ukrainian:** Translated Settings using Weblate ([29a4254](https://github.com/Belphemur/SoundSwitch/commit/29a4254e5813919182f0d495a409feeef1c0a307))
+* **Ukrainian:** Translated Settings using Weblate ([5ac9654](https://github.com/Belphemur/SoundSwitch/commit/5ac96547486b4cab15782f048be600560fc06220))
+* **Ukrainian:** Translated Settings using Weblate ([8caacba](https://github.com/Belphemur/SoundSwitch/commit/8caacbade53f3477126fc2d627fdfe484cab2cd8))
+* **Ukrainian:** Translated Settings using Weblate ([bd3f44e](https://github.com/Belphemur/SoundSwitch/commit/bd3f44ea2f4ad3b94f493adc79006c71cfb79ed4))
+* **Ukrainian:** Translated Settings using Weblate ([21515db](https://github.com/Belphemur/SoundSwitch/commit/21515dbc932c124c100197f9e20841c8375d7ad3))
+
+### Bug Fixes
+
+* **.NET:** Fix components for .NET 9.0 ([ec45a8e](https://github.com/Belphemur/SoundSwitch/commit/ec45a8ebe6bf928eb86caacce3b17b0697fc0f13))
+* file format ([6ea931e](https://github.com/Belphemur/SoundSwitch/commit/6ea931e223a26ec4d1286ea79430936fde274797))
+* formatting of file ([f633666](https://github.com/Belphemur/SoundSwitch/commit/f6336663ecbb2c10a9163792a6c0e7b0ebf9e0cf))
+* **Fornite:** Fix SoundSwitch compatibility with Fornite ([ea25a25](https://github.com/Belphemur/SoundSwitch/commit/ea25a2545570357d2be34802b9748fada9af33d2)), closes [#1588](https://github.com/Belphemur/SoundSwitch/issues/1588) [#1553](https://github.com/Belphemur/SoundSwitch/issues/1553)
+* **fortnite:** possible fix with Fortnite freeze SoundSwitch ([04ad1ee](https://github.com/Belphemur/SoundSwitch/commit/04ad1eecdc2f3f648a4a774c2de327a1bcb2c643))
+* **profile:steam big picture:** Fix detecting big picture in different languages ([78fc229](https://github.com/Belphemur/SoundSwitch/commit/78fc229d153da1af20efd0c2f2b33fdeafd46858)), closes [#1403](https://github.com/Belphemur/SoundSwitch/issues/1403)
+* **profile:steam big picture:** Fix detecting big picture in most language ([12bd798](https://github.com/Belphemur/SoundSwitch/commit/12bd798178beaf42b8ac533a0a97bb676bb92c72)), closes [#1403](https://github.com/Belphemur/SoundSwitch/issues/1403)
+
+### Features
+
+* **.NET:** move to .NET 9.0 ([53878ab](https://github.com/Belphemur/SoundSwitch/commit/53878ab8576b36daf6d4ccbc4eb830b364fc9c77))
+
+## [6.11.0](https://github.com/Belphemur/SoundSwitch/compare/v6.10.3...v6.11.0) (2024-06-04)
+
+### Enhancements
+
+* **banner:** Added Center Position ([60e5954](https://github.com/Belphemur/SoundSwitch/commit/60e59543244e3ae0021358270ec70322273c7f28))
+* **center:** Middle of the screen/center position for accessibility ([9053231](https://github.com/Belphemur/SoundSwitch/commit/9053231f4c3dfc3f21b80f01767a4090da2a4c5b)), closes [#1466](https://github.com/Belphemur/SoundSwitch/issues/1466)
+* **language:** Add Swedish translations ([27ef51f](https://github.com/Belphemur/SoundSwitch/commit/27ef51fe7911f047d2a79e9171a35bdf035fe593)), closes [#1431](https://github.com/Belphemur/SoundSwitch/issues/1431)
+* **profile:** improve description of profile and let the text auto wrap ([551c41b](https://github.com/Belphemur/SoundSwitch/commit/551c41b97c7cdd08a8ed2e4e94efbd7cc5791d5c)), closes [#1433](https://github.com/Belphemur/SoundSwitch/issues/1433)
+* **settings): Troubleshooting; refactor(trayIcon:** Updated Tray Menu ([f132a89](https://github.com/Belphemur/SoundSwitch/commit/f132a894483f06056cfdf85690aabfdc597b2ca3))
+* **updater:** auto retry when can't download the file ([51bac9c](https://github.com/Belphemur/SoundSwitch/commit/51bac9c4d027d163e7516e3537eff812bcde1741))
+
+### Languages
+
+* **Chinese (Simplified):** Translated Settings using Weblate ([c08e449](https://github.com/Belphemur/SoundSwitch/commit/c08e4499a498c8cd31a79fd232c1168f7b5d1d55))
+* **Croatian:** Translated About using Weblate ([b16e510](https://github.com/Belphemur/SoundSwitch/commit/b16e510afd7003698505ced4c7b30e5a0229fa83))
+* **Croatian:** Translated Settings using Weblate ([4384e8c](https://github.com/Belphemur/SoundSwitch/commit/4384e8cbe03bac434bfcd5b97e78c19d08100b50))
+* **Danish:** Translated Settings using Weblate ([6d5d619](https://github.com/Belphemur/SoundSwitch/commit/6d5d619e44af73bf63d8859524e279d4e1651be5))
+* **Dutch:** Translated Settings using Weblate ([7c48d01](https://github.com/Belphemur/SoundSwitch/commit/7c48d01e0e15d9a4d9b345be304bb797231b8524))
+* **Dutch:** Translated Settings using Weblate ([3103328](https://github.com/Belphemur/SoundSwitch/commit/31033283a4b13a630f2c5311945b40937ccb22f3))
+* **Dutch:** Translated Update Download using Weblate ([681c508](https://github.com/Belphemur/SoundSwitch/commit/681c5083e763a0f09555c4b5daf72a21b086f91a))
+* **English:** Translated Settings using Weblate ([c661601](https://github.com/Belphemur/SoundSwitch/commit/c66160145d273125c96b1cb0424198bdbe7a8315))
+* **English:** Translated Settings using Weblate ([f30acf6](https://github.com/Belphemur/SoundSwitch/commit/f30acf6a133ff674149a0991e0fc7d8607e830f8))
+* **French:** Translated Settings using Weblate ([765c837](https://github.com/Belphemur/SoundSwitch/commit/765c837d84b6309530f6541984480b8f9e26f0ae))
+* **Hebrew:** Translated Settings using Weblate ([8ada5b1](https://github.com/Belphemur/SoundSwitch/commit/8ada5b1f6bf62bd43eac9fb1a20cee805f313d93))
+* **Hebrew:** Translated Settings using Weblate ([36ba8bc](https://github.com/Belphemur/SoundSwitch/commit/36ba8bc02c7318f62fddffaa1ee098a0bc96fffe))
+* **Hebrew:** Translated Settings using Weblate ([8e2ad75](https://github.com/Belphemur/SoundSwitch/commit/8e2ad75251600e9f4b5adb83d15ee70fabefa421))
+* **Italian:** Translated Settings using Weblate ([5d306f2](https://github.com/Belphemur/SoundSwitch/commit/5d306f2711ce667322de2571fa8a7a7f52db9108))
+* **Italian:** Translated Settings using Weblate ([6e9d2b5](https://github.com/Belphemur/SoundSwitch/commit/6e9d2b5fdc9421ba0483fbc8a296853fbb7280b8))
+* **Japanese:** Translated About using Weblate ([5cedb13](https://github.com/Belphemur/SoundSwitch/commit/5cedb13c687a976c676efb6f565d66fe7e1737a3))
+* **Japanese:** Translated About using Weblate ([8abbb54](https://github.com/Belphemur/SoundSwitch/commit/8abbb54ff10dbb069feee9dd79930b775c7e81e2))
+* **Japanese:** Translated Settings using Weblate ([4ed10a0](https://github.com/Belphemur/SoundSwitch/commit/4ed10a0bf7d75582433b0360d9a7e100e3b94c78))
+* **Japanese:** Translated Settings using Weblate ([2b89880](https://github.com/Belphemur/SoundSwitch/commit/2b89880ea87a7696b2fd26c5fb1ef9267afae73f))
+* **Japanese:** Translated Settings using Weblate ([94629ce](https://github.com/Belphemur/SoundSwitch/commit/94629ceb1334521dd7873c6e2e31c789b33ef7aa))
+* **Japanese:** Translated Settings using Weblate ([27e14d9](https://github.com/Belphemur/SoundSwitch/commit/27e14d90a74da9403668d82da9c6ee631aaba9f7))
+* **Japanese:** Translated Settings using Weblate ([d82cb2b](https://github.com/Belphemur/SoundSwitch/commit/d82cb2be155735f8d5a0244b0feb9372bd3cb606))
+* **Japanese:** Translated Settings using Weblate ([8aa4f82](https://github.com/Belphemur/SoundSwitch/commit/8aa4f82d41ae62f673099b99557cf410aeb7bc29))
+* **Japanese:** Translated Settings using Weblate ([00ed06c](https://github.com/Belphemur/SoundSwitch/commit/00ed06c169c796a2b3eb2c63ede84fc7d347c85a))
+* **Japanese:** Translated Settings using Weblate ([fde374e](https://github.com/Belphemur/SoundSwitch/commit/fde374e2c689a5c9e3ec83dac8fa7d710f3ca945))
+* **Japanese:** Translated Tray Icon using Weblate ([8c97167](https://github.com/Belphemur/SoundSwitch/commit/8c97167020d4cd698ef15d7af555a0632c8945d0))
+* **Japanese:** Translated Tray Icon using Weblate ([5f0de1b](https://github.com/Belphemur/SoundSwitch/commit/5f0de1bc1a06d5ee41ae348cf88a6b80eb992853))
+* **Japanese:** Translated Update Download using Weblate ([872a51f](https://github.com/Belphemur/SoundSwitch/commit/872a51f290faa7d3b847dfcb83b40315f1e70a4c))
+* **Japanese:** Translated Update Download using Weblate ([525ae92](https://github.com/Belphemur/SoundSwitch/commit/525ae92dfb2d8d996346ab5e56de115090604006))
+* **Spanish:** Translated Settings using Weblate ([dd90865](https://github.com/Belphemur/SoundSwitch/commit/dd9086585df1a89233adc0f58de5eb4f3fbbfc4a))
+* **Spanish:** Translated Settings using Weblate ([dc8fe47](https://github.com/Belphemur/SoundSwitch/commit/dc8fe472ac9dce2ab3f574419e67d8f50cd71a59))
+* **Spanish:** Translated Settings using Weblate ([1c343e6](https://github.com/Belphemur/SoundSwitch/commit/1c343e65f2257f701208e32f26ea8400111afb8e))
+* **Spanish:** Translated Settings using Weblate ([57ff02b](https://github.com/Belphemur/SoundSwitch/commit/57ff02bac55fc7238d7c2fd5786cc191b1c3b1d3))
+* **Swedish:** Translated Settings using Weblate ([33dbc50](https://github.com/Belphemur/SoundSwitch/commit/33dbc502ad3ed5b3bd55acfa2f9f807cc5402566))
+
+### Bug Fixes
+
+* **banner/quickmenu:** Don't show notification or quick menu in the ALT+TAB menu ([5312f64](https://github.com/Belphemur/SoundSwitch/commit/5312f64a79f9657ad0146c2a0346833bdd2888bc)), closes [#1475](https://github.com/Belphemur/SoundSwitch/issues/1475)
+* **banner:** banner crashing randomnly ([8ffa6d9](https://github.com/Belphemur/SoundSwitch/commit/8ffa6d9dc5771551a5ab16d3c4d8f1f587324aee))
+* **ci:** downgrade conventianl commits ([c54c3e0](https://github.com/Belphemur/SoundSwitch/commit/c54c3e0c3732fc4096e28a627a65e8f5d78dc424))
+* **ci:** fix dev version calculation ([81253d4](https://github.com/Belphemur/SoundSwitch/commit/81253d4652e85b597bdea14caf392c6d13085b8f))
+* dev version calculation ([8fecb98](https://github.com/Belphemur/SoundSwitch/commit/8fecb98aca7ba7a62bad9cbad138cc4c5f295949))
+* **localization:** Updated Settings and TrayIcon Entries ([145f98d](https://github.com/Belphemur/SoundSwitch/commit/145f98d4542f0ebaaa285b153cc507d7fb61859c))
+* **profile:** fix crashing when switching profile ([0bf93e6](https://github.com/Belphemur/SoundSwitch/commit/0bf93e6879b03e6a5369646e87a86b652f96a60c)), closes [#1481](https://github.com/Belphemur/SoundSwitch/issues/1481)
+* **profiles:** Readjusted items in Profiles tab ([75c4ea0](https://github.com/Belphemur/SoundSwitch/commit/75c4ea092a074e15238eed23a82be53bae4664cd))
+* **profile:** used icon for profile ([8a8237b](https://github.com/Belphemur/SoundSwitch/commit/8a8237b4c53bd375304edeaac41cebf45e09a83a))
+* **quickmenu:** Fix crash with QuickMenu having disposed icon ([6a79ec9](https://github.com/Belphemur/SoundSwitch/commit/6a79ec9f03c4f3397c8bb32bbb655bc85865cec0))
+* **quickmenu:** possible crash when quick menu triggered while disappearing ([bd51528](https://github.com/Belphemur/SoundSwitch/commit/bd51528ea4e23f22c5f96b59183d2afe323e15c3))
+* **Settings:** Fix issue where the settings close button could overlap with text. ([f5ceed7](https://github.com/Belphemur/SoundSwitch/commit/f5ceed7cceecc5ec0fc29222496e3c56a0c41ed3)), closes [#1448](https://github.com/Belphemur/SoundSwitch/issues/1448)
+
+### Features
+
+* **banner:on-screen-time:** Settings to change how long the banner stays on the screen ([41644f5](https://github.com/Belphemur/SoundSwitch/commit/41644f520ebd63fff292e9661db597fdba806c82)), closes [#1467](https://github.com/Belphemur/SoundSwitch/issues/1467)
+* **notification:** Make the number of banner notification on the screen configurable ([cc15647](https://github.com/Belphemur/SoundSwitch/commit/cc15647b42f39265edc0f6186b0bb64ee93578d6))
+
+## [6.11.0-beta.2](https://github.com/Belphemur/SoundSwitch/compare/v6.11.0-beta.1...v6.11.0-beta.2) (2024-05-22)
+
+
+### Languages
+
+* **Danish:** Translated Settings using Weblate ([6d5d619](https://github.com/Belphemur/SoundSwitch/commit/6d5d619e44af73bf63d8859524e279d4e1651be5))
+* **Japanese:** Translated Settings using Weblate ([2b89880](https://github.com/Belphemur/SoundSwitch/commit/2b89880ea87a7696b2fd26c5fb1ef9267afae73f))
+* **Spanish:** Translated Settings using Weblate ([dd90865](https://github.com/Belphemur/SoundSwitch/commit/dd9086585df1a89233adc0f58de5eb4f3fbbfc4a))
+
+
+### Bug Fixes
+
+* **ci:** downgrade conventianl commits ([c54c3e0](https://github.com/Belphemur/SoundSwitch/commit/c54c3e0c3732fc4096e28a627a65e8f5d78dc424))
+* **ci:** fix dev version calculation ([81253d4](https://github.com/Belphemur/SoundSwitch/commit/81253d4652e85b597bdea14caf392c6d13085b8f))
+* dev version calculation ([8fecb98](https://github.com/Belphemur/SoundSwitch/commit/8fecb98aca7ba7a62bad9cbad138cc4c5f295949))
+* **profile:** fix crashing when switching profile ([0bf93e6](https://github.com/Belphemur/SoundSwitch/commit/0bf93e6879b03e6a5369646e87a86b652f96a60c)), closes [#1481](https://github.com/Belphemur/SoundSwitch/issues/1481)
+
+## [6.11.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.10.3...v6.11.0-beta.1) (2024-05-07)
+
+
+### Enhancements
+
+* **banner:** Added Center Position ([60e5954](https://github.com/Belphemur/SoundSwitch/commit/60e59543244e3ae0021358270ec70322273c7f28))
+* **center:** Middle of the screen/center position for accessibility ([9053231](https://github.com/Belphemur/SoundSwitch/commit/9053231f4c3dfc3f21b80f01767a4090da2a4c5b)), closes [#1466](https://github.com/Belphemur/SoundSwitch/issues/1466)
+* **language:** Add Swedish translations ([27ef51f](https://github.com/Belphemur/SoundSwitch/commit/27ef51fe7911f047d2a79e9171a35bdf035fe593)), closes [#1431](https://github.com/Belphemur/SoundSwitch/issues/1431)
+* **profile:** improve description of profile and let the text auto wrap ([551c41b](https://github.com/Belphemur/SoundSwitch/commit/551c41b97c7cdd08a8ed2e4e94efbd7cc5791d5c)), closes [#1433](https://github.com/Belphemur/SoundSwitch/issues/1433)
+* **settings): Troubleshooting; refactor(trayIcon:** Updated Tray Menu ([f132a89](https://github.com/Belphemur/SoundSwitch/commit/f132a894483f06056cfdf85690aabfdc597b2ca3))
+* **updater:** auto retry when can't download the file ([51bac9c](https://github.com/Belphemur/SoundSwitch/commit/51bac9c4d027d163e7516e3537eff812bcde1741))
+
+
+### Languages
+
+* **Croatian:** Translated About using Weblate ([b16e510](https://github.com/Belphemur/SoundSwitch/commit/b16e510afd7003698505ced4c7b30e5a0229fa83))
+* **Croatian:** Translated Settings using Weblate ([4384e8c](https://github.com/Belphemur/SoundSwitch/commit/4384e8cbe03bac434bfcd5b97e78c19d08100b50))
+* **Dutch:** Translated Settings using Weblate ([7c48d01](https://github.com/Belphemur/SoundSwitch/commit/7c48d01e0e15d9a4d9b345be304bb797231b8524))
+* **Dutch:** Translated Settings using Weblate ([3103328](https://github.com/Belphemur/SoundSwitch/commit/31033283a4b13a630f2c5311945b40937ccb22f3))
+* **Dutch:** Translated Update Download using Weblate ([681c508](https://github.com/Belphemur/SoundSwitch/commit/681c5083e763a0f09555c4b5daf72a21b086f91a))
+* **English:** Translated Settings using Weblate ([c661601](https://github.com/Belphemur/SoundSwitch/commit/c66160145d273125c96b1cb0424198bdbe7a8315))
+* **English:** Translated Settings using Weblate ([f30acf6](https://github.com/Belphemur/SoundSwitch/commit/f30acf6a133ff674149a0991e0fc7d8607e830f8))
+* **French:** Translated Settings using Weblate ([765c837](https://github.com/Belphemur/SoundSwitch/commit/765c837d84b6309530f6541984480b8f9e26f0ae))
+* **Hebrew:** Translated Settings using Weblate ([8ada5b1](https://github.com/Belphemur/SoundSwitch/commit/8ada5b1f6bf62bd43eac9fb1a20cee805f313d93))
+* **Hebrew:** Translated Settings using Weblate ([36ba8bc](https://github.com/Belphemur/SoundSwitch/commit/36ba8bc02c7318f62fddffaa1ee098a0bc96fffe))
+* **Hebrew:** Translated Settings using Weblate ([8e2ad75](https://github.com/Belphemur/SoundSwitch/commit/8e2ad75251600e9f4b5adb83d15ee70fabefa421))
+* **Italian:** Translated Settings using Weblate ([5d306f2](https://github.com/Belphemur/SoundSwitch/commit/5d306f2711ce667322de2571fa8a7a7f52db9108))
+* **Italian:** Translated Settings using Weblate ([6e9d2b5](https://github.com/Belphemur/SoundSwitch/commit/6e9d2b5fdc9421ba0483fbc8a296853fbb7280b8))
+* **Japanese:** Translated About using Weblate ([5cedb13](https://github.com/Belphemur/SoundSwitch/commit/5cedb13c687a976c676efb6f565d66fe7e1737a3))
+* **Japanese:** Translated About using Weblate ([8abbb54](https://github.com/Belphemur/SoundSwitch/commit/8abbb54ff10dbb069feee9dd79930b775c7e81e2))
+* **Japanese:** Translated Settings using Weblate ([94629ce](https://github.com/Belphemur/SoundSwitch/commit/94629ceb1334521dd7873c6e2e31c789b33ef7aa))
+* **Japanese:** Translated Settings using Weblate ([27e14d9](https://github.com/Belphemur/SoundSwitch/commit/27e14d90a74da9403668d82da9c6ee631aaba9f7))
+* **Japanese:** Translated Settings using Weblate ([d82cb2b](https://github.com/Belphemur/SoundSwitch/commit/d82cb2be155735f8d5a0244b0feb9372bd3cb606))
+* **Japanese:** Translated Settings using Weblate ([8aa4f82](https://github.com/Belphemur/SoundSwitch/commit/8aa4f82d41ae62f673099b99557cf410aeb7bc29))
+* **Japanese:** Translated Settings using Weblate ([00ed06c](https://github.com/Belphemur/SoundSwitch/commit/00ed06c169c796a2b3eb2c63ede84fc7d347c85a))
+* **Japanese:** Translated Settings using Weblate ([fde374e](https://github.com/Belphemur/SoundSwitch/commit/fde374e2c689a5c9e3ec83dac8fa7d710f3ca945))
+* **Japanese:** Translated Tray Icon using Weblate ([8c97167](https://github.com/Belphemur/SoundSwitch/commit/8c97167020d4cd698ef15d7af555a0632c8945d0))
+* **Japanese:** Translated Tray Icon using Weblate ([5f0de1b](https://github.com/Belphemur/SoundSwitch/commit/5f0de1bc1a06d5ee41ae348cf88a6b80eb992853))
+* **Japanese:** Translated Update Download using Weblate ([872a51f](https://github.com/Belphemur/SoundSwitch/commit/872a51f290faa7d3b847dfcb83b40315f1e70a4c))
+* **Japanese:** Translated Update Download using Weblate ([525ae92](https://github.com/Belphemur/SoundSwitch/commit/525ae92dfb2d8d996346ab5e56de115090604006))
+* **Spanish:** Translated Settings using Weblate ([dc8fe47](https://github.com/Belphemur/SoundSwitch/commit/dc8fe472ac9dce2ab3f574419e67d8f50cd71a59))
+* **Spanish:** Translated Settings using Weblate ([1c343e6](https://github.com/Belphemur/SoundSwitch/commit/1c343e65f2257f701208e32f26ea8400111afb8e))
+* **Spanish:** Translated Settings using Weblate ([57ff02b](https://github.com/Belphemur/SoundSwitch/commit/57ff02bac55fc7238d7c2fd5786cc191b1c3b1d3))
+
+
+### Bug Fixes
+
+* **banner/quickmenu:** Don't show notification or quick menu in the ALT+TAB menu ([5312f64](https://github.com/Belphemur/SoundSwitch/commit/5312f64a79f9657ad0146c2a0346833bdd2888bc)), closes [#1475](https://github.com/Belphemur/SoundSwitch/issues/1475)
+* **localization:** Updated Settings and TrayIcon Entries ([145f98d](https://github.com/Belphemur/SoundSwitch/commit/145f98d4542f0ebaaa285b153cc507d7fb61859c))
+* **profiles:** Readjusted items in Profiles tab ([75c4ea0](https://github.com/Belphemur/SoundSwitch/commit/75c4ea092a074e15238eed23a82be53bae4664cd))
+* **profile:** used icon for profile ([8a8237b](https://github.com/Belphemur/SoundSwitch/commit/8a8237b4c53bd375304edeaac41cebf45e09a83a))
+* **quickmenu:** Fix crash with QuickMenu having disposed icon ([6a79ec9](https://github.com/Belphemur/SoundSwitch/commit/6a79ec9f03c4f3397c8bb32bbb655bc85865cec0))
+* **quickmenu:** possible crash when quick menu triggered while disappearing ([bd51528](https://github.com/Belphemur/SoundSwitch/commit/bd51528ea4e23f22c5f96b59183d2afe323e15c3))
+* **Settings:** Fix issue where the settings close button could overlap with text. ([f5ceed7](https://github.com/Belphemur/SoundSwitch/commit/f5ceed7cceecc5ec0fc29222496e3c56a0c41ed3)), closes [#1448](https://github.com/Belphemur/SoundSwitch/issues/1448)
+
+
+### Features
+
+* **banner:on-screen-time:** Settings to change how long the banner stays on the screen ([41644f5](https://github.com/Belphemur/SoundSwitch/commit/41644f520ebd63fff292e9661db597fdba806c82)), closes [#1467](https://github.com/Belphemur/SoundSwitch/issues/1467)
+* **notification:** Make the number of banner notification on the screen configurable ([cc15647](https://github.com/Belphemur/SoundSwitch/commit/cc15647b42f39265edc0f6186b0bb64ee93578d6))
+
+## [6.11.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.10.3...v6.11.0-beta.1) (2024-04-26)
+
+
+### Enhancements
+
+* **language:** Add Swedish translations ([27ef51f](https://github.com/Belphemur/SoundSwitch/commit/27ef51fe7911f047d2a79e9171a35bdf035fe593)), closes [#1431](https://github.com/Belphemur/SoundSwitch/issues/1431)
+* **profile:** improve description of profile and let the text auto wrap ([551c41b](https://github.com/Belphemur/SoundSwitch/commit/551c41b97c7cdd08a8ed2e4e94efbd7cc5791d5c)), closes [#1433](https://github.com/Belphemur/SoundSwitch/issues/1433)
+* **settings): Troubleshooting; refactor(trayIcon:** Updated Tray Menu ([f132a89](https://github.com/Belphemur/SoundSwitch/commit/f132a894483f06056cfdf85690aabfdc597b2ca3))
+* **updater:** auto retry when can't download the file ([51bac9c](https://github.com/Belphemur/SoundSwitch/commit/51bac9c4d027d163e7516e3537eff812bcde1741))
+
+
+### Languages
+
+* **Croatian:** Translated About using Weblate ([b16e510](https://github.com/Belphemur/SoundSwitch/commit/b16e510afd7003698505ced4c7b30e5a0229fa83))
+* **Croatian:** Translated Settings using Weblate ([4384e8c](https://github.com/Belphemur/SoundSwitch/commit/4384e8cbe03bac434bfcd5b97e78c19d08100b50))
+* **Dutch:** Translated Settings using Weblate ([7c48d01](https://github.com/Belphemur/SoundSwitch/commit/7c48d01e0e15d9a4d9b345be304bb797231b8524))
+* **Dutch:** Translated Settings using Weblate ([3103328](https://github.com/Belphemur/SoundSwitch/commit/31033283a4b13a630f2c5311945b40937ccb22f3))
+* **Dutch:** Translated Update Download using Weblate ([681c508](https://github.com/Belphemur/SoundSwitch/commit/681c5083e763a0f09555c4b5daf72a21b086f91a))
+* **English:** Translated Settings using Weblate ([c661601](https://github.com/Belphemur/SoundSwitch/commit/c66160145d273125c96b1cb0424198bdbe7a8315))
+* **English:** Translated Settings using Weblate ([f30acf6](https://github.com/Belphemur/SoundSwitch/commit/f30acf6a133ff674149a0991e0fc7d8607e830f8))
+* **Hebrew:** Translated Settings using Weblate ([8ada5b1](https://github.com/Belphemur/SoundSwitch/commit/8ada5b1f6bf62bd43eac9fb1a20cee805f313d93))
+* **Hebrew:** Translated Settings using Weblate ([36ba8bc](https://github.com/Belphemur/SoundSwitch/commit/36ba8bc02c7318f62fddffaa1ee098a0bc96fffe))
+* **Hebrew:** Translated Settings using Weblate ([8e2ad75](https://github.com/Belphemur/SoundSwitch/commit/8e2ad75251600e9f4b5adb83d15ee70fabefa421))
+* **Italian:** Translated Settings using Weblate ([6e9d2b5](https://github.com/Belphemur/SoundSwitch/commit/6e9d2b5fdc9421ba0483fbc8a296853fbb7280b8))
+* **Japanese:** Translated About using Weblate ([5cedb13](https://github.com/Belphemur/SoundSwitch/commit/5cedb13c687a976c676efb6f565d66fe7e1737a3))
+* **Japanese:** Translated About using Weblate ([8abbb54](https://github.com/Belphemur/SoundSwitch/commit/8abbb54ff10dbb069feee9dd79930b775c7e81e2))
+* **Japanese:** Translated Settings using Weblate ([27e14d9](https://github.com/Belphemur/SoundSwitch/commit/27e14d90a74da9403668d82da9c6ee631aaba9f7))
+* **Japanese:** Translated Settings using Weblate ([d82cb2b](https://github.com/Belphemur/SoundSwitch/commit/d82cb2be155735f8d5a0244b0feb9372bd3cb606))
+* **Japanese:** Translated Settings using Weblate ([8aa4f82](https://github.com/Belphemur/SoundSwitch/commit/8aa4f82d41ae62f673099b99557cf410aeb7bc29))
+* **Japanese:** Translated Settings using Weblate ([00ed06c](https://github.com/Belphemur/SoundSwitch/commit/00ed06c169c796a2b3eb2c63ede84fc7d347c85a))
+* **Japanese:** Translated Settings using Weblate ([fde374e](https://github.com/Belphemur/SoundSwitch/commit/fde374e2c689a5c9e3ec83dac8fa7d710f3ca945))
+* **Japanese:** Translated Tray Icon using Weblate ([8c97167](https://github.com/Belphemur/SoundSwitch/commit/8c97167020d4cd698ef15d7af555a0632c8945d0))
+* **Japanese:** Translated Tray Icon using Weblate ([5f0de1b](https://github.com/Belphemur/SoundSwitch/commit/5f0de1bc1a06d5ee41ae348cf88a6b80eb992853))
+* **Japanese:** Translated Update Download using Weblate ([872a51f](https://github.com/Belphemur/SoundSwitch/commit/872a51f290faa7d3b847dfcb83b40315f1e70a4c))
+* **Japanese:** Translated Update Download using Weblate ([525ae92](https://github.com/Belphemur/SoundSwitch/commit/525ae92dfb2d8d996346ab5e56de115090604006))
+* **Spanish:** Translated Settings using Weblate ([1c343e6](https://github.com/Belphemur/SoundSwitch/commit/1c343e65f2257f701208e32f26ea8400111afb8e))
+* **Spanish:** Translated Settings using Weblate ([57ff02b](https://github.com/Belphemur/SoundSwitch/commit/57ff02bac55fc7238d7c2fd5786cc191b1c3b1d3))
+
+
+### Bug Fixes
+
+* **localization:** Updated Settings and TrayIcon Entries ([145f98d](https://github.com/Belphemur/SoundSwitch/commit/145f98d4542f0ebaaa285b153cc507d7fb61859c))
+* **profiles:** Readjusted items in Profiles tab ([75c4ea0](https://github.com/Belphemur/SoundSwitch/commit/75c4ea092a074e15238eed23a82be53bae4664cd))
+* **profile:** used icon for profile ([8a8237b](https://github.com/Belphemur/SoundSwitch/commit/8a8237b4c53bd375304edeaac41cebf45e09a83a))
+* **quickmenu:** Fix crash with QuickMenu having disposed icon ([6a79ec9](https://github.com/Belphemur/SoundSwitch/commit/6a79ec9f03c4f3397c8bb32bbb655bc85865cec0))
+* **quickmenu:** possible crash when quick menu triggered while disappearing ([bd51528](https://github.com/Belphemur/SoundSwitch/commit/bd51528ea4e23f22c5f96b59183d2afe323e15c3))
+* **Settings:** Fix issue where the settings close button could overlap with text. ([f5ceed7](https://github.com/Belphemur/SoundSwitch/commit/f5ceed7cceecc5ec0fc29222496e3c56a0c41ed3)), closes [#1448](https://github.com/Belphemur/SoundSwitch/issues/1448)
+
+
+### Features
+
+* **notification:** Make the number of banner notification on the screen configurable ([cc15647](https://github.com/Belphemur/SoundSwitch/commit/cc15647b42f39265edc0f6186b0bb64ee93578d6))
+
+## [6.10.3](https://github.com/Belphemur/SoundSwitch/compare/v6.10.2...v6.10.3) (2024-04-07)
+
+
+### Enhancements
+
+* **icon:** improve the logic that cache device icons ([886bd81](https://github.com/Belphemur/SoundSwitch/commit/886bd81135f1dbb3b9f2557dc6b695e1fc21b51d))
+
+
+### Bug Fixes
+
+* **device:icon:** Force max size of 32px instead of what's available as large ([c389f27](https://github.com/Belphemur/SoundSwitch/commit/c389f2769a150f59893e1537e5728b1902ff485f))
+* **settings:** fix issue with device list (settings) crashing when too many devices ([180ca33](https://github.com/Belphemur/SoundSwitch/commit/180ca33a43f9572588703cb8ad37330d563e2e20))
+
+## [6.10.2](https://github.com/Belphemur/SoundSwitch/compare/v6.10.1...v6.10.2) (2024-04-07)
+
+
+### Languages
+
+* **Japanese:** Translated Settings using Weblate ([3bd9ef2](https://github.com/Belphemur/SoundSwitch/commit/3bd9ef2ee179d6f84d367050508b711eb43001e9))
+* **Japanese:** Translated Tray Icon using Weblate ([3e5e936](https://github.com/Belphemur/SoundSwitch/commit/3e5e9366922feefbc9e52cb57d1bd4f9d755947e))
+
+
+### Bug Fixes
+
+* **settings:** Hide Primary Screen CheckBox and Position ComboBox when Banner Position not selected ([c775eb5](https://github.com/Belphemur/SoundSwitch/commit/c775eb5d7205401d9980dc21118ee0f6991409fa))
+
+## [6.10.1-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.10.0...v6.10.1-beta.1) (2024-04-05)
+
+
+### Enhancements
+
+* **banner:** Always have the latest banner at the top of the stack ([95575f9](https://github.com/Belphemur/SoundSwitch/commit/95575f976306afe434911181b4faf144c73e83dc))
+
+
+### Bug Fixes
+
+* **auto-update:** fix bootloop of SoundSwitch when auto-updating with the new beta ([e19a21d](https://github.com/Belphemur/SoundSwitch/commit/e19a21dc08a35d1b58b1a6e6ef77bfc626d1c794)), closes [#1422](https://github.com/Belphemur/SoundSwitch/issues/1422)
+
+## [6.10.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.9.0...v6.10.0-beta.1) (2024-04-05)
+
+
+### Languages
+
+* **Polish:** Translated Settings using Weblate ([54aeeac](https://github.com/Belphemur/SoundSwitch/commit/54aeeacda18db243e98b7a60f5d72d23a783f835))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([b8e50fb](https://github.com/Belphemur/SoundSwitch/commit/b8e50fb679054336eee55548835c438f15ded5c1))
+
+
+### Bug Fixes
+
+* **auto-update:** parsing of version with beta ([8ef4e51](https://github.com/Belphemur/SoundSwitch/commit/8ef4e516172e93fdb6fa0d7f948bdbd28fd781aa))
+* **icon:** fix not saving in cache the icon ([8623e72](https://github.com/Belphemur/SoundSwitch/commit/8623e72f32cbf971bc3441ebbf9b91869f65aecd))
+* **updater:** fix possible issue with the updater crashing at SoundSwitch startup. ([4de67e6](https://github.com/Belphemur/SoundSwitch/commit/4de67e69b0152c59d32187444f82e47e6ce14d5f))
+* **version:** fix the file version of the app ([8de2d5b](https://github.com/Belphemur/SoundSwitch/commit/8de2d5b02597156f0d8e3545d0ee68beeabbfff3))
+
+
+### Features
+
+* **banner:** Make banner stackable instead of replacing content ([b26eb7c](https://github.com/Belphemur/SoundSwitch/commit/b26eb7c7f103eb7b9d7cc3a7ed69e0415aec53d6))
+
+## [6.10.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.9.0...v6.10.0-beta.1) (2024-04-05)
+
+
+### Languages
+
+* **Portuguese (Brazil):** Translated Settings using Weblate ([b8e50fb](https://github.com/Belphemur/SoundSwitch/commit/b8e50fb679054336eee55548835c438f15ded5c1))
+
+
+### Bug Fixes
+
+* **auto-update:** parsing of version with beta ([8ef4e51](https://github.com/Belphemur/SoundSwitch/commit/8ef4e516172e93fdb6fa0d7f948bdbd28fd781aa))
+* **updater:** fix possible issue with the updater crashing at SoundSwitch startup. ([4de67e6](https://github.com/Belphemur/SoundSwitch/commit/4de67e69b0152c59d32187444f82e47e6ce14d5f))
+* **version:** fix the file version of the app ([8de2d5b](https://github.com/Belphemur/SoundSwitch/commit/8de2d5b02597156f0d8e3545d0ee68beeabbfff3))
+
+
+### Features
+
+* **banner:** Make banner stackable instead of replacing content ([b26eb7c](https://github.com/Belphemur/SoundSwitch/commit/b26eb7c7f103eb7b9d7cc3a7ed69e0415aec53d6))
+
+## [6.9.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.8.1...v6.9.0-beta.1) (2024-04-03)
+
+
+### Enhancements
+
+* **notification:** Added Top Center/Bottom Center to Banner Positions ([#1347](https://github.com/Belphemur/SoundSwitch/issues/1347)) ([1566fc9](https://github.com/Belphemur/SoundSwitch/commit/1566fc9d092d04c8e5a2705d262d456332a81e6b))
+* **notification:** Merged Custom Sound Notification into Sound Notification ([#1352](https://github.com/Belphemur/SoundSwitch/issues/1352)) ([a163a09](https://github.com/Belphemur/SoundSwitch/commit/a163a09443cca37d9ffcd5265d6c187f3b2b7d08))
+* **volume:** Keep volume includes both playback and recording devices ([03d1aa8](https://github.com/Belphemur/SoundSwitch/commit/03d1aa8a1d90ae300eb482aa3e2d824ef9d4c429))
+
+
+### Languages
+
+* **Croatian:** Translated Settings using Weblate ([2503908](https://github.com/Belphemur/SoundSwitch/commit/2503908844547eec4cd160e63abf5df48d9272c9))
+* **Croatian:** Translated Settings using Weblate ([9dcc946](https://github.com/Belphemur/SoundSwitch/commit/9dcc946fcab5d09ed7a312e562ff0a05e3d8875b))
+* **Croatian:** Translated Settings using Weblate ([3ed5521](https://github.com/Belphemur/SoundSwitch/commit/3ed552140044c3c5be2d6e7f0f45fc9ebfe69077))
+* **French:** Translated Settings using Weblate ([3d48b72](https://github.com/Belphemur/SoundSwitch/commit/3d48b72fd06a7b3983f30ccbce8d9490dd5b1e7c))
+* **German:** Translated Settings using Weblate ([9d414d2](https://github.com/Belphemur/SoundSwitch/commit/9d414d2ae2ed0b6dfd2244827563886330f5517d))
+* **German:** Translated Settings using Weblate ([c3598bf](https://github.com/Belphemur/SoundSwitch/commit/c3598bf772d3dff1545d395701a7ed4646345202))
+* **Hebrew:** Translated Settings using Weblate ([00a65a5](https://github.com/Belphemur/SoundSwitch/commit/00a65a52177c33790ef9197784a02d78efc97c89))
+* **Hungarian:** Translated Settings using Weblate ([97faf79](https://github.com/Belphemur/SoundSwitch/commit/97faf7906b19eec249cc7e739bc0bf820eb3f5f3))
+* **Hungarian:** Translated Tray Icon using Weblate ([a191a49](https://github.com/Belphemur/SoundSwitch/commit/a191a49654cda649c9bcdacca0678d15bb400622))
+* **Hungarian:** Translated Update Download using Weblate ([e85e988](https://github.com/Belphemur/SoundSwitch/commit/e85e9882b2bb5cd1ea665410250222697c38627f))
+* **Portuguese:** Translated Settings using Weblate ([cccdf71](https://github.com/Belphemur/SoundSwitch/commit/cccdf7178c3e21effeee59260fceefee43b2ebf5))
+* **Portuguese:** Translated Settings using Weblate ([b53b37b](https://github.com/Belphemur/SoundSwitch/commit/b53b37bebc00f3018e628915c4d719fb1c64ed0c))
+* **Russian:** Translated Settings using Weblate ([1c93c71](https://github.com/Belphemur/SoundSwitch/commit/1c93c71586eff07f11916f3740d555c7d8b277dc))
+* **Slovenian:** Translated About using Weblate ([15e1747](https://github.com/Belphemur/SoundSwitch/commit/15e1747f953f58c040e47152003e79fd4fd494ce))
+* **Slovenian:** Translated Settings using Weblate ([a0feb07](https://github.com/Belphemur/SoundSwitch/commit/a0feb0769d9269568a4b1fd130d4dac095a7e428))
+* **Spanish:** Translated Settings using Weblate ([b16f033](https://github.com/Belphemur/SoundSwitch/commit/b16f033e1f8330c38d78e3b3a5bd12c2530b8e91))
+* **Spanish:** Translated Settings using Weblate ([9dc33bb](https://github.com/Belphemur/SoundSwitch/commit/9dc33bb3d0b6def3588641add836fc805e393d78))
+* **Spanish:** Translated Settings using Weblate ([7569270](https://github.com/Belphemur/SoundSwitch/commit/75692705dccb7e4d5a96d4b2c04e6336cfa006ee))
+* **Swedish:** Translated Settings using Weblate ([1bb6efb](https://github.com/Belphemur/SoundSwitch/commit/1bb6efb270cffbc5c5f54fc21cf5383ebeb3c411))
+* **Swedish:** Translated Settings using Weblate ([6b3a6e7](https://github.com/Belphemur/SoundSwitch/commit/6b3a6e7f19892cd917e34edcc33fb793a6f374f5))
+* **Swedish:** Translated Settings using Weblate ([a65951a](https://github.com/Belphemur/SoundSwitch/commit/a65951a231b536cc923fd7a7cbce879548295769))
+* **Ukrainian:** Translated Settings using Weblate ([c3ed595](https://github.com/Belphemur/SoundSwitch/commit/c3ed595c12ae0cfaacb1eda43efea5cf9a7d9131))
+* **Ukrainian:** Translated Tray Icon using Weblate ([48b11b7](https://github.com/Belphemur/SoundSwitch/commit/48b11b746c0fb16f77689499befba4cac052c67a))
+
+
+### Bug Fixes
+
+* comparing devices event, needs to also compare the id ([4851b43](https://github.com/Belphemur/SoundSwitch/commit/4851b438c0da0aa9c0ac34ceae1ac803ad5ed4bd))
+* getting all device that have name ([d695d2d](https://github.com/Belphemur/SoundSwitch/commit/d695d2d38acb86f626db78afce19a0be869f6834))
+* possible issue where device not removed from the list when renamed ([8ed0f14](https://github.com/Belphemur/SoundSwitch/commit/8ed0f1409c1ee1a02de5ba5e75a97ee644062c7c))
+* **volume:** Volume levels across dual-audio channels now kept for keep volume option ([#1371](https://github.com/Belphemur/SoundSwitch/issues/1371)) ([7121ecb](https://github.com/Belphemur/SoundSwitch/commit/7121ecb1910f3afab555799bf53a2fdd12b127af))
+
+
+### Features
+
+* **autoadd:** remove the auto add feature ([dd39379](https://github.com/Belphemur/SoundSwitch/commit/dd39379f83180c711d0229cb7ff790372104af1c))
+* make audioswitcher able to provide list of devices ([0d31968](https://github.com/Belphemur/SoundSwitch/commit/0d319688cbf27dbd0af4c1266503c16855ecc451))
+* **notification:** Banner positions ([#1346](https://github.com/Belphemur/SoundSwitch/issues/1346)) ([40892fe](https://github.com/Belphemur/SoundSwitch/commit/40892fed2b678f9df0aa0d3a218d6b1e19d76261)), closes [#242](https://github.com/Belphemur/SoundSwitch/issues/242) [#1176](https://github.com/Belphemur/SoundSwitch/issues/1176)
+
+## [6.9.0-beta.1](https://github.com/Belphemur/SoundSwitch/compare/v6.8.1...v6.9.0-beta.1) (2024-04-03)
+
+
+### Enhancements
+
+* **notification:** Added Top Center/Bottom Center to Banner Positions ([#1347](https://github.com/Belphemur/SoundSwitch/issues/1347)) ([1566fc9](https://github.com/Belphemur/SoundSwitch/commit/1566fc9d092d04c8e5a2705d262d456332a81e6b))
+* **notification:** Merged Custom Sound Notification into Sound Notification ([#1352](https://github.com/Belphemur/SoundSwitch/issues/1352)) ([a163a09](https://github.com/Belphemur/SoundSwitch/commit/a163a09443cca37d9ffcd5265d6c187f3b2b7d08))
+* **volume:** Keep volume includes both playback and recording devices ([03d1aa8](https://github.com/Belphemur/SoundSwitch/commit/03d1aa8a1d90ae300eb482aa3e2d824ef9d4c429))
+
+
+### Languages
+
+* **Croatian:** Translated Settings using Weblate ([2503908](https://github.com/Belphemur/SoundSwitch/commit/2503908844547eec4cd160e63abf5df48d9272c9))
+* **Croatian:** Translated Settings using Weblate ([9dcc946](https://github.com/Belphemur/SoundSwitch/commit/9dcc946fcab5d09ed7a312e562ff0a05e3d8875b))
+* **Croatian:** Translated Settings using Weblate ([3ed5521](https://github.com/Belphemur/SoundSwitch/commit/3ed552140044c3c5be2d6e7f0f45fc9ebfe69077))
+* **French:** Translated Settings using Weblate ([3d48b72](https://github.com/Belphemur/SoundSwitch/commit/3d48b72fd06a7b3983f30ccbce8d9490dd5b1e7c))
+* **German:** Translated Settings using Weblate ([9d414d2](https://github.com/Belphemur/SoundSwitch/commit/9d414d2ae2ed0b6dfd2244827563886330f5517d))
+* **German:** Translated Settings using Weblate ([c3598bf](https://github.com/Belphemur/SoundSwitch/commit/c3598bf772d3dff1545d395701a7ed4646345202))
+* **Hebrew:** Translated Settings using Weblate ([00a65a5](https://github.com/Belphemur/SoundSwitch/commit/00a65a52177c33790ef9197784a02d78efc97c89))
+* **Hungarian:** Translated Settings using Weblate ([97faf79](https://github.com/Belphemur/SoundSwitch/commit/97faf7906b19eec249cc7e739bc0bf820eb3f5f3))
+* **Hungarian:** Translated Tray Icon using Weblate ([a191a49](https://github.com/Belphemur/SoundSwitch/commit/a191a49654cda649c9bcdacca0678d15bb400622))
+* **Hungarian:** Translated Update Download using Weblate ([e85e988](https://github.com/Belphemur/SoundSwitch/commit/e85e9882b2bb5cd1ea665410250222697c38627f))
+* **Portuguese:** Translated Settings using Weblate ([cccdf71](https://github.com/Belphemur/SoundSwitch/commit/cccdf7178c3e21effeee59260fceefee43b2ebf5))
+* **Portuguese:** Translated Settings using Weblate ([b53b37b](https://github.com/Belphemur/SoundSwitch/commit/b53b37bebc00f3018e628915c4d719fb1c64ed0c))
+* **Russian:** Translated Settings using Weblate ([1c93c71](https://github.com/Belphemur/SoundSwitch/commit/1c93c71586eff07f11916f3740d555c7d8b277dc))
+* **Slovenian:** Translated About using Weblate ([15e1747](https://github.com/Belphemur/SoundSwitch/commit/15e1747f953f58c040e47152003e79fd4fd494ce))
+* **Slovenian:** Translated Settings using Weblate ([a0feb07](https://github.com/Belphemur/SoundSwitch/commit/a0feb0769d9269568a4b1fd130d4dac095a7e428))
+* **Spanish:** Translated Settings using Weblate ([b16f033](https://github.com/Belphemur/SoundSwitch/commit/b16f033e1f8330c38d78e3b3a5bd12c2530b8e91))
+* **Spanish:** Translated Settings using Weblate ([9dc33bb](https://github.com/Belphemur/SoundSwitch/commit/9dc33bb3d0b6def3588641add836fc805e393d78))
+* **Spanish:** Translated Settings using Weblate ([7569270](https://github.com/Belphemur/SoundSwitch/commit/75692705dccb7e4d5a96d4b2c04e6336cfa006ee))
+* **Swedish:** Translated Settings using Weblate ([1bb6efb](https://github.com/Belphemur/SoundSwitch/commit/1bb6efb270cffbc5c5f54fc21cf5383ebeb3c411))
+* **Swedish:** Translated Settings using Weblate ([6b3a6e7](https://github.com/Belphemur/SoundSwitch/commit/6b3a6e7f19892cd917e34edcc33fb793a6f374f5))
+* **Swedish:** Translated Settings using Weblate ([a65951a](https://github.com/Belphemur/SoundSwitch/commit/a65951a231b536cc923fd7a7cbce879548295769))
+* **Ukrainian:** Translated Settings using Weblate ([c3ed595](https://github.com/Belphemur/SoundSwitch/commit/c3ed595c12ae0cfaacb1eda43efea5cf9a7d9131))
+* **Ukrainian:** Translated Tray Icon using Weblate ([48b11b7](https://github.com/Belphemur/SoundSwitch/commit/48b11b746c0fb16f77689499befba4cac052c67a))
+
+
+### Bug Fixes
+
+* comparing devices event, needs to also compare the id ([4851b43](https://github.com/Belphemur/SoundSwitch/commit/4851b438c0da0aa9c0ac34ceae1ac803ad5ed4bd))
+* getting all device that have name ([d695d2d](https://github.com/Belphemur/SoundSwitch/commit/d695d2d38acb86f626db78afce19a0be869f6834))
+* possible issue where device not removed from the list when renamed ([8ed0f14](https://github.com/Belphemur/SoundSwitch/commit/8ed0f1409c1ee1a02de5ba5e75a97ee644062c7c))
+* **volume:** Volume levels across dual-audio channels now kept for keep volume option ([#1371](https://github.com/Belphemur/SoundSwitch/issues/1371)) ([7121ecb](https://github.com/Belphemur/SoundSwitch/commit/7121ecb1910f3afab555799bf53a2fdd12b127af))
+
+
+### Features
+
+* **autoadd:** remove the auto add feature ([dd39379](https://github.com/Belphemur/SoundSwitch/commit/dd39379f83180c711d0229cb7ff790372104af1c))
+* make audioswitcher able to provide list of devices ([0d31968](https://github.com/Belphemur/SoundSwitch/commit/0d319688cbf27dbd0af4c1266503c16855ecc451))
+* **notification:** Banner positions ([#1346](https://github.com/Belphemur/SoundSwitch/issues/1346)) ([40892fe](https://github.com/Belphemur/SoundSwitch/commit/40892fed2b678f9df0aa0d3a218d6b1e19d76261)), closes [#242](https://github.com/Belphemur/SoundSwitch/issues/242) [#1176](https://github.com/Belphemur/SoundSwitch/issues/1176)
+
+## [6.8.1](https://github.com/Belphemur/SoundSwitch/compare/v6.8.0...v6.8.1) (2023-12-24)
+
+
+### Enhancements
+
+* **installer:** add Korean language to the installer ([d30cdfd](https://github.com/Belphemur/SoundSwitch/commit/d30cdfd0f91489fb3395ca9263ead0fe2fded9ed))
+* **profile::icon:** Check all device in profile for icon in systray menu ([f354698](https://github.com/Belphemur/SoundSwitch/commit/f3546986583dc60085414a65627491316817ad8e)), closes [#1332](https://github.com/Belphemur/SoundSwitch/issues/1332)
+* **profile:** Order by alphabetical when showing profile in the systray menu ([58bec3f](https://github.com/Belphemur/SoundSwitch/commit/58bec3f2fea3ccf6bd28b4b7f52f311d134a18a4))
+
+
+### Languages
+
+* **Croatian:** Translated Settings using Weblate ([04bf70d](https://github.com/Belphemur/SoundSwitch/commit/04bf70de3f710892d7090643f07d56b50a6064a9))
+* **Italian:** Translated Settings using Weblate ([d62ee5b](https://github.com/Belphemur/SoundSwitch/commit/d62ee5b5d2253a1553a8cd6d87f12f1bbfaa8dca))
+* **Portuguese:** Translated Settings using Weblate ([ce245db](https://github.com/Belphemur/SoundSwitch/commit/ce245db1115b5e2b66ab230932c40e386fb98566))
+* **Spanish:** Translated Settings using Weblate ([e156252](https://github.com/Belphemur/SoundSwitch/commit/e156252be3ea93f1e043e603cfb01f840a8352de))
+
+
+### Bug Fixes
+
+* **Startup:** Fix possible startup crash ([f841977](https://github.com/Belphemur/SoundSwitch/commit/f8419772624f8a4612746593bd8d75408524f2d2)), closes [#1341](https://github.com/Belphemur/SoundSwitch/issues/1341)
+
+## [6.8.0](https://github.com/Belphemur/SoundSwitch/compare/v6.7.2...v6.8.0) (2023-12-19)
+
+
+### Enhancements
+
+* **.NET:** Move to .NET 8.0 ([43f0d60](https://github.com/Belphemur/SoundSwitch/commit/43f0d600ee98bb714294c81ed4962c84de947219))
+* **device::cache:** Improve the performance and speed of caching devices ([594b49c](https://github.com/Belphemur/SoundSwitch/commit/594b49ca680b9582c02acd4a8ee9b865df3572fb))
+* **device::cache:** Increase the TTL for refreshing device list ([6ab8028](https://github.com/Belphemur/SoundSwitch/commit/6ab8028c0e84642d9af995405a638d13c8417fe6))
+* **device::cache:** keep only one cache alive for all devices ([9b3a126](https://github.com/Belphemur/SoundSwitch/commit/9b3a12657d4e527fe5366fa323b2a3f62ed644bb))
+* **device::cache:** rework the logic behind refreshing devices when changes are detected in the system. ([3c12b3f](https://github.com/Belphemur/SoundSwitch/commit/3c12b3f1f87b6f253e45bc8b8786b9aa75f3c1a0))
+
+
+### Languages
+
+* **Bulgarian:** Translated Settings using Weblate ([b2cf464](https://github.com/Belphemur/SoundSwitch/commit/b2cf464a543546b71cb80ca16ed2a11c2c126ceb))
+* **Bulgarian:** Translated Tray Icon using Weblate ([fffe534](https://github.com/Belphemur/SoundSwitch/commit/fffe534eeb24f2fb9335de2da672f6ccd8f6183d))
+* **Chinese (Traditional):** Translated Settings using Weblate ([4582119](https://github.com/Belphemur/SoundSwitch/commit/45821192d165f5ab9498129367709cc30d9959e8))
+* **French:** Translated Settings using Weblate ([4496335](https://github.com/Belphemur/SoundSwitch/commit/449633547683ccc4c8aeba85f5aaac180d597bcd))
+* **French:** Translated Tray Icon using Weblate ([76905a4](https://github.com/Belphemur/SoundSwitch/commit/76905a462abf08384c212c4b0e51575e1f6d5d0b))
+* **French:** Translated Update Download using Weblate ([67c281b](https://github.com/Belphemur/SoundSwitch/commit/67c281bae62c0e0710df0a5f6fe67707c62b672f))
+* **German:** Translated Settings using Weblate ([061583c](https://github.com/Belphemur/SoundSwitch/commit/061583c95ef9f7b5170125a1e1b896fbbddb2dba))
+* **German:** Translated Tray Icon using Weblate ([3da0c83](https://github.com/Belphemur/SoundSwitch/commit/3da0c83caa517fd781320b9a4b9ebf5daf0f85c8))
+* **Korean:** Translated Tray Icon using Weblate ([4ca2b15](https://github.com/Belphemur/SoundSwitch/commit/4ca2b15c4a7c4efc115b007dc7e7df5f6a89013b))
+* **Polish:** Translated Settings using Weblate ([43f8fa2](https://github.com/Belphemur/SoundSwitch/commit/43f8fa2a7dca5e8fc8a04b90c6fb7ed535a5ced7))
+* **Polish:** Translated Tray Icon using Weblate ([3b05aeb](https://github.com/Belphemur/SoundSwitch/commit/3b05aeb37557089a7f7b0a5e29cde786a4793538))
+* **Polish:** Translated Update Download using Weblate ([6cd0022](https://github.com/Belphemur/SoundSwitch/commit/6cd0022ebb483e8dbc61fa5ccc5cb55c2a479aa0))
+* **Serbian:** Translated Tray Icon using Weblate ([d17e650](https://github.com/Belphemur/SoundSwitch/commit/d17e65077aebc4c1731ae5cf81cbd56e783a9e0f))
+* **Slovenian:** Translated Tray Icon using Weblate ([b8c4269](https://github.com/Belphemur/SoundSwitch/commit/b8c4269a0dbf58cb7447c86501bdad1b8b6f8d3f))
+* **Swedish:** Translated About using Weblate ([2b0a112](https://github.com/Belphemur/SoundSwitch/commit/2b0a112d45b5ba9269690fb4b7b2b8a7c59fe602))
+* **Swedish:** Translated About using Weblate ([943befb](https://github.com/Belphemur/SoundSwitch/commit/943befb13e8a0ec9a7d8e5707c9727c06c26bf93))
+* **Swedish:** Translated Settings using Weblate ([9a182a1](https://github.com/Belphemur/SoundSwitch/commit/9a182a1e7712c11008aa440a5d9089b23cd40305))
+* **Swedish:** Translated Settings using Weblate ([49d3fcc](https://github.com/Belphemur/SoundSwitch/commit/49d3fccbc36288e265a2cded7d379e13a9e58f55))
+* **Swedish:** Translated Settings using Weblate ([f2eb255](https://github.com/Belphemur/SoundSwitch/commit/f2eb255b2b9622de57cf6cb2ab2986904198ef29))
+* **Swedish:** Translated Settings using Weblate ([d9e285f](https://github.com/Belphemur/SoundSwitch/commit/d9e285fb6c8990c958a66258b6bb0dfdebc06dde))
+* **Swedish:** Translated Settings using Weblate ([3454648](https://github.com/Belphemur/SoundSwitch/commit/3454648677750551490b48b907b8fb5bbdbc2c68))
+* **Swedish:** Translated Tray Icon using Weblate ([e939073](https://github.com/Belphemur/SoundSwitch/commit/e939073b62fc58285131be9fa65c278bd0824364))
+* **Swedish:** Translated Tray Icon using Weblate ([fe21446](https://github.com/Belphemur/SoundSwitch/commit/fe2144620d63a61fd50cb11ac80e220f53688ec7))
+* **Swedish:** Translated Update Download using Weblate ([c95fe6e](https://github.com/Belphemur/SoundSwitch/commit/c95fe6e8a2b298065992a5d9fe9fa3bf5daebd96))
+* **Swedish:** Translated Update Download using Weblate ([1b65fa4](https://github.com/Belphemur/SoundSwitch/commit/1b65fa4a16a8d87957f24edc042419b33f001471))
+
+
+### Bug Fixes
+
+* **Device::Cache:** Devices not being refreshed ([a113175](https://github.com/Belphemur/SoundSwitch/commit/a1131753e06eb48d61ed93f872d95f9d1e734153)), closes [#1323](https://github.com/Belphemur/SoundSwitch/issues/1323)
+* **profile:** possible issue with profile where the the state couldn't be restored after the profile ended. ([a648e4e](https://github.com/Belphemur/SoundSwitch/commit/a648e4e66e90e280f73131c09e02cde8e05c90f6))
+
+
+### Features
+
+* **volume:** Add an option to keep volume level across audio devices ([ca293b5](https://github.com/Belphemur/SoundSwitch/commit/ca293b529c420397db63ecdc03d2e295cbdc96ff)), closes [#1328](https://github.com/Belphemur/SoundSwitch/issues/1328)
+
+## [6.7.2](https://github.com/Belphemur/SoundSwitch/compare/v6.7.1...v6.7.2) (2023-06-14)
+
+
+### Bug Fixes
+
+* **MMNotificationClient:** Fix possible crash when closing the app ([ab8c0ee](https://github.com/Belphemur/SoundSwitch/commit/ab8c0ee7d8d59470c67fdc40b44185cccc0a4cad)), closes [#1201](https://github.com/Belphemur/SoundSwitch/issues/1201)
+* **Notification:** Fix missing sound in audio notification ([131c9d4](https://github.com/Belphemur/SoundSwitch/commit/131c9d42bec8ead3951123a12aa97b72e1afe3fd)), closes [#1203](https://github.com/Belphemur/SoundSwitch/issues/1203)
+
+
+### Enhancements
+
+* **Device::Refresh:** Wait a little longer before refreshing list of devices ([cb3d63f](https://github.com/Belphemur/SoundSwitch/commit/cb3d63f3c292939db5bcbebe7bc384f3b4758eea)), closes [#SOUNDSWITCH-151](https://github.com/Belphemur/SoundSwitch/issues/SOUNDSWITCH-151)
+
+
+### Languages
+
+* **Portuguese:** Translated Tray Icon using Weblate ([2e87f22](https://github.com/Belphemur/SoundSwitch/commit/2e87f220a76a4aa4254f004a5ef035c92b4e1d80))
+
+## [6.7.1](https://github.com/Belphemur/SoundSwitch/compare/v6.7.0...v6.7.1) (2023-06-08)
+
+
+### Bug Fixes
+
+* **MMNotification:** Fix getting the current state of Default device at application startup. No more crash when there isn't a communication device set. ([e97330e](https://github.com/Belphemur/SoundSwitch/commit/e97330eb66c75108b900aa710ef234bc2219a709)), closes [#1200](https://github.com/Belphemur/SoundSwitch/issues/1200)
+
+## [6.7.0](https://github.com/Belphemur/SoundSwitch/compare/v6.6.1...v6.7.0) (2023-06-08)
+
+
+### Features
+
+* **Core::Reset:** Add a mneu item to reset the Windows 10/11 per application audio settings. ([a5c07e8](https://github.com/Belphemur/SoundSwitch/commit/a5c07e83af729af04d2a675e6c45712c1b0e5dd5))
+* **Core:** Replace core of the software by the CoreAudio library ([899058b](https://github.com/Belphemur/SoundSwitch/commit/899058b89a047bcdd6cae93279f731b4d353349b)), closes [#1184](https://github.com/Belphemur/SoundSwitch/issues/1184) [#1164](https://github.com/Belphemur/SoundSwitch/issues/1164) [#1175](https://github.com/Belphemur/SoundSwitch/issues/1175)
+
+
+### Bug Fixes
+
+* **Foreground:** Issue with Foreground application wrongly detected as SoundSwitch causing SoundSwitch to stop notifying when audio is changed. ([31e6fe1](https://github.com/Belphemur/SoundSwitch/commit/31e6fe1dc4e65a31ed4714b64854d4a2e99e10a6))
+
+
+### Languages
+
+* **Croatian:** Translated Settings using Weblate ([08c491a](https://github.com/Belphemur/SoundSwitch/commit/08c491a29790e8fe2886621b4b9629fd70dc4751))
+* **Croatian:** Translated Tray Icon using Weblate ([dd1212b](https://github.com/Belphemur/SoundSwitch/commit/dd1212b20ecd5cf1c21f5e31d4a19df35cf74941))
+* **Hebrew:** Translated Settings using Weblate ([a8cb593](https://github.com/Belphemur/SoundSwitch/commit/a8cb593801e51bdee50173bc0eb3458e6b5402b7))
+* **Hebrew:** Translated Settings using Weblate ([325911d](https://github.com/Belphemur/SoundSwitch/commit/325911de272f97830c06dbdba62feb547f3bf99e))
+* **Hebrew:** Translated Tray Icon using Weblate ([e715d44](https://github.com/Belphemur/SoundSwitch/commit/e715d444f370fa6f25fbee064d59c77645417d10))
+* **Italian:** Translated Tray Icon using Weblate ([3ebd3ec](https://github.com/Belphemur/SoundSwitch/commit/3ebd3ec487e335da183bc86a24403965a5b44c67))
+* **Portuguese (Brazil):** Translated Tray Icon using Weblate ([f6b406b](https://github.com/Belphemur/SoundSwitch/commit/f6b406b19155f86ddc89900232561437d093804d))
+* **Spanish:** Translated Tray Icon using Weblate ([f0fd9e6](https://github.com/Belphemur/SoundSwitch/commit/f0fd9e662b8b8d5f925a94ef2a14eaca6a853509))
+
+## [6.6.1](https://github.com/Belphemur/SoundSwitch/compare/v6.6.0...v6.6.1) (2023-04-17)
+
+
+### Bug Fixes
+
+* **Icon:** Fix icon not changing ([553b409](https://github.com/Belphemur/SoundSwitch/commit/553b409556378c52cb7e3c06d54e718ee3a49d1e)), closes [#1159](https://github.com/Belphemur/SoundSwitch/issues/1159)
+* **Profile:** Disable profile from switching foreground app by default. ([f798580](https://github.com/Belphemur/SoundSwitch/commit/f798580106a95fab57bfa987eba406b4310b04f2))
+
+## [6.6.0](https://github.com/Belphemur/SoundSwitch/compare/v6.5.4...v6.6.0) (2023-04-09)
+
+
+### Features
+
+* **Profile::Foreground:** Let profile be able to switch the foreground application. ([a63eac9](https://github.com/Belphemur/SoundSwitch/commit/a63eac9e4f05512dd6e0d500b4db6f4564ac3cd7)), closes [#1117](https://github.com/Belphemur/SoundSwitch/issues/1117)
+
+
+### Bug Fixes
+
+* **CustomSound:** Don't crash on invalid custom sound. ([5a0acf2](https://github.com/Belphemur/SoundSwitch/commit/5a0acf2d1d5ecce98896629c1118c1f46be874cc)), closes [#1130](https://github.com/Belphemur/SoundSwitch/issues/1130)
+* **Icon:** Don't change icon when communication device is changed. ([84b7b46](https://github.com/Belphemur/SoundSwitch/commit/84b7b4674a53708b9b619ce5d7b0e73aec1c38a0)), closes [#1134](https://github.com/Belphemur/SoundSwitch/issues/1134)
+* **Profile:** Not switching all devices ([b23fffc](https://github.com/Belphemur/SoundSwitch/commit/b23fffc7970269dcf0e1903bdcf131434e5bc33c)), closes [#1126](https://github.com/Belphemur/SoundSwitch/issues/1126)
+* **Tooltip:** Fix not showing the right recording device in tooltip when SoundSwitch starts ([c2bd813](https://github.com/Belphemur/SoundSwitch/commit/c2bd813dc5006a83c0c15c3021122d81dcd80840)), closes [#1123](https://github.com/Belphemur/SoundSwitch/issues/1123)
+* **Tooltip:** Fix not showing the right recording device in tooltip when SoundSwitch starts ([41ea9ac](https://github.com/Belphemur/SoundSwitch/commit/41ea9ace513c3dff8f39bf8aee23c63d14b57eaa)), closes [#1123](https://github.com/Belphemur/SoundSwitch/issues/1123)
+
+
+### Languages
+
+* **Arabic:** Translated Settings using Weblate ([0a76385](https://github.com/Belphemur/SoundSwitch/commit/0a76385f4fb3f8fc905482e5983eebaaa7a1231e))
+* **Arabic:** Translated Update Download using Weblate ([2942b01](https://github.com/Belphemur/SoundSwitch/commit/2942b01f943c7a7ea0c21deeb476a7806708b24b))
+
+## [6.5.4](https://github.com/Belphemur/SoundSwitch/compare/v6.5.3...v6.5.4) (2023-02-09)
+
+
+### Bug Fixes
+
+* **Device::Refresh:** Fix issue where the list of device wouldn't be properly refresh after new device added/removed. ([cbb7d25](https://github.com/Belphemur/SoundSwitch/commit/cbb7d25bd239d22c9ee4735c1c437964661119ef)), closes [#1113](https://github.com/Belphemur/SoundSwitch/issues/1113)
+
+
+### Languages
+
+* **Chinese (Simplified):** Translated Settings using Weblate ([fccb108](https://github.com/Belphemur/SoundSwitch/commit/fccb108a22d61d873dc9333017cb9944c08035e9))
+* **Polish:** Translated Settings using Weblate ([be6880a](https://github.com/Belphemur/SoundSwitch/commit/be6880a6c2f622d8ffb909deaceed926f86046fc))
+* **Serbian:** Translated Settings using Weblate ([2b70f3e](https://github.com/Belphemur/SoundSwitch/commit/2b70f3e59c671f608be864b50645a014fbdb31d1))
+
+## [6.5.3](https://github.com/Belphemur/SoundSwitch/compare/v6.5.2...v6.5.3) (2023-02-05)
+
+
+### Bug Fixes
+
+* **Profile::ForceProfile:** Fix issue with force profile crashing SoundSwitch. Fix infinite loop. ([988448c](https://github.com/Belphemur/SoundSwitch/commit/988448cdddbbf9671e4b1eb9589ae070e670810d)), closes [#1103](https://github.com/Belphemur/SoundSwitch/issues/1103)
+
+
+### Enhancements
+
+* **Profile::Icon:** Always have an icon for the profile banner notification. Default to the first device of the profile when it's not linked to an application. ([c2f64d8](https://github.com/Belphemur/SoundSwitch/commit/c2f64d8638b9850492499f17774d8b070cc95da2)), closes [#1109](https://github.com/Belphemur/SoundSwitch/issues/1109)
+
+## [6.5.2](https://github.com/Belphemur/SoundSwitch/compare/v6.5.1...v6.5.2) (2023-02-03)
+
+
+### Bug Fixes
+
+* **Profile::Communication:** Set properly the communication device from a profile. ([4a83ac5](https://github.com/Belphemur/SoundSwitch/commit/4a83ac5dd38709508af7b47ee0cd1e56bf99b9a8)), closes [#1104](https://github.com/Belphemur/SoundSwitch/issues/1104)
+
+## [6.5.1](https://github.com/Belphemur/SoundSwitch/compare/v6.5.0...v6.5.1) (2023-02-02)
+
+
+### Bug Fixes
+
+* **Crash::NoError:** Fix crashing without error ([4d2ee17](https://github.com/Belphemur/SoundSwitch/commit/4d2ee17d15907d556df563085c046b76c176257b))
+* **logging:** Make foreground change message verbose ([6c69344](https://github.com/Belphemur/SoundSwitch/commit/6c693441cd56d0b8834f636643e3957e00902b2d))
+* **Notification::Banner:** Fix double notification (for both playback and recording device) in Win 11 ([a28b70d](https://github.com/Belphemur/SoundSwitch/commit/a28b70dd28caf8c51185aca6f9002b8e73bfa798))
+* **Notification::Win11:** Fix double notification ([ed20fd5](https://github.com/Belphemur/SoundSwitch/commit/ed20fd5483570a9c1d4ac1f6da4c3eb86972463e)), closes [#893](https://github.com/Belphemur/SoundSwitch/issues/893)
+* **Profile::Editing:** Fix inability to change the Notify for profile ([0b0cd0c](https://github.com/Belphemur/SoundSwitch/commit/0b0cd0cfea2fc6ce153f2bd3fe6a79b987706791)), closes [#1090](https://github.com/Belphemur/SoundSwitch/issues/1090)
+* **Steam::BigPicture:** Improve detection of steam big picture ([2e7a2af](https://github.com/Belphemur/SoundSwitch/commit/2e7a2afde8891ee6d4319249be3394d13aafe5d0))
+* **Tooltip::Volume:** Be sure the volume of the tooltip is properly shown ([8fc9cc4](https://github.com/Belphemur/SoundSwitch/commit/8fc9cc4ee65cdee4d7e823166a2304b7067755ab)), closes [#1096](https://github.com/Belphemur/SoundSwitch/issues/1096)
+* **Tooltip::Volume:** Fix how to show the volume in the tooltip. Start with the volume then name of device. ([9b21dc8](https://github.com/Belphemur/SoundSwitch/commit/9b21dc81ddc3c58d3148203823a1152a5d9da671)), closes [#1096](https://github.com/Belphemur/SoundSwitch/issues/1096)
+* **Volume:** Fix volume calculation ([9b692c8](https://github.com/Belphemur/SoundSwitch/commit/9b692c8f512ff0bde4c3eca0fdc85d4e15c9ec24)), closes [#1096](https://github.com/Belphemur/SoundSwitch/issues/1096)
+* **Window::Name:** Fix possible crash when trying to get the name of a Window ([6b45a50](https://github.com/Belphemur/SoundSwitch/commit/6b45a50a3ae427e4a5caa5bc6b4128cd528c806e)), closes [#1095](https://github.com/Belphemur/SoundSwitch/issues/1095)
+
+
+### Languages
+
+* **Korean:** Translated Settings using Weblate ([ab0aab7](https://github.com/Belphemur/SoundSwitch/commit/ab0aab7cae43b01c424eb84a5eae537544b8abae))
+
+
+### Enhancements
+
+* **logs:** Improve sentry log message in case of crash ([b1b093e](https://github.com/Belphemur/SoundSwitch/commit/b1b093e22d1986ead4ace76d43a51d070d53ccd5))
+* **logs:** Remove unneeded threadid ([8e73936](https://github.com/Belphemur/SoundSwitch/commit/8e7393682e66bde4af6a1622e6e1f84fe276e2ee))
+* **Profile::Form:** Reduce the size of the form to edit/create profile ([7e8c42a](https://github.com/Belphemur/SoundSwitch/commit/7e8c42af1f54c1de24df5397b009750caa18185b)), closes [#1091](https://github.com/Belphemur/SoundSwitch/issues/1091)
+* **Profile::Steam:** Improve the detection of Steam Big Picture mode in Windows 11 ([af955f2](https://github.com/Belphemur/SoundSwitch/commit/af955f2962ec3140c7096abd3bc663ff6f16eec0))
+
+## [6.5.0](https://github.com/Belphemur/SoundSwitch/compare/v6.4.3...v6.5.0) (2023-01-07)
+
+
+### Features
+
+* **Profile::RecordingCommunication:** Add possibility to set communication device for recording device in Profile.cs ([2ef778b](https://github.com/Belphemur/SoundSwitch/commit/2ef778ba3293b06553463f2d22cdc251b5e84641)), closes [#793](https://github.com/Belphemur/SoundSwitch/issues/793)
+
+
+### Bug Fixes
+
+* **Device::Matching:** Fix device matching between deviceinfo and any that inherit from it ([7881f16](https://github.com/Belphemur/SoundSwitch/commit/7881f16aca706798a183ea601e0fd29c0de324f4))
+* **Device::Selection:** Fix issue with recording and playback device having the same name not appearing in selected devices. ([f1aef5d](https://github.com/Belphemur/SoundSwitch/commit/f1aef5d92adb9982c06c9d936ddefb983543d0a4)), closes [#1070](https://github.com/Belphemur/SoundSwitch/issues/1070)
+* **Profile::SteamBigPicture:** Fix detecting the new big picture of steam. ([cd7c31f](https://github.com/Belphemur/SoundSwitch/commit/cd7c31fd92ec72ae4fce6ad09dd58dd5fde1da16)), closes [#1074](https://github.com/Belphemur/SoundSwitch/issues/1074)
+* **QuickMenu:** Fix resizing the quick menu when the number of items changes ([5b1eaec](https://github.com/Belphemur/SoundSwitch/commit/5b1eaece9466f1e09f3da0542b18868b2494aaaa)), closes [#1086](https://github.com/Belphemur/SoundSwitch/issues/1086)
+
+
+### Languages
+
+* **Bulgarian:** Add Bulgarian to the application ([74cce0d](https://github.com/Belphemur/SoundSwitch/commit/74cce0db9dc26f70fcfc51332d5d9b609b3491c3))
+* **Bulgarian:** Added About translation using Weblate ([d1c3fb3](https://github.com/Belphemur/SoundSwitch/commit/d1c3fb3d1024ae7403cf22b9119049469ce091ec))
+* **Bulgarian:** Added Settings translation using Weblate ([c05edfe](https://github.com/Belphemur/SoundSwitch/commit/c05edfe52611e7c6d8bf00aeb5a36a593b66cac3))
+* **Bulgarian:** Added Tray Icon translation using Weblate ([e523b8c](https://github.com/Belphemur/SoundSwitch/commit/e523b8cad7fc37223c3c31ac09c2101fe8cd091a))
+* **Bulgarian:** Added Update Download translation using Weblate ([4fdd134](https://github.com/Belphemur/SoundSwitch/commit/4fdd1340a0916e36c601ba8a176460b91750a460))
+* **Bulgarian:** Translated About using Weblate ([8bfea2a](https://github.com/Belphemur/SoundSwitch/commit/8bfea2ab36a32668561b21868dac35945684ddc6))
+* **Bulgarian:** Translated Settings using Weblate ([4f79f46](https://github.com/Belphemur/SoundSwitch/commit/4f79f461f5709b0e4ad9ad71cef5e329536fe6bb))
+* **Bulgarian:** Translated Tray Icon using Weblate ([5f2fc01](https://github.com/Belphemur/SoundSwitch/commit/5f2fc012193338d72eb4bc0effa98b3434a9dc61))
+* **Bulgarian:** Translated Update Download using Weblate ([6b05d44](https://github.com/Belphemur/SoundSwitch/commit/6b05d44f7758f4e0f42b7bf8c856085b51abab9a))
+* **Bulgarian:** Translated Update Download using Weblate ([f587f06](https://github.com/Belphemur/SoundSwitch/commit/f587f066e4212f37154012df9d08089407bd3ae8))
+* **Ukrainian:** Add Ukrainian to the list of supported languages ([a3684d3](https://github.com/Belphemur/SoundSwitch/commit/a3684d323f7e01e1b157658e2e9481be516d8c82))
+* **Ukrainian:** Added About translation using Weblate ([e584982](https://github.com/Belphemur/SoundSwitch/commit/e584982781a2ae6f7f79aaf6c4eed911eb5c7c8d))
+* **Ukrainian:** Added Settings translation using Weblate ([9490b89](https://github.com/Belphemur/SoundSwitch/commit/9490b89ecfe4e21f9a7abedda0a8a53457e1b171))
+* **Ukrainian:** Added Tray Icon translation using Weblate ([b57f6e0](https://github.com/Belphemur/SoundSwitch/commit/b57f6e00b6363ffb6f7dd1c5488c5c98a51dfcfd))
+* **Ukrainian:** Added Update Download translation using Weblate ([e64d78e](https://github.com/Belphemur/SoundSwitch/commit/e64d78e39f44a2d65e066debe141ae80a9bdb814))
+* **Ukrainian:** Translated About using Weblate ([cc7ac86](https://github.com/Belphemur/SoundSwitch/commit/cc7ac86e221efad0daa8694232c4b8a916bf5b54))
+* **Ukrainian:** Translated Settings using Weblate ([edb8ab4](https://github.com/Belphemur/SoundSwitch/commit/edb8ab497230caa4aadcefc2c6f3d289d41b00f1))
+* **Ukrainian:** Translated Settings using Weblate ([c50c67e](https://github.com/Belphemur/SoundSwitch/commit/c50c67ead79eb4ae74d85778235692d78078c7b8))
+* **Ukrainian:** Translated Tray Icon using Weblate ([d82d954](https://github.com/Belphemur/SoundSwitch/commit/d82d95489ea079c88c9149029252397b72f6ce96))
+* **Ukrainian:** Translated Tray Icon using Weblate ([0250383](https://github.com/Belphemur/SoundSwitch/commit/02503832f10ca76ecefcd196e2c8fc4783370a17))
+* **Ukrainian:** Translated Update Download using Weblate ([0c80e2e](https://github.com/Belphemur/SoundSwitch/commit/0c80e2e5384e04757bcc9d469aa2896657e9d9d7))
+
+## [6.4.3](https://github.com/Belphemur/SoundSwitch/compare/v6.4.2...v6.4.3) (2022-11-18)
+
+
+### Bug Fixes
+
+* **Hotkey:** Fix hotkey not being registered when computer comes back from sleep ([ed05d62](https://github.com/Belphemur/SoundSwitch/commit/ed05d624bf1af1ab51e6cc46dc9971587baa219b)), closes [#1041](https://github.com/Belphemur/SoundSwitch/issues/1041) [#997](https://github.com/Belphemur/SoundSwitch/issues/997)
+
+
+### Languages
+
+* Add danish to the application ([1d5ff6b](https://github.com/Belphemur/SoundSwitch/commit/1d5ff6b4a49386e12f4eebca079ea5b3c1dc3ccb))
+* **Croatian:** Translated Settings using Weblate ([63bf492](https://github.com/Belphemur/SoundSwitch/commit/63bf4927367257a834e3641abaef29ae7aada8a8))
+* **Danish:** Added About translation using Weblate ([76221bf](https://github.com/Belphemur/SoundSwitch/commit/76221bf35af224937e7bbe8b55703279685517f9))
+* **Danish:** Translated About using Weblate ([b0b9ddd](https://github.com/Belphemur/SoundSwitch/commit/b0b9dddf6d87f8e3336421fd0ba7d63e9b300e16))
+* **Danish:** Translated Settings using Weblate ([cfa248f](https://github.com/Belphemur/SoundSwitch/commit/cfa248fd7d0a3a7c6bd54193e187ae8c80f9b804))
+* **German:** Translated Settings using Weblate ([39a2e80](https://github.com/Belphemur/SoundSwitch/commit/39a2e807d18df80fdf88cc21020b2fe6cfa4717a))
+* **German:** Translated Settings using Weblate ([76d4691](https://github.com/Belphemur/SoundSwitch/commit/76d469153c52732459264d0960c28aa0baa361ec))
+* **German:** Translated Update Download using Weblate ([5e8d91b](https://github.com/Belphemur/SoundSwitch/commit/5e8d91b1af2bc46ddec9f165cc437ab0c7e0f52b))
+* **Spanish:** Translated Settings using Weblate ([25f9ab9](https://github.com/Belphemur/SoundSwitch/commit/25f9ab9b88a811126f7d87f3c92eba8371604e80))
+
+
+### Enhancements
+
+* **.NET:** Update to .NET 7.0 ([72cb6b8](https://github.com/Belphemur/SoundSwitch/commit/72cb6b841a0d815a5efe131ddfb800cfc99b040b))
+
+## [6.4.2](https://github.com/Belphemur/SoundSwitch/compare/v6.4.1...v6.4.2) (2022-08-09)
+
+
+### Bug Fixes
+
+* **Collection:** Remove properly device when unselected from the list. ([2f70eb2](https://github.com/Belphemur/SoundSwitch/commit/2f70eb2824852ff9012842bfa9b5ac42a02dd151)), closes [#978](https://github.com/Belphemur/SoundSwitch/issues/978)
+* **Win11::RoundedCorner:** Fix possible crash when showing menu and trying to apply the rounding. ([d6050e4](https://github.com/Belphemur/SoundSwitch/commit/d6050e4404141d3dfb42a346ec6a8c5c87a7612a)), closes [#977](https://github.com/Belphemur/SoundSwitch/issues/977)
+
+
+### Languages
+
+* **Slovenian:** Translated Settings using Weblate ([4dad868](https://github.com/Belphemur/SoundSwitch/commit/4dad86837a7ea4def6dd109024bb132aa792ac2c))
+* **Slovenian:** Translated Tray Icon using Weblate ([0fe7a50](https://github.com/Belphemur/SoundSwitch/commit/0fe7a50166defbc9f96a537323f672790d40d5da))
+* **Slovenian:** Translated Update Download using Weblate ([06f8b44](https://github.com/Belphemur/SoundSwitch/commit/06f8b4444f9b540b5bd299f4d5042e864eb2d9ad))
+
+## [6.4.1](https://github.com/Belphemur/SoundSwitch/compare/v6.4.0...v6.4.1) (2022-08-03)
+
+
+### Bug Fixes
+
+* **AutoAdd:** Only trigger the auto add when a new device is actually added ([fe26910](https://github.com/Belphemur/SoundSwitch/commit/fe2691063218d8d7032ff691dbe5b863c65cb8b3))
+* **Crash:** Fix crash when crashing. Be sure we can get the message and tell the user to report the issue. ([8303e30](https://github.com/Belphemur/SoundSwitch/commit/8303e302c7241dd9771de9c14b3583b5d9bf5f65))
+* **lang:** Chinese installer language ([0b3203f](https://github.com/Belphemur/SoundSwitch/commit/0b3203f79860694912377cde75bbea0739081918))
+
+
+### Languages
+
+* **Japanese:** Translated Settings using Weblate ([87daa76](https://github.com/Belphemur/SoundSwitch/commit/87daa7611d4cab958181ee1746d6b84a3739978e))
+
+
+### Enhancements
+
+* **quickmenu:** Make quick menu rounded like banner ([fd421aa](https://github.com/Belphemur/SoundSwitch/commit/fd421aa382890fd8b98074d169734da4a90a0f54))
+* **Rounded:** Add rounded corner to the banner and menus ([4358c88](https://github.com/Belphemur/SoundSwitch/commit/4358c883904b2bd142c1667cd0482aad9c2f532c)), closes [#971](https://github.com/Belphemur/SoundSwitch/issues/971)
+
+## [6.4.0](https://github.com/Belphemur/SoundSwitch/compare/v6.3.0...v6.4.0) (2022-07-30)
+
+
+### Features
+
+* **AutoAdd:** Auto select new device when they are connected and SoundSwitch is running ([a463873](https://github.com/Belphemur/SoundSwitch/commit/a463873b21eb1015d0cb4ec27c4294986c459c36)), closes [#924](https://github.com/Belphemur/SoundSwitch/issues/924)
+
+
+### Bug Fixes
+
+* **Banner:** Avoid issue where the banner wouldn't be shown ([c6e1c6b](https://github.com/Belphemur/SoundSwitch/commit/c6e1c6b59fd55b017a4c779c2dc58c2d88d9480b)), closes [#960](https://github.com/Belphemur/SoundSwitch/issues/960)
+* **DeviceCollection:** Fix possible issue where we wouldn't import the full list of selected devices ([a78377c](https://github.com/Belphemur/SoundSwitch/commit/a78377c01f48c33b3fcedf80e46b45673a534765))
+
+
+### Enhancements
+
+* **Autoupdate:** improve logged error message when signature check fails ([e017bc5](https://github.com/Belphemur/SoundSwitch/commit/e017bc54974bbe635a3b1b5580a2f5f1cb9eb410))
+* **DeviceCollection:** Return device order by discovery ([0154286](https://github.com/Belphemur/SoundSwitch/commit/015428669b844c62838f64af1448e5e0d54d1625))
+* **QuickMenu:** Don't enable quick menu by default for new users. ([94327e7](https://github.com/Belphemur/SoundSwitch/commit/94327e76d804d50eb0fb683fa9c989328dcb4c77))
+
+
+### Languages
+
+* **Croatian:** Translated Settings using Weblate ([f6cff4c](https://github.com/Belphemur/SoundSwitch/commit/f6cff4c1686dc644beba974553743d42a30e4de1))
+* **Hebrew:** Translated Settings using Weblate ([64a9a91](https://github.com/Belphemur/SoundSwitch/commit/64a9a91f4f7377829a7347bfa4ec1f698d2038fa))
+* **Italian:** Translated Settings using Weblate ([b35e0e1](https://github.com/Belphemur/SoundSwitch/commit/b35e0e1c693926a690dbb89694c3d45ccd5fa779))
+* **Japanese:** Translated Settings using Weblate ([f0b1cbd](https://github.com/Belphemur/SoundSwitch/commit/f0b1cbdc6dcfe63a1f61716aaeffab068130e89e))
+* **Japanese:** Translated Settings using Weblate ([211e299](https://github.com/Belphemur/SoundSwitch/commit/211e299f7d494ecae5c3c19fcd11758465de6ee2))
+* **Korean:** Translated Settings using Weblate ([0671498](https://github.com/Belphemur/SoundSwitch/commit/0671498bbc02e372a26b503a848e3a1b82781cf3))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([3ab4cd6](https://github.com/Belphemur/SoundSwitch/commit/3ab4cd6795d4e53f458d8823ce14fb6cd74dff9f))
+* **Portuguese:** Translated Settings using Weblate ([d899f50](https://github.com/Belphemur/SoundSwitch/commit/d899f50d3d10e163a450a33c9ec28df206a6a331))
+* **Portuguese:** Translated Settings using Weblate ([25e0409](https://github.com/Belphemur/SoundSwitch/commit/25e0409103e1e70ad016ddcbf83fbf68c393836b))
+* **Thai:** Translated Settings using Weblate ([b724e0e](https://github.com/Belphemur/SoundSwitch/commit/b724e0e8f59d1258ef849345cf40592127797da2))
+
+## [6.3.0](https://github.com/Belphemur/SoundSwitch/compare/v6.2.4...v6.3.0) (2022-06-26)
+
+
+### Features
+
+* **Profile::Force:** Add trigger for a profile to force that profile to be applied anytime the profile sound device is changed. ([753f0a3](https://github.com/Belphemur/SoundSwitch/commit/753f0a32c9af73274685c94b7749828e4d540458)), closes [#648](https://github.com/Belphemur/SoundSwitch/issues/648)
+
+
+### Bug Fixes
+
+* **AudioSwitching:** Fix issue for Windows 10 <= 1709 where the new audio API aren't available ([ad66ec0](https://github.com/Belphemur/SoundSwitch/commit/ad66ec0066d02bfce32a144b44b35eab1caf62e9))
+* **AudioSwitching:** Fix issue with some version of windows 10 that couldn't switch audio of specific application ([76929b6](https://github.com/Belphemur/SoundSwitch/commit/76929b6164e32cb92cc90ea8ceaf379349a67092))
+* **Device::Name:** Fix the regex used to clean the name of device to not match custom naming. ([3e7b27e](https://github.com/Belphemur/SoundSwitch/commit/3e7b27eb3a634fa87c31d192060e96ca6714eb90)), closes [#909](https://github.com/Belphemur/SoundSwitch/issues/909)
+* **Device:** Fix issue with device changing name, as long as the id is the same, SoundSwitch will find the device. ([1bd6c28](https://github.com/Belphemur/SoundSwitch/commit/1bd6c28c70502d2e3a14deee98db2474ebb4849d)), closes [#868](https://github.com/Belphemur/SoundSwitch/issues/868)
+* **Device:** Fix issue with device having the same name not being show as different device in the UI ([2249ed0](https://github.com/Belphemur/SoundSwitch/commit/2249ed0e2d053644bb2d781603cc7023bc79732d))
+* **Sentry:** Fix spamming sentry with error that can't be fixed ([a74a76f](https://github.com/Belphemur/SoundSwitch/commit/a74a76f238f68d2065f257dfdd4b047ba08ee4b9))
+* **Switching:** Possible crash when trying to switch audio of process that just closed. ([d4894a0](https://github.com/Belphemur/SoundSwitch/commit/d4894a0df1e965bf5c9c0e7b5caab1cfe592367b))
+
+
+### Languages
+
+* **Croatian:** Translated Settings using Weblate ([daa498a](https://github.com/Belphemur/SoundSwitch/commit/daa498a5cc491f555898365ebdea07ed6a27ea44))
+* **German:** Translated Settings using Weblate ([e177bf8](https://github.com/Belphemur/SoundSwitch/commit/e177bf89b14dcc0d223b5b6722766938580333e9))
+* **German:** Translated Settings using Weblate ([6c680db](https://github.com/Belphemur/SoundSwitch/commit/6c680db7535433db316e3c305f98f619ace74d86))
+* **German:** Translated Update Download using Weblate ([ba12587](https://github.com/Belphemur/SoundSwitch/commit/ba12587b2aff2765273e0d5569259355c69fd9c6))
+* **Hebrew:** Translated Settings using Weblate ([1918b35](https://github.com/Belphemur/SoundSwitch/commit/1918b3575c1366551851534c6efa1fe7104c462f))
+* **Italian:** Translated Settings using Weblate ([ff62704](https://github.com/Belphemur/SoundSwitch/commit/ff62704380033343da7585080d5817a3a6557c10))
+* **Italian:** Translated Tray Icon using Weblate ([c417b11](https://github.com/Belphemur/SoundSwitch/commit/c417b111c78ce76f15b60768f42fe8b05fe16625))
+* **Italian:** Translated Tray Icon using Weblate ([6054428](https://github.com/Belphemur/SoundSwitch/commit/6054428060c25d2f0537f66005de18d3e5401829))
+* **Korean:** Translated Update Download using Weblate ([94411c7](https://github.com/Belphemur/SoundSwitch/commit/94411c7dea0c11696c6ecdf4ae5ad8251e86b20d))
+* **Norwegian Bokmål:** Translated Update Download using Weblate ([ca103fe](https://github.com/Belphemur/SoundSwitch/commit/ca103fe8d8bfc241898b381726722870e195643d))
+* **Portuguese (Brazil):** Translated Settings using Weblate ([9984be5](https://github.com/Belphemur/SoundSwitch/commit/9984be5cfad175514551a60d781ad86b76f3d962))
+
+
+### Enhancements
+
+* **AutoUpdate:** Keep the Update in a Temp folder with the real name of the file. Let windows clean them up later. ([59274db](https://github.com/Belphemur/SoundSwitch/commit/59274db95a41db3d13084733d3d62959804a3163))
+* **Configuration:** Cleanup configuration of any duplicated device by name clean ([3826e9b](https://github.com/Belphemur/SoundSwitch/commit/3826e9bd2c38334abd51c782d929083f53ba3d71)), closes [#943](https://github.com/Belphemur/SoundSwitch/issues/943)
+
+### [6.2.4](https://github.com/Belphemur/SoundSwitch/compare/v6.2.3...v6.2.4) (2021-12-18)
+
+
+### Bug Fixes
+
+* **Device:** Rely completely on the name of the device for it's uniqueness in the selection of devices. ([d5bd9e8](https://github.com/Belphemur/SoundSwitch/commit/d5bd9e869ffde33ac6c1f59a3cbd0feff0b76827))
+
+
+### Languages
+
+* **Czech:** Translated Settings using Weblate ([bc6a46d](https://github.com/Belphemur/SoundSwitch/commit/bc6a46d743ca54b10384d44223c74d720fd044e9))
+* **Czech:** Translated Tray Icon using Weblate ([412ea5a](https://github.com/Belphemur/SoundSwitch/commit/412ea5a897ea2d70204cd92d2e9205aafc2b6301))
+* **Czech:** Translated Update Download using Weblate ([1235d2c](https://github.com/Belphemur/SoundSwitch/commit/1235d2c4a227eda2c8b83ca342e630fa2f048c43))
+
+### [6.2.3](https://github.com/Belphemur/SoundSwitch/compare/v6.2.2...v6.2.3) (2021-11-05)
+
+
+### Bug Fixes
+
+* **AudioSwitcher:** Switching audio for Windows 10 < 1803 ([8b0f4c9](https://github.com/Belphemur/SoundSwitch/commit/8b0f4c90478f02772114a133227199cbfa5dd4f2))
+* **AudioSwitcher:** Switching audio for Windows 10 < 1803 ([e30e23e](https://github.com/Belphemur/SoundSwitch/commit/e30e23e975e313ae82983c6452ca4c115dcbf5c8))
+* **QuickMenu:** Take into account the edge of the screen and show the quick menu properly ([bc9eccb](https://github.com/Belphemur/SoundSwitch/commit/bc9eccbcc29677fbd482821039da4b60e8e352ed)), closes [#735](https://github.com/Belphemur/SoundSwitch/issues/735)
+* **Update:** Only notify about the latest version, not all version higher than the current one ([337ea6f](https://github.com/Belphemur/SoundSwitch/commit/337ea6f9a0e122b6f421c5f0b784933eda39b822)), closes [#806](https://github.com/Belphemur/SoundSwitch/issues/806)
+
 ### [6.2.2](https://github.com/Belphemur/SoundSwitch/compare/v6.2.1...v6.2.2) (2021-10-25)
 
 

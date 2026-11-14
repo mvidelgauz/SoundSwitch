@@ -1,40 +1,50 @@
-﻿/********************************************************************
-* Copyright (C) 2015 Jeroen Pelgrims
-* Copyright (C) 2015-2017 Antoine Aflalo
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-********************************************************************/
+/********************************************************************
+ * Copyright (C) 2015 Jeroen Pelgrims
+ * Copyright (C) 2015-2024 Antoine Aflalo
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ ********************************************************************/
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Job.Scheduler.Job;
-using Job.Scheduler.Job.Action;
-using Job.Scheduler.Job.Exception;
-using NAudio.CoreAudioApi;
+
+using SoundSwitch.Audio.Manager.Interop.Enum;
+
 using RailSharp;
+
 using Serilog;
+
 using SoundSwitch.Audio.Manager;
+using SoundSwitch.Common.Framework.Audio.Collection;
 using SoundSwitch.Common.Framework.Audio.Device;
 using SoundSwitch.Framework;
 using SoundSwitch.Framework.Audio;
+using SoundSwitch.Framework.Audio.Lister.Job;
 using SoundSwitch.Framework.Audio.Microphone;
+using SoundSwitch.Framework.Banner.BannerDisplayInfo;
+using SoundSwitch.Framework.Banner.BannerPosition;
+using SoundSwitch.Framework.Banner.BannerPosition.Position;
+using SoundSwitch.Framework.Banner.MicrophoneMute;
 using SoundSwitch.Framework.Configuration;
 using SoundSwitch.Framework.DeviceCyclerManager;
 using SoundSwitch.Framework.NotificationManager;
 using SoundSwitch.Framework.Profile;
 using SoundSwitch.Framework.Profile.Trigger;
 using SoundSwitch.Framework.Threading;
+using SoundSwitch.Framework.TrayIcon.IconDoubleClick;
 using SoundSwitch.Framework.Updater;
 using SoundSwitch.Framework.Updater.Job;
 using SoundSwitch.Framework.WinApi;
@@ -43,542 +53,205 @@ using SoundSwitch.Localization;
 using SoundSwitch.Localization.Factory;
 using SoundSwitch.UI.Component;
 
-namespace SoundSwitch.Model
+namespace SoundSwitch.Model;
+
+public partial class AppModel : IAppModel
 {
-    public class AppModel : IAppModel
+    private bool _skipUpdate;
+    private bool _initialized;
+    private readonly NotificationManager _notificationManager;
+    private IUpdateChecker _updateChecker;
+    private DeviceCollection<DeviceInfo> _selectedDevices;
+    private readonly BannerPositionFactory _bannerPositionFactory = new();
+
+    private AppModel()
     {
-        private bool _initialized;
-        private readonly NotificationManager _notificationManager;
-        private UpdateChecker _updateChecker;
+        _notificationManager = new NotificationManager(this, this, this);
 
-        private class DefaultDeviceChangedJob : IDebounceJob
+        _deviceCyclerManager = new DeviceCyclerManager();
+        _selectedDevices = null;
+        _microphoneMuteToggler = new MicrophoneMuteToggler(AudioSwitcher.Instance);
+        _updateScheduler = new LimitedConcurrencyLevelTaskScheduler(1);
+    }
+
+    public static IAppModel Instance { get; } = new AppModel();
+    public TrayIcon TrayIcon { get; private set; }
+    private CachedSound _customNotificationCachedSound;
+    private readonly DeviceCyclerManager _deviceCyclerManager;
+    private readonly MicrophoneMuteToggler _microphoneMuteToggler;
+    private readonly LimitedConcurrencyLevelTaskScheduler _updateScheduler;
+
+    // The default capture endpoint is resolved with a COM call; microphone mute events are
+    // frequent, so cache it and invalidate whenever the default or the device list changes.
+    // Invalidation and publication share this lock so a lookup that started before an event
+    // cannot publish the former default after the cache was invalidated.
+    private readonly object _defaultMuteDeviceIdLock = new();
+    private string _defaultMuteDeviceId;
+    private bool _defaultMuteDeviceIdValid;
+
+    public ProfileManager ProfileManager { get; private set; }
+
+    public Services.AppSoundLockManager AppSoundLockManager { get; private set; }
+
+    /// <summary>
+    ///     Initialize the Main class with Updater and Hotkeys
+    /// </summary>
+    /// <param name="active"></param>
+    public void InitializeMain(IAudioDeviceLister active, bool skipUpdate = false)
+    {
+        _skipUpdate = skipUpdate;
+        if (_initialized)
         {
-            private readonly AppModel _appModel;
-            private readonly DeviceFullInfo _device;
-            private readonly Role _role;
-
-            public DefaultDeviceChangedJob(AppModel appModel, DeviceFullInfo device, Role role)
-            {
-                _appModel = appModel;
-                _device = device;
-                _role = role;
-                Key = $"default-device-changed-{device.Type}";
-            }
-
-            public Task ExecuteAsync(CancellationToken cancellationToken)
-            {
-                Log.Information(@"[WINAPI] Default device changed to {device}:{role}", _device, _role);
-                _appModel.DefaultDeviceChanged?.Invoke(_appModel, new DeviceDefaultChangedEvent(_device, _role, cancellationToken));
-                return Task.CompletedTask;
-            }
-
-            public Task OnFailure(JobException exception)
-            {
-                return Task.CompletedTask;
-            }
-
-            public IRetryAction FailRule { get; } = new NoRetry();
-            public TimeSpan? MaxRuntime { get; }
-            public string Key { get; }
-            public TimeSpan DebounceTime { get; } = TimeSpan.FromMilliseconds(200);
+            Log.Fatal("AppModel already initialized");
+            throw new InvalidOperationException("Already initialized");
         }
 
-        private AppModel()
+        AudioDeviceLister = active;
+        JobScheduler.Instance.ScheduleJob(new ProcessNotificationEventsJob());
+        AudioDeviceLister.DefaultDeviceChanged.Subscribe((@event) =>
         {
-            _notificationManager = new NotificationManager(this);
+            if (@event.Role == ERole.eCommunications && @event.Device.Type == EDataFlow.eCapture)
+            {
+                lock (_defaultMuteDeviceIdLock)
+                    _defaultMuteDeviceIdValid = false;
+            }
 
-            _deviceCyclerManager = new DeviceCyclerManager();
-            MMNotificationClient.Instance.DefaultDeviceChanged += (sender, @event) => { JobScheduler.Instance.ScheduleJob(new DefaultDeviceChangedJob(this, @event.Device, @event.Role), @event.Token); };
-            _microphoneMuteToggler = new MicrophoneMuteToggler(AudioSwitcher.Instance, _notificationManager);
-            _updateScheduler = new LimitedConcurrencyLevelTaskScheduler(1);
+            // Refresh on every communications-input change: with a configured target that is
+            // available the result is unchanged, and when it is unavailable the mute action falls
+            // back to the default input, whose banners must follow the new default.
+            if (_initialized && LimitMuteBannersToTarget &&
+                @event.Role == ERole.eCommunications && @event.Device.Type == EDataFlow.eCapture)
+                RefreshMicrophoneMuteBanners();
+
+            DefaultDeviceChanged?.Invoke(this, new DeviceDefaultChangedEvent(@event.Device, @event.Role));
+        });
+
+        // Device arrival/removal changes which microphone the configured target resolves to
+        // (and whether it resolves at all), so reconcile the persistent mute banners too.
+        AudioDeviceLister.DeviceListRefreshed.Subscribe(_ =>
+        {
+            lock (_defaultMuteDeviceIdLock)
+                _defaultMuteDeviceIdValid = false;
+            if (_initialized && LimitMuteBannersToTarget && MuteRecordingDevice != null)
+                RefreshMicrophoneMuteBanners();
+        });
+
+        // Subscribe to volume change events for microphones
+        AudioDeviceLister.DeviceVolumeChanged
+            .Where(payload =>
+                // Only listen for recording devices (microphones)
+                payload.Device.Type == EDataFlow.eCapture &&
+                // Only care about mute changes
+                payload.MuteChanged)
+            .Subscribe(HandleMicrophoneMuteChanged);
+
+        RegisterHotKey(AppConfigs.Configuration.PlaybackHotKey);
+        if (!RegisterHotKey(AppConfigs.Configuration.RecordingHotKey))
+        {
+            Log.Warning("Recording hotkey could not be registered: {hotkey}", AppConfigs.Configuration.RecordingHotKey);
         }
 
-        public static IAppModel Instance { get; } = new AppModel();
-        public TrayIcon TrayIcon { get; private set; }
-        private CachedSound _customNotificationCachedSound;
-        private readonly DeviceCyclerManager _deviceCyclerManager;
-        private readonly MicrophoneMuteToggler _microphoneMuteToggler;
-        private readonly LimitedConcurrencyLevelTaskScheduler _updateScheduler;
-
-        public ProfileManager ProfileManager { get; private set; }
-
-        public CachedSound CustomNotificationSound
+        if (!RegisterHotKey(AppConfigs.Configuration.MuteRecordingHotKey))
         {
-            get => _customNotificationCachedSound ??= new CachedSound(AppConfigs.Configuration.CustomNotificationFilePath);
-            set
-            {
-                var oldSound = _customNotificationCachedSound;
-                _customNotificationCachedSound = value;
-                AppConfigs.Configuration.CustomNotificationFilePath = _customNotificationCachedSound?.FilePath;
-                AppConfigs.Configuration.Save();
-                CustomSoundChanged?.Invoke(this, new CustomSoundChangedEvent(oldSound, value));
-            }
+            Log.Warning("Mute hotkey could not be registered: {hotkey}", AppConfigs.Configuration.MuteRecordingHotKey);
         }
 
-        public NotificationTypeEnum NotificationSettings
+        var saveConfig = false;
+
+        if (!AppConfigs.Configuration.MigratedFields.Contains($"{nameof(SwitchForegroundProgram)}_cleanup")
+            && AppConfigs.Configuration.MigratedFields.Contains($"{nameof(SwitchForegroundProgram)}_force_off") &&
+            !AppConfigs.Configuration.SwitchForegroundProgram)
         {
-            get => AppConfigs.Configuration.NotificationSettings;
-            set
+            AppConfigs.Configuration.MigratedFields.Add($"{nameof(SwitchForegroundProgram)}_cleanup");
+            try
             {
-                AppConfigs.Configuration.NotificationSettings = value;
-                AppConfigs.Configuration.Save();
-                NotificationSettingsChanged?.Invoke(this,
-                    new NotificationSettingsUpdatedEvent(NotificationSettings, value));
+                AudioSwitcher.Instance.ResetProcessDeviceConfiguration();
             }
+            catch (Exception e)
+            {
+                Log.Error(e, "Trying disable ProcessDevice configuration for migration");
+            }
+
+            saveConfig = true;
         }
 
+        if (saveConfig)
+            AppConfigs.Configuration.Save();
 
-        /// <summary>
-        /// Beta or Stable channel.
-        /// </summary>
-        public bool IncludeBetaVersions
-        {
-            get => AppConfigs.Configuration.IncludeBetaVersions;
-            set
+        WindowsAPIAdapter.HotKeyPressed += HandleHotkeyPress;
+        WindowsAPIAdapter.SystemResumed += OnSystemResumed;
+
+        TrayIcon = new TrayIcon();
+        _notificationManager.Init();
+        ProfileManager = new ProfileManager(new WindowMonitor(), AudioSwitcher.Instance, AudioDeviceLister, TrayIcon.ShowError, new TriggerFactory(), _notificationManager);
+
+        ProfileManager
+            .Init()
+            .Catch(profileErrors =>
             {
-                if (value != IncludeBetaVersions && _updateChecker != null)
-                {
-                    _updateChecker.Beta = value;
-                    CheckForUpdate();
-                }
+                foreach (var (profile, error) in profileErrors)
+                    TrayIcon.ShowError($"{profile.Name}: {error}", SettingsStrings.profile_error_title);
 
-                AppConfigs.Configuration.IncludeBetaVersions = value;
-                AppConfigs.Configuration.Save();
-            }
-        }
+                return Result.Success();
+            });
 
-        public bool Telemetry
-        {
-            get => AppConfigs.Configuration.Telemetry;
-            set
-            {
-                AppConfigs.Configuration.Telemetry = value;
-                AppConfigs.Configuration.Save();
-            }
-        }
+        AppSoundLockManager = new Services.AppSoundLockManager(AppConfigs.Configuration, AudioSwitcher.Instance, new WindowMonitor(), new ProcessMonitor(), _notificationManager);
+        AppSoundLockManager.Start();
 
-        public bool QuickMenuEnabled
-        {
-            get => AppConfigs.Configuration.QuickMenuEnabled;
-            set
-            {
-                AppConfigs.Configuration.QuickMenuEnabled = value;
-                AppConfigs.Configuration.Save();
-            }
-        }
+        // Device arrival/removal changes which persisted route resolves: reconciled assignment
+        // rules keep working, disabled ones restore their default (identity ADR §6.6).
+        AudioDeviceLister.DeviceListRefreshed.Subscribe(_ => AppSoundLockManager.OnDevicesChanged());
 
-
-        public IEnumerable<DeviceInfo> SelectedDevices => AppConfigs.Configuration.SelectedDevices.OrderBy(info => info.DiscoveredAt);
-
-        public IEnumerable<DeviceFullInfo> AvailablePlaybackDevices => ActiveAudioDeviceLister.PlaybackDevices.IntersectWith(SelectedDevices);
-
-        public IEnumerable<DeviceFullInfo> AvailableRecordingDevices => ActiveAudioDeviceLister.RecordingDevices.IntersectWith(SelectedDevices);
-
-        public bool SetCommunications
-        {
-            get => AppConfigs.Configuration.ChangeCommunications;
-            set
-            {
-                AppConfigs.Configuration.ChangeCommunications = value;
-                AppConfigs.Configuration.Save();
-            }
-        }
-
-        public UpdateMode UpdateMode
-        {
-            get => AppConfigs.Configuration.UpdateMode;
-            set
-            {
-                if (value != AppConfigs.Configuration.UpdateMode)
-                {
-                    if (value != UpdateMode.Never)
-                    {
-                        CheckForUpdate();
-                    }
-
-                    UpdateModeChanged?.Invoke(this, value);
-                }
-
-                AppConfigs.Configuration.UpdateMode = value;
-                AppConfigs.Configuration.Save();
-            }
-        }
-
-        public Language Language
-        {
-            get => AppConfigs.Configuration.Language;
-            set
-            {
-                AppConfigs.Configuration.Language = value;
-                AppConfigs.Configuration.Save();
-            }
-        }
-
-        public bool SwitchForegroundProgram
-        {
-            get => AppConfigs.Configuration.SwitchForegroundProgram;
-            set
-            {
-                AppConfigs.Configuration.SwitchForegroundProgram = value;
-                AppConfigs.Configuration.Save();
-            }
-        }
-
-        public bool NotifyUsingPrimaryScreen
-        {
-            get => AppConfigs.Configuration.NotifyUsingPrimaryScreen;
-            set
-            {
-                AppConfigs.Configuration.NotifyUsingPrimaryScreen = value;
-                AppConfigs.Configuration.Save();
-            }
-        }
-
-        #region Misc settings
-
-        /// <summary>
-        ///     If the application runs at windows startup
-        /// </summary>
-        public bool RunAtStartup
-        {
-            get => AutoStart.IsAutoStarted();
-            set
-            {
-                Log.Information("Set AutoStart: {autostart}", value);
-                if (value)
-                {
-                    AutoStart.EnableAutoStart();
-                }
-                else
-                {
-                    AutoStart.DisableAutoStart();
-                }
-            }
-        }
-
-        public IAudioDeviceLister ActiveAudioDeviceLister { get; private set; }
-
-        public IAudioDeviceLister ActiveUnpluggedAudioLister { get; private set; }
-        public event EventHandler<NotificationSettingsUpdatedEvent> NotificationSettingsChanged;
-        public event EventHandler<CustomSoundChangedEvent> CustomSoundChanged;
-        public event EventHandler<UpdateMode> UpdateModeChanged;
-
-        #endregion
-
-
-        /// <summary>
-        ///     Initialize the Main class with Updater and Hotkeys
-        /// </summary>
-        /// <param name="active"></param>
-        /// <param name="unplugged"></param>
-        public void InitializeMain(IAudioDeviceLister active, IAudioDeviceLister unplugged)
-        {
-            ActiveAudioDeviceLister = active;
-            ActiveUnpluggedAudioLister = unplugged;
-
-            if (_initialized)
-            {
-                Log.Fatal("AppModel already initialized");
-                throw new InvalidOperationException("Already initialized");
-            }
-
-
-            RegisterHotKey(AppConfigs.Configuration.PlaybackHotKey);
-            var saveConfig = false;
-            if (!RegisterHotKey(AppConfigs.Configuration.RecordingHotKey))
-            {
-                Log.Information("Disabling Recording hotkey: {hotkey}", AppConfigs.Configuration.RecordingHotKey);
-                AppConfigs.Configuration.RecordingHotKey.Enabled = false;
-                saveConfig = true;
-            }
-
-            if (!RegisterHotKey(AppConfigs.Configuration.MuteRecordingHotKey))
-            {
-                Log.Information("Disabling Mute hotkey: {hotkey}", AppConfigs.Configuration.MuteRecordingHotKey);
-                AppConfigs.Configuration.MuteRecordingHotKey.Enabled = false;
-                saveConfig = true;
-            }
-
-            if (!AppConfigs.Configuration.MigratedFields.Contains($"{nameof(SwitchForegroundProgram)}_cleanup")
-                && AppConfigs.Configuration.MigratedFields.Contains($"{nameof(SwitchForegroundProgram)}_force_off") &&
-                !AppConfigs.Configuration.SwitchForegroundProgram)
-            {
-                AppConfigs.Configuration.MigratedFields.Add($"{nameof(SwitchForegroundProgram)}_cleanup");
-                try
-                {
-                    AudioSwitcher.Instance.ResetProcessDeviceConfiguration();
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Trying disable ProcessDevice configuration for migration");
-                }
-
-                saveConfig = true;
-            }
-
-            if (saveConfig)
-            {
-                AppConfigs.Configuration.Save();
-            }
-
-            WindowsAPIAdapter.HotKeyPressed += HandleHotkeyPress;
-
-            TrayIcon = new TrayIcon();
-            _notificationManager.Init();
-            ProfileManager = new ProfileManager(new WindowMonitor(), AudioSwitcher.Instance, ActiveAudioDeviceLister, TrayIcon.ShowError, new TriggerFactory(), _notificationManager);
-
-            ProfileManager
-                .Init()
-                .Catch(profileErrors =>
-                {
-                    foreach (var (profile, error) in profileErrors)
-                    {
-                        TrayIcon.ShowError($"{profile.Name}: {error}", SettingsStrings.profile_error_title);
-                    }
-
-                    return Result.Success();
-                });
-
+        if (!_skipUpdate)
             InitUpdateChecker();
-            _initialized = true;
-        }
+        _initialized = true;
 
-
-        private void InitUpdateChecker()
+        // A mute event that arrived while the mute notification was still uninitialized
+        // (NotifyMuteChanged) was skipped, and RefreshMicrophoneMuteBanners early-returned
+        // until now. Reconcile once so a microphone muted during startup gets its
+        // persistent banner back. Banner loss is cosmetic, so never let a reconcile
+        // failure abort initialization.
+        try
         {
-#if DEBUG
-            const string url = "https://www.aaflalo.me/api.json";
-#else
-            const string url = "https://api.github.com/repos/Belphemur/SoundSwitch/releases";
-#endif
-            _updateChecker = new UpdateChecker(new Uri(url), AppConfigs.Configuration.IncludeBetaVersions);
-
-            _updateChecker.UpdateAvailable += (sender, @event) => NewVersionReleased?.Invoke(this,
-                new NewReleaseAvailableEvent(@event.AppRelease, AppConfigs.Configuration.UpdateMode));
-
-
-            JobScheduler.Instance.ScheduleJob(new CheckForUpdateRecurringJob(_updateChecker), CancellationToken.None, _updateScheduler);
-            Log.Information("Update checker initiated");
+            RefreshMicrophoneMuteBanners();
         }
-
-        /// <summary>
-        /// For the app to check for update
-        /// </summary>
-        public void CheckForUpdate()
+        catch (Exception ex)
         {
-            JobScheduler.Instance.ScheduleJob(new CheckForUpdateOnceJob(_updateChecker), CancellationToken.None, _updateScheduler);
+            Log.Warning(ex, "Failed to reconcile microphone mute banners during startup");
         }
+    }
 
-        public event EventHandler<DeviceListChanged> SelectedDeviceChanged;
-        public event EventHandler<ExceptionEvent> ErrorTriggered;
-        public event EventHandler<NewReleaseAvailableEvent> NewVersionReleased;
+    public IAudioDeviceLister AudioDeviceLister { get; private set; }
+    public event EventHandler<ExceptionEvent> ErrorTriggered;
+    public event EventHandler<NewReleaseAvailableEvent> NewVersionReleased;
 
-        public event EventHandler<DeviceDefaultChangedEvent> DefaultDeviceChanged;
+    public void Dispose()
+    {
+        _initialized = false;
+        _notificationManager?.Dispose();
+        TrayIcon?.Dispose();
+        AudioDeviceLister?.Dispose();
+        AppSoundLockManager?.Dispose();
+        WindowsAPIAdapter.SystemResumed -= OnSystemResumed;
+    }
 
-        #region Selected devices
+    private void OnSystemResumed(object sender, EventArgs e)
+    {
+        if (!_initialized || AudioDeviceLister == null)
+            return;
 
-        /// <summary>
-        /// Add the device to the Selected device list
-        /// </summary>
-        /// <param name="device"></param>
-        /// <returns></returns>
-        public bool SelectDevice(DeviceFullInfo device)
+        Task.Run(() =>
         {
             try
             {
-                device.DiscoveredAt = DateTime.UtcNow;
-                AppConfigs.Configuration.SelectedDevices.Add(device);
-            }
-            catch (ArgumentException)
-            {
-                return false;
-            }
-
-            SelectedDeviceChanged?.Invoke(this, new DeviceListChanged(SelectedDevices, device.Type));
-            AppConfigs.Configuration.Save();
-
-            return true;
-        }
-
-        /// <summary>
-        /// Add the device to the Selected device list
-        /// </summary>
-        /// <param name="device"></param>
-        /// <returns></returns>
-        public bool UnselectDevice(DeviceFullInfo device)
-        {
-            bool result;
-            try
-            {
-                var list = AppConfigs.Configuration.SelectedDevices.Where(device.Equals).ToArray();
-                result = list.Aggregate(true, (b, info) => b & AppConfigs.Configuration.SelectedDevices.Remove(info));
-            }
-            catch (ArgumentException)
-            {
-                return false;
-            }
-
-            if (result)
-            {
-                SelectedDeviceChanged?.Invoke(this,
-                    new DeviceListChanged(SelectedDevices, device.Type));
-                AppConfigs.Configuration.Save();
-            }
-
-            return true;
-        }
-
-        #endregion
-
-        #region Hot keys
-
-        public bool SetHotkeyCombination(HotKey hotKey, HotKeyAction action, bool force = false)
-        {
-            var confHotKey = action switch
-            {
-                HotKeyAction.Playback  => AppConfigs.Configuration.PlaybackHotKey,
-                HotKeyAction.Recording => AppConfigs.Configuration.RecordingHotKey,
-                HotKeyAction.Mute      => AppConfigs.Configuration.MuteRecordingHotKey,
-                _                      => throw new ArgumentOutOfRangeException(nameof(action), action, null)
-            };
-
-            if (!force && confHotKey == hotKey)
-            {
-                Log.Information("HotKey {action} already set {hotkeys}", action, confHotKey);
-                return true;
-            }
-
-            Log.Information("Unregister previous hotkeys {hotkeys}", confHotKey);
-            WindowsAPIAdapter.UnRegisterHotKey(confHotKey);
-            Log.Information("Unregistered previous hotkeys {hotkeys}", confHotKey);
-
-            if (!RegisterHotKey(hotKey)) return false;
-
-            Log.Information("New Hotkeys registered {hotkeys}", hotKey);
-
-            switch (action)
-            {
-                case HotKeyAction.Playback:
-                    AppConfigs.Configuration.PlaybackHotKey = hotKey;
-                    break;
-                case HotKeyAction.Recording:
-                    AppConfigs.Configuration.RecordingHotKey = hotKey;
-                    break;
-                case HotKeyAction.Mute:
-                    AppConfigs.Configuration.MuteRecordingHotKey = hotKey;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(action), action, null);
-            }
-
-            AppConfigs.Configuration.Save();
-            return true;
-        }
-
-        private bool RegisterHotKey(HotKey hotkeys)
-        {
-            if (!hotkeys.Enabled || WindowsAPIAdapter.RegisterHotKey(hotkeys))
-            {
-                return true;
-            }
-
-            Log.Warning("Can't register new hotkeys {hotkeys}", hotkeys);
-            ErrorTriggered?.Invoke(this,
-                new ExceptionEvent(new Exception("Impossible to register HotKey: " + hotkeys)));
-            return false;
-        }
-
-
-        private void HandleHotkeyPress(object sender, WindowsAPIAdapter.KeyPressedEventArgs e)
-        {
-            if (e.HotKey != AppConfigs.Configuration.PlaybackHotKey
-                && e.HotKey != AppConfigs.Configuration.RecordingHotKey
-                && e.HotKey != AppConfigs.Configuration.MuteRecordingHotKey)
-            {
-                Log.Debug("Not the registered Hotkeys {hotkeys}", e.HotKey);
-                return;
-            }
-
-            try
-            {
-                if (e.HotKey == AppConfigs.Configuration.PlaybackHotKey)
-                {
-                    CycleActiveDevice(DataFlow.Render);
-                }
-                else if (e.HotKey == AppConfigs.Configuration.RecordingHotKey)
-                {
-                    CycleActiveDevice(DataFlow.Capture);
-                }
-                else if (e.HotKey == AppConfigs.Configuration.MuteRecordingHotKey)
-                {
-                    if (_microphoneMuteToggler.ToggleDefaultMute() == null)
-                    {
-                        ErrorTriggered?.Invoke(this, new ExceptionEvent(new Exception("No mic found")));
-                    }
-                }
+                Log.Information("System resumed from sleep, refreshing audio devices and reconciling default device");
+                AudioDeviceLister.Refresh(CancellationToken.None);
+                MMNotificationClient.Instance.ReconcileDefaultDevices();
             }
             catch (Exception ex)
             {
-                ErrorTriggered?.Invoke(this, new ExceptionEvent(ex));
+                Log.Warning(ex, "Failed to refresh audio devices after system resume");
             }
-        }
-
-        #endregion
-
-        #region Active device
-
-        /// <summary>
-        ///     Attempts to set active device to the specified name
-        /// </summary>
-        /// <param name="device"></param>
-        public bool SetActiveDevice(DeviceInfo device)
-        {
-            try
-            {
-                return _deviceCyclerManager.SetAsDefault(device);
-            }
-            catch (Exception ex)
-            {
-                ErrorTriggered?.Invoke(this, new ExceptionEvent(ex));
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        ///     Cycles the active device to the next device. Returns true if succesfully switched (at least
-        ///     as far as we can tell), returns false if could not successfully switch. Throws NoDevicesException
-        ///     if there are no devices configured.
-        /// </summary>
-        public bool CycleActiveDevice(DataFlow type)
-        {
-            try
-            {
-                return _deviceCyclerManager.CycleDevice(type);
-            }
-            catch (Exception exception)
-            {
-                ErrorTriggered?.Invoke(this, new ExceptionEvent(exception));
-            }
-
-            return false;
-        }
-
-        [Serializable]
-        public class NoDevicesException : InvalidOperationException
-        {
-            public NoDevicesException() : base("No devices to select")
-            {
-            }
-        }
-
-        #endregion
-
-        public void Dispose()
-        {
-            TrayIcon?.Dispose();
-            ActiveAudioDeviceLister?.Dispose();
-            ActiveUnpluggedAudioLister?.Dispose();
-        }
+        });
     }
 }

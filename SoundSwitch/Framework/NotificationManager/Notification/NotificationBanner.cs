@@ -1,121 +1,181 @@
 ﻿/********************************************************************
-* Copyright (C) 2015-2017 Antoine Aflalo
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-********************************************************************/
+ * Copyright (C) 2015-2017 Antoine Aflalo
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ ********************************************************************/
 
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
-using System.Linq;
-using NAudio.CoreAudioApi;
+
+using SoundSwitch.Audio.Manager.Interop.Enum;
+
 using SoundSwitch.Common.Framework.Audio.Device;
-using SoundSwitch.Common.Framework.Icon;
 using SoundSwitch.Framework.Audio;
 using SoundSwitch.Framework.Banner;
+using SoundSwitch.Framework.Banner.BannerPosition;
+using SoundSwitch.Framework.Banner.BannerPosition.Position;
+using SoundSwitch.Framework.Banner.MicrophoneMute;
 using SoundSwitch.Framework.NotificationManager.Notification.Configuration;
 using SoundSwitch.Localization;
+using SoundSwitch.Model;
 using SoundSwitch.Properties;
 
-namespace SoundSwitch.Framework.NotificationManager.Notification
+namespace SoundSwitch.Framework.NotificationManager.Notification;
+
+internal class NotificationBanner : INotification
 {
-    public class NotificationBanner : INotification
+    public NotificationType TypeEnum => NotificationType.BannerNotification;
+    public string Label => SettingsStrings.notification_option_banner;
+
+    public INotificationConfiguration Configuration { get; set; }
+    private readonly BannerManager _bannerManager = new();
+    private readonly BannerPositionFactory _bannerPositionFactory = new();
+    private readonly MicrophoneMuteBannerManager _microphoneMuteBannerManager = new();
+
+    internal void ClearPersistentMuteBanners() => _microphoneMuteBannerManager.ClearPersistentMuteBanners();
+
+    /// <summary>
+    /// Reconciles the persistent mute banners with the current mute target and banner scope:
+    /// banners for microphones that left the scope are dismissed and in-scope microphones
+    /// that are currently muted get their banner back.
+    /// </summary>
+    /// <param name="inScopeMicrophoneIds">Identifiers of the microphones that remain in scope</param>
+    /// <param name="mutedInScopeMicrophones">In-scope microphones that are currently muted</param>
+    internal void SyncMuteBanners(IReadOnlyCollection<string> inScopeMicrophoneIds,
+        IReadOnlyCollection<(string Id, string Name)> mutedInScopeMicrophones)
     {
-        public NotificationTypeEnum TypeEnum => NotificationTypeEnum.BannerNotification;
-        public string Label => SettingsStrings.notificationOptionBanner;
-
-        public INotificationConfiguration Configuration { get; set; }
-
-        private readonly BannerManager _bannerManager = new();
-
-        public void NotifyProfileChanged(Profile.Profile profile, uint? processId)
+        // Persistent banners are only valid while the persistent style is selected. Otherwise
+        // dismiss them instead of retaining their always-on-screen TTL.
+        if (Configuration.MicrophoneMuteBanner != MicrophoneMute.Persistent)
         {
-            var icon = Resources.default_profile_image;
-            if (processId.HasValue)
-            {
-                try
-                {
-                    var process = Process.GetProcessById((int)processId.Value);
-                    icon = IconExtractor.Extract(process.MainModule?.FileName, 0, true).ToBitmap();
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
-            }
-
-            var bannerData = new BannerData
-            {
-                Priority = 1,
-                Image = icon,
-                Title = string.Format(SettingsStrings.profile_notification_text, profile.Name),
-                Text = string.Join("\n", profile.Devices.Select(wrapper => wrapper.DeviceInfo.NameClean))
-            };
-            _bannerManager.ShowNotification(bannerData);
+            _microphoneMuteBannerManager.ClearPersistentMuteBanners();
+            return;
         }
 
-        public void NotifyMuteChanged(string microphoneName, bool newMuteState)
+        _microphoneMuteBannerManager.RetainPersistentMuteBanners(inScopeMicrophoneIds);
+        foreach (var (id, name) in mutedInScopeMicrophones)
         {
-            var title = newMuteState ? string.Format(SettingsStrings.notification_microphone_muted, microphoneName) : string.Format(SettingsStrings.notification_microphone_unmuted, microphoneName);
-
-            var icon = newMuteState ? Resources.microphone_muted : Resources.microphone_unmuted;
-
-            var bannerData = new BannerData
-            {
-                Priority = 2,
-                Image = icon,
-                Title = title
-            };
-            _bannerManager.ShowNotification(bannerData);
-        }
-
-        public void NotifyDefaultChanged(DeviceFullInfo audioDevice)
-        {
-            var toastData = new BannerData
-            {
-                Image = audioDevice.LargeIcon.ToBitmap(),
-                Text = audioDevice.NameClean
-            };
-            if (audioDevice.Type == DataFlow.Render && Configuration.CustomSound != null && File.Exists(Configuration.CustomSound.FilePath))
-            {
-                toastData.SoundFile = Configuration.CustomSound;
-                toastData.CurrentDeviceId = audioDevice.Id;
-            }
-
-            toastData.Title = audioDevice.Type switch
-            {
-                DataFlow.Render  => SettingsStrings.tooltipOnHoverOptionPlaybackDevice,
-                DataFlow.Capture => SettingsStrings.tooltipOnHoverOptionRecordingDevice,
-                _                => throw new ArgumentOutOfRangeException(nameof(audioDevice.Type), audioDevice.Type, null)
-            };
-
-            _bannerManager.ShowNotification(toastData);
-        }
-
-        public void OnSoundChanged(CachedSound newSound)
-        {
-            Configuration.CustomSound = newSound;
-        }
-
-        public NotificationCustomSoundEnum SupportCustomSound() => NotificationCustomSoundEnum.Optional;
-
-        public bool NeedCustomSound()
-        {
-            return false;
-        }
-
-        public bool IsAvailable()
-        {
-            // Available in all Windows versions
-            return true;
+            // Re-add directly: NotifyMicrophoneMuteChanged would remove the banner first
+            // (because the unmute style is usually not persistent) and make it flicker.
+            _microphoneMuteBannerManager.UpdateMicrophoneMuteState(id, name, true);
         }
     }
+
+    private IPosition BannerPosition => _bannerPositionFactory.Get(Configuration.BannerPosition);
+
+    /// <summary>
+    /// Creates banner data pre-filled with the shared notification configuration
+    /// (position, TTL, opacity, display mode).
+    /// </summary>
+    private BannerData CreateBannerData() => new()
+    {
+        Position = BannerPosition,
+        Ttl = Configuration.Ttl,
+        Opacity = Configuration.Opacity,
+        DisplayInfo = Configuration.DisplayInfo
+    };
+
+    public void NotifyDefaultChanged(DeviceFullInfo audioDevice)
+    {
+        var content = NotificationContentBuilder.BuildDefaultChanged(audioDevice, NotificationContentBuilder.DeviceChangeWording.Banner);
+        var toastData = CreateBannerData();
+        toastData.Image = content.Image;
+        toastData.Title = content.Title;
+        toastData.Text = content.Text;
+        if (CustomSoundCheck(audioDevice))
+        {
+            toastData.SoundFile = Configuration.CustomSound;
+            toastData.CurrentDeviceId = audioDevice.Id;
+        }
+
+        _bannerManager.ShowNotification(toastData);
+    }
+
+    public void NotifyProfileChanged(Profile.Profile profile, Bitmap icon, uint? processId)
+    {
+        var content = NotificationContentBuilder.BuildProfileChanged(profile, icon);
+        var bannerData = CreateBannerData();
+        bannerData.Priority = content.Priority;
+        bannerData.Image = content.Image;
+        bannerData.Title = content.Title;
+        bannerData.Text = content.Text;
+        _bannerManager.ShowNotification(bannerData);
+    }
+
+    public void NotifyAppRuleMatched(AppSoundRule rule, DeviceFullInfo playback, DeviceFullInfo recording, Bitmap icon, uint processId)
+    {
+        var content = NotificationContentBuilder.BuildAppRuleMatched(playback, recording, icon);
+        var bannerData = CreateBannerData();
+        bannerData.Priority = content.Priority;
+        bannerData.Image = content.Image;
+        bannerData.Title = content.Title;
+        bannerData.Text = content.Text;
+        _bannerManager.ShowNotification(bannerData);
+    }
+
+    public void NotifyAppRuleNoProcess(AppSoundRule rule)
+    {
+        var content = NotificationContentBuilder.BuildAppRuleNoProcess();
+        var bannerData = CreateBannerData();
+        bannerData.Priority = content.Priority;
+        bannerData.Image = content.Image;
+        bannerData.Title = content.Title;
+        bannerData.Text = content.Text;
+        _bannerManager.ShowNotification(bannerData);
+    }
+
+    public void NotifyMicrophoneMuteChanged(string deviceId, string microphoneName, bool newMuteState)
+    {
+        var microphoneMuteBanner = newMuteState ? Configuration.MicrophoneMuteBanner : Configuration.MicrophoneUnmuteBanner;
+
+        if (Configuration.MicrophoneMuteBanner != MicrophoneMute.Persistent || Configuration.MicrophoneUnmuteBanner != MicrophoneMute.Persistent)
+            _microphoneMuteBannerManager.RemovePersistentMuteBanner(deviceId);
+
+        switch (microphoneMuteBanner)
+        {
+            case MicrophoneMute.Persistent:
+                _microphoneMuteBannerManager.UpdateMicrophoneMuteState(deviceId, microphoneName, newMuteState);
+                return;
+            case MicrophoneMute.Fading:
+                FullBanner(microphoneName, newMuteState);
+                return;
+            case MicrophoneMute.None:
+                return;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private void FullBanner(string microphoneName, bool newMuteState)
+    {
+        var content = NotificationContentBuilder.BuildMicrophoneMuteChanged(microphoneName, newMuteState);
+
+        var bannerData = CreateBannerData();
+        bannerData.Priority = content.Priority;
+        bannerData.Image = content.Image;
+        bannerData.Title = content.Title;
+        _bannerManager.ShowNotification(bannerData);
+    }
+
+    public bool SupportIcon => true;
+
+    public void OnSoundChanged(CachedSound newSound) => Configuration.CustomSound = newSound;
+
+    public bool SupportCustomSound() => true;
+
+    // Available in all Windows versions
+    public bool IsAvailable() => true;
+
+    public bool CustomSoundCheck(DeviceFullInfo audioDevice) =>
+        audioDevice.Type == EDataFlow.eRender && Configuration.CustomSound != null && File.Exists(Configuration.CustomSound.FilePath);
 }

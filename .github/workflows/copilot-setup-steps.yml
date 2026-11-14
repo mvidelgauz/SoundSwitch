@@ -1,0 +1,60 @@
+name: "Copilot Setup Steps"
+
+on:
+    workflow_dispatch:
+    push:
+        paths:
+            - .github/workflows/copilot-setup-steps.yml
+    pull_request:
+        paths:
+            - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+    # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+    copilot-setup-steps:
+        runs-on: windows-latest
+
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            - name: Detect .NET SDK version
+              id: framework
+              shell: pwsh
+              run: |
+                  [xml]$project = Get-Content 'SoundSwitch/SoundSwitch.csproj'
+                  $framework = $project.Project.PropertyGroup.TargetFramework | Select-Object -First 1
+                  if ([string]::IsNullOrWhiteSpace($framework)) {
+                    Write-Error "Unable to determine TargetFramework from SoundSwitch/SoundSwitch.csproj"
+                    exit 1
+                  }
+
+                  if ($framework -notmatch '^net(?<version>\d+\.\d+)') {
+                    Write-Error "Unable to derive .NET SDK version from TargetFramework '$framework'"
+                    exit 1
+                  }
+
+                  $dotnetVersion = "$($Matches.version).x"
+                  Write-Host "Detected .NET SDK version: $dotnetVersion (from $framework)"
+                  "dotnet-version=$dotnetVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v6
+              with:
+                  dotnet-version: ${{ steps.framework.outputs.dotnet-version }}
+                  cache: true
+                  cache-dependency-path: Directory.Packages.props
+
+            - name: Restore dependencies
+              run: dotnet restore
+
+            - name: Setup Python
+              uses: actions/setup-python@v7
+              with:
+                  python-version: "3.x"
+
+            - name: Install Python markdown library
+              run: python -m pip install markdown --quiet

@@ -1,13 +1,15 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using NAudio.CoreAudioApi;
+
+using Serilog;
+
 using SoundSwitch.Audio.Manager.Interop.Client;
 using SoundSwitch.Audio.Manager.Interop.Com.Threading;
 using SoundSwitch.Audio.Manager.Interop.Com.User;
 using SoundSwitch.Audio.Manager.Interop.Enum;
-using SoundSwitch.Common.Framework.Audio.Device;
 
 namespace SoundSwitch.Audio.Manager
 {
@@ -15,18 +17,18 @@ namespace SoundSwitch.Audio.Manager
     {
         private static AudioSwitcher? _instance;
         private PolicyClient? _policyClient;
-        private EnumeratorClient? _enumerator;
+        private AudioDeviceEnumerator? _enumerator;
 
         private ExtendedPolicyClient? _extendedPolicyClient;
 
-        private EnumeratorClient EnumeratorClient
+        private AudioDeviceEnumerator EnumeratorClient
         {
             get
             {
                 if (_enumerator != null)
                     return _enumerator;
 
-                return _enumerator = ComThread.Invoke(() => new EnumeratorClient());
+                return _enumerator = ComThread.Invoke(() => new AudioDeviceEnumerator());
             }
         }
 
@@ -53,6 +55,13 @@ namespace SoundSwitch.Audio.Manager
                 return _extendedPolicyClient = ComThread.Invoke(() => new ExtendedPolicyClient());
             }
         }
+
+        /// <summary>
+        /// Test seam: inject a pre-built <see cref="ExtendedPolicyClient"/> so callers
+        /// can be exercised without relying on the COM-backed default instance.
+        /// Pass <c>null</c> to clear the injected client and fall back to the default.
+        /// </summary>
+        internal void SetExtendedPolicyClientForTest(ExtendedPolicyClient? client) => _extendedPolicyClient = client;
 
         private AudioSwitcher()
         {
@@ -106,7 +115,7 @@ namespace SoundSwitch.Audio.Manager
         /// <param name="role">Which role to switch</param>
         /// <param name="flow">Which flow to switch</param>
         /// <param name="processId">ProcessID of the process</param>
-        public void SwitchProcessTo(string deviceId, ERole role, EDataFlow flow, uint processId)
+        public bool SwitchProcessTo(string deviceId, ERole role, EDataFlow flow, uint processId)
         {
             var processName = "";
             try
@@ -116,7 +125,8 @@ namespace SoundSwitch.Audio.Manager
             }
             catch (Exception e)
             {
-                Trace.TraceError($"Can't get process info: {e}");
+                Trace.TraceInformation($"Attempt to switch [{processId}] but got exception: {e}");
+                return false;
             }
 
             Trace.TraceInformation($"Attempt to switch [{processId}:{processName}] to {deviceId}");
@@ -135,16 +145,20 @@ namespace SoundSwitch.Audio.Manager
                 };
             }
 
-            ComThread.Invoke((() =>
+            return ComThread.Invoke((() =>
             {
-                var currentEndpoint = roles.Select(eRole => ExtendPolicyClient.GetDefaultEndPoint(flow, eRole, processId)).FirstOrDefault(endpoint => !string.IsNullOrEmpty(endpoint));
-                if (deviceId.Equals(currentEndpoint))
+                var allRolesAlreadyMatch = roles.All(eRole =>
+                {
+                    var current = ExtendPolicyClient.GetDefaultEndPoint(flow, eRole, processId);
+                    return !string.IsNullOrEmpty(current) && deviceId.Equals(current);
+                });
+                if (allRolesAlreadyMatch)
                 {
                     Trace.WriteLine($"Default endpoint for [{processId}:{processName}] already {deviceId}");
-                    return;
+                    return false;
                 }
 
-                ExtendPolicyClient.SetDefaultEndPoint(deviceId, flow, roles, processId);
+                return ExtendPolicyClient.SetDefaultEndPoint(deviceId, flow, roles, processId);
             }));
         }
 
@@ -157,8 +171,76 @@ namespace SoundSwitch.Audio.Manager
         public void SwitchForegroundProcessTo(string deviceId, ERole role, EDataFlow flow)
         {
             var processId = ComThread.Invoke(() => User32.ForegroundProcessId);
+            if (processId == Environment.ProcessId)
+            {
+                Log.Warning("Tried to switch audio device of the app");
+                return;
+            }
+
             SwitchProcessTo(deviceId, role, flow, processId);
         }
+
+        /// <summary>
+        /// Set the same master volume level from the default audio device to the given device
+        /// </summary>
+        /// <param name="flow">Flow of the device receiving the volume</param>
+        /// <param name="deviceId">Id of the device receiving the volume</param>
+        public void SetVolumeFromDefaultDevice(EDataFlow flow, string deviceId)
+        {
+            using var currentDefault = GetDefaultAudioDevice(flow, ERole.eConsole);
+            if (currentDefault == null)
+                return;
+
+            // Nullable tuple: default(ValueTuple) is (0f, false), which collides with a genuine
+            // "volume 0, not muted" reading — null unambiguously means "couldn't read the volume".
+            var audioInfo = InteractWithDevice<(float Volume, bool IsMuted)?>(currentDefault, device =>
+            {
+                var defaultDeviceAudioEndpointVolume = device.EndpointVolume;
+                return defaultDeviceAudioEndpointVolume == null ? null : (defaultDeviceAudioEndpointVolume.MasterVolumeLevelScalar, defaultDeviceAudioEndpointVolume.Mute);
+            });
+
+            if (audioInfo == null)
+                return;
+
+            using var nextDevice = GetDevice(deviceId);
+
+            if (nextDevice == null)
+                return;
+
+            InteractWithDevice(nextDevice, device =>
+            {
+                if (device.State != EDeviceState.Active)
+                    return device;
+
+                var endpointVolume = device.EndpointVolume;
+                if (endpointVolume == null)
+                    return device;
+
+                // This "keep volume" copy is a best-effort nicety: a COM failure here must not
+                // abort the ongoing device switch, so every exception is logged and swallowed.
+                try
+                {
+                    if (endpointVolume.ChannelCount == 2)
+                    {
+                        endpointVolume.SetChannelVolumeLevelScalar(0, audioInfo.Value.Volume);
+                        endpointVolume.SetChannelVolumeLevelScalar(1, audioInfo.Value.Volume);
+                    }
+                    else
+                    {
+                        endpointVolume.MasterVolumeLevelScalar = audioInfo.Value.Volume;
+                    }
+
+                    endpointVolume.Mute = audioInfo.Value.IsMuted;
+                }
+                catch (Exception e)
+                {
+                    Log.Warning(e, "Failed to apply kept volume/mute to {Device}; continuing device switch", device.FriendlyName);
+                }
+
+                return device;
+            });
+        }
+
 
         /// <summary>
         /// Is the given deviceId the default audio device in the system
@@ -185,39 +267,162 @@ namespace SoundSwitch.Audio.Manager
         }
 
         /// <summary>
-        /// Get the current default endpoint
+        /// Get the device ID for a process based on active audio sessions.
         /// </summary>
-        /// <param name="flow"></param>
-        /// <param name="role"></param>
-        /// <returns>Null if no default device is defined</returns>
-        public DeviceFullInfo? GetDefaultAudioEndpoint(EDataFlow flow, ERole role) => ComThread.Invoke(() =>
+        public string? GetSessionDeviceId(EDataFlow flow, uint processId)
         {
-            var defaultEndpoint = EnumeratorClient.GetDefaultEndpoint(flow, role);
-            return defaultEndpoint == null ? null : new DeviceFullInfo(defaultEndpoint);
-        });
+            return ComThread.Invoke(() =>
+            {
+                var devices = EnumeratorClient.GetEndpoints(flow, EDeviceState.Active);
+                try
+                {
+                    foreach (var device in devices)
+                    {
+                        try
+                        {
+                            foreach (var session in device.GetSessions())
+                            {
+                                if (session.ProcessId == processId && session.State == AudioSessionState.Active)
+                                {
+                                    return device.Id;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Debug(ex, "Failed to check sessions for device {DeviceId}", device.Id);
+                        }
+                    }
+
+                    return null;
+                }
+                finally
+                {
+                    foreach (var device in devices)
+                        device.Dispose();
+                }
+            });
+        }
 
         /// <summary>
-        /// Used to interact directly with a <see cref="MMDevice"/>
+        /// Builds a map of ProcessId -> DeviceId for all active sessions of a given flow.
+        /// </summary>
+        public Dictionary<uint, string> GetProcessDeviceMap(EDataFlow flow)
+        {
+            return ComThread.Invoke(() =>
+            {
+                var map = new Dictionary<uint, string>();
+                var devices = EnumeratorClient.GetEndpoints(flow, EDeviceState.Active);
+                try
+                {
+                    foreach (var device in devices)
+                    {
+                        try
+                        {
+                            foreach (var session in device.GetSessions())
+                            {
+                                if (session.ProcessId != 0 &&
+                                    session.State == AudioSessionState.Active &&
+                                    !map.ContainsKey(session.ProcessId))
+                                {
+                                    map[session.ProcessId] = device.Id;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Debug(ex, "Failed to build session map for device {DeviceId}", device.Id);
+                        }
+                    }
+
+                    return map;
+                }
+                finally
+                {
+                    foreach (var device in devices)
+                        device.Dispose();
+                }
+            });
+        }
+
+        /// <summary>
+        /// Used to interact directly with an <see cref="AudioDevice"/> on the ComThread
         /// </summary>
         /// <param name="device"></param>
         /// <param name="interaction"></param>
         /// <typeparam name="T"></typeparam>
-        public T InteractWithMmDevice<T>(MMDevice device, Func<MMDevice, T> interaction) => ComThread.Invoke(() => interaction(device));
+        public T InteractWithDevice<T>(AudioDevice device, Func<AudioDevice, T> interaction) => ComThread.Invoke(() => interaction(device));
 
         /// <summary>
         /// Get the current default endpoint
         /// </summary>
         /// <param name="flow"></param>
         /// <param name="role"></param>
-        /// <returns>Null if no default device is defined</returns>
-        public MMDevice? GetDefaultMmDevice(EDataFlow flow, ERole role) => ComThread.Invoke(() => EnumeratorClient.GetDefaultEndpoint(flow, role));
+        /// <returns>Null if no default device is defined. The caller owns the returned device.</returns>
+        public AudioDevice? GetDefaultAudioDevice(EDataFlow flow, ERole role) => ComThread.Invoke(() => EnumeratorClient.GetDefaultEndpoint(flow, role));
 
         /// <summary>
         /// Get a device with the given id, returns null if not present
         /// </summary>
         /// <param name="deviceId"></param>
-        /// <returns></returns>
-        public MMDevice? GetDevice(string deviceId) => ComThread.Invoke(() => EnumeratorClient.GetDevice(deviceId));
+        /// <returns>The caller owns the returned device.</returns>
+        public AudioDevice? GetDevice(string deviceId) => ComThread.Invoke(() => EnumeratorClient.GetDevice(deviceId));
+
+        /// <summary>
+        /// Get audio endpoints for the given flow and state
+        /// </summary>
+        /// <param name="flow"></param>
+        /// <param name="state"></param>
+        /// <returns>The devices, or null when the enumeration failed. The caller owns the returned devices.</returns>
+        public IReadOnlyList<AudioDevice>? GetAudioDevices(EDataFlow flow, EDeviceState state) => ComThread.Invoke(() => EnumeratorClient.GetEndpoints(flow, state));
+
+        /// <summary>
+        /// Register a client for default-device / endpoint notifications. The registration is
+        /// marshalled onto the ComThread; the client must stay rooted until unregistered.
+        /// </summary>
+        /// <returns>
+        /// True when the registration succeeded, false when it failed (already logged here).
+        /// The caller must not publish a client whose registration failed — it would never fire.
+        /// </returns>
+        public bool RegisterNotificationClient(AudioDeviceNotificationClient client) => ComThread.Invoke(() =>
+        {
+            try
+            {
+                EnumeratorClient.RegisterNotificationClient(client);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // The Windows audio service can be unavailable (stopped, sleep/resume, RDP
+                // disconnect, fast-user-switch). Only that case is expected (Information);
+                // everything else is an unexpected failure worth a Warning.
+                if (AudioDeviceException.IsAudioServiceNotRunning(ex))
+                {
+                    Log.Information(ex, "Device notification registration skipped: Windows audio service not running.");
+                }
+                else
+                {
+                    Log.Warning(ex, "Device notification registration failed.");
+                }
+
+                return false;
+            }
+        });
+
+        /// <summary>
+        /// Unregister a previously registered notification client. Marshalled onto the ComThread.
+        /// </summary>
+        public void UnregisterNotificationClient(AudioDeviceNotificationClient client) => ComThread.Invoke(() =>
+        {
+            try
+            {
+                EnumeratorClient.UnregisterNotificationClient(client);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Device notification unregistration failed.");
+            }
+        });
 
         /// <summary>
         /// Reset Windows configuration for the process that had their audio device changed
@@ -225,6 +430,16 @@ namespace SoundSwitch.Audio.Manager
         public void ResetProcessDeviceConfiguration()
         {
             ComThread.Invoke(() => ExtendPolicyClient.ResetAllSetEndpoint());
+        }
+
+        /// <summary>
+        /// Clear the per-app persisted default endpoints of the given process for every role of a
+        /// flow (write the null endpoint). Only works while the process has a live audio session;
+        /// returns false — leaving state untouched — otherwise.
+        /// </summary>
+        public bool ClearProcessDefaultEndpoint(EDataFlow flow, uint processId)
+        {
+            return ComThread.Invoke(() => ExtendPolicyClient.ClearDefaultEndPoint(flow, processId));
         }
     }
 }

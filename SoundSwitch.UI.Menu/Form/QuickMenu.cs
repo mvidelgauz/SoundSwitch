@@ -1,11 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 using SoundSwitch.UI.Menu.Component;
+using SoundSwitch.UI.Menu.Util;
 using SoundSwitch.UI.Menu.Util.Timer;
 
 namespace SoundSwitch.UI.Menu.Form
@@ -24,32 +26,33 @@ namespace SoundSwitch.UI.Menu.Form
         private readonly TimeSpan _menuTimeOut = TimeSpan.FromSeconds(2);
 
         [Browsable(true)]
-        public event EventHandler<MenuClickedEvent> ItemClicked;
+        public event EventHandler<MenuClickedEvent>? ItemClicked;
 
         [Browsable(true)]
-        public event EventHandler<MenuClickedEvent> SelectionChanged;
+        public event EventHandler<MenuClickedEvent>? SelectionChanged;
 
         protected override bool ShowWithoutActivation => true;
-
-        /// <summary>
-        /// Override the parameters used to create the window handle.
-        /// Ensure that the window will be top-most and do not activate or take focus.
-        /// </summary>
-        protected override CreateParams CreateParams
-        {
-            get
-            {
-                CreateParams p = base.CreateParams;
-                // p.ExStyle |= 0x08000000; // WS_EX_NOACTIVATE
-                p.ExStyle |= 0x00000008; // WS_EX_TOPMOST
-                return p;
-            }
-        }
-
+        
         internal QuickMenu()
         {
             InitializeComponent();
             _hideDisposeMethod = HideDispose;
+            TopMost = true;
+            FormBorderStyle = FormBorderStyle.None;
+            ShowInTaskbar = false;
+        }
+        
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                var cp = base.CreateParams;
+                // turn on WS_EX_TOOLWINDOW style bit
+                // Used to hide the banner from alt+tab
+                // source: https://www.csharp411.com/hide-form-from-alttab/
+                cp.ExStyle |= 0x80;
+                return cp;
+            }
         }
 
         /// <summary>
@@ -73,6 +76,7 @@ namespace SoundSwitch.UI.Menu.Form
             var toAdd = newPayloadsById.Keys.Except(_currentPayloads.Keys);
             var toModify = _currentPayloads.Keys.Intersect(newPayloadsById.Keys);
 
+            var needResizing = _currentPayloads.Count != originalOrderPayloads.Length || !_isLocationSet;
             var needRearrange = false;
 
             var controlCollection = Controls;
@@ -107,14 +111,19 @@ namespace SoundSwitch.UI.Menu.Form
                 foreach (var payload in originalOrderPayloads)
                 {
                     var control = controlCollection[payload.Id];
-                    control.Top = top;
+                    control!.Top = top;
                     top += control.Height;
                 }
 
                 Height = 0;
             }
 
-            if (!_isLocationSet)
+            if (needResizing)
+            {
+                Region = Region.FromHrgn(RoundedCorner.CreateRoundRectRgn(0, 0, Width, Height, 20, 20));
+            }
+
+            if (!_isLocationSet && !Disposing)
             {
                 Show();
                 SetLocationToCursor();

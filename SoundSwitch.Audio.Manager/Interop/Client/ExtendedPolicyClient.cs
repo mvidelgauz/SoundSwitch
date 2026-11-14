@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+
 using Serilog;
+
 using SoundSwitch.Audio.Manager.Interop.Client.ClientException;
 using SoundSwitch.Audio.Manager.Interop.Client.Extended.Factory;
 using SoundSwitch.Audio.Manager.Interop.Enum;
@@ -22,6 +24,13 @@ namespace SoundSwitch.Audio.Manager.Interop.Client
         public ExtendedPolicyClient()
         {
             _log = Log.ForContext(GetType());
+        }
+
+        internal ExtendedPolicyClient(IAudioPolicyConfig policyConfig)
+        {
+            ArgumentNullException.ThrowIfNull(policyConfig);
+            _log = Log.ForContext(GetType());
+            _sharedPolicyConfig = policyConfig;
         }
 
         private IAudioPolicyConfig PolicyConfig
@@ -48,36 +57,54 @@ namespace SoundSwitch.Audio.Manager.Interop.Client
             {
                 return null;
             }
+
             if (deviceId.StartsWith(MMDEVAPI_TOKEN)) deviceId = deviceId.Remove(0, MMDEVAPI_TOKEN.Length);
             if (deviceId.EndsWith(DEVINTERFACE_AUDIO_RENDER)) deviceId = deviceId.Remove(deviceId.Length - DEVINTERFACE_AUDIO_RENDER.Length);
             if (deviceId.EndsWith(DEVINTERFACE_AUDIO_CAPTURE)) deviceId = deviceId.Remove(deviceId.Length - DEVINTERFACE_AUDIO_CAPTURE.Length);
             return deviceId;
         }
 
-        public void SetDefaultEndPoint(string deviceId, EDataFlow flow, IEnumerable<ERole> roles, uint processId)
+        public bool SetDefaultEndPoint(string deviceId, EDataFlow flow, IEnumerable<ERole> roles, uint processId)
         {
             _log.Information("ExtendedPolicyClient SetDefaultEndPoint {DeviceId} [{Flow}] {ProcessId}", deviceId, flow, processId);
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                return false;
+            }
+
+            var deviceIdStr = GenerateDeviceId(deviceId, flow);
+            var anySuccess = false;
             try
             {
-                if (string.IsNullOrEmpty(deviceId))
-                {
-                    return;
-                }
-
-                var deviceIdStr = GenerateDeviceId(deviceId, flow);
                 foreach (var eRole in roles)
                 {
-                    PolicyConfig.SetPersistedDefaultAudioEndpoint(processId, flow, eRole, deviceIdStr);
+                    try
+                    {
+                        if (PolicyConfig.SetPersistedDefaultAudioEndpoint(processId, flow, eRole, deviceIdStr))
+                        {
+                            anySuccess = true;
+                        }
+                    }
+                    catch (InvalidComObjectException)
+                    {
+                        _log.Warning("Set the default endpoint [{DeviceId}] for process {ProcessId}", deviceId, processId);
+                    }
+                    catch (COMException e) when ((e.ErrorCode & ErrorConst.COM_ERROR_MASK) == ErrorConst.COM_ERROR_NOT_FOUND)
+                    {
+                        throw new DeviceNotFoundException($"Can't set default as {deviceId}", e, deviceId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Error(ex, "Can't set the default endpoint");
+                    }
                 }
             }
-            catch (COMException e) when ((e.ErrorCode & ErrorConst.COM_ERROR_MASK) == ErrorConst.COM_ERROR_NOT_FOUND)
+            catch (DeviceNotFoundException)
             {
-                throw new DeviceNotFoundException($"Can't set default as {deviceId}", e, deviceId);
+                throw;
             }
-            catch (Exception ex)
-            {
-                _log.Error(ex, "Can't set the default endpoint");
-            }
+
+            return anySuccess;
         }
 
         /// <summary>
@@ -91,6 +118,10 @@ namespace SoundSwitch.Audio.Manager.Interop.Client
                 var unpacked = UnpackDeviceId(deviceId);
                 return unpacked;
             }
+            catch (InvalidComObjectException)
+            {
+                _log.Warning("Can't get the default endpoint for process {ProcessId}", processId);
+            }
             catch (Exception ex)
             {
                 _log.Error(ex, "Can't get the default endpoint");
@@ -99,10 +130,49 @@ namespace SoundSwitch.Audio.Manager.Interop.Client
             return null;
         }
 
-        public void ResetAllSetEndpoint()
+        /// <summary>
+    /// Clear the persisted default endpoint of the given process for a flow by setting the
+    /// null endpoint for every role. The per-app store is the engine's own territory; this is
+    /// the only supported clear (live pid required, see the app-rules identity ADR §5.2):
+    /// Windows resolves the pid back to its exe identity and drops both the in-memory override
+    /// and the persisted record.
+    /// </summary>
+    public bool ClearDefaultEndPoint(EDataFlow flow, uint processId)
+    {
+        _log.Information("ExtendedPolicyClient ClearDefaultEndPoint [{Flow}] {ProcessId}", flow, processId);
+        var allCleared = true;
+        foreach (var eRole in new[] { ERole.eConsole, ERole.eMultimedia, ERole.eCommunications })
         {
             try
             {
+                // false = the engine's PROCESS_NO_AUDIO: this pid has no audio session, so the
+                // clear was a no-op and the identity's record is untouched. Report it: the
+                // caller aggregates the identity's pids and only needs one to accept, so a
+                // session-less copy no longer blocks the clear while its playing sibling is
+                // the one that removes the record (AppRuleAssignmentReconciler).
+                if (!PolicyConfig.SetPersistedDefaultAudioEndpoint(processId, flow, eRole, deviceId: null!))
+                {
+                    _log.Debug("No audio session for process {ProcessId} [{Flow}] {Role}: clear not applied", processId, flow, eRole);
+                    allCleared = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                // A genuine write failure (engine rejection, dead COM object) must surface so
+                // the caller keeps its pending clear and retries at the next sighting.
+                _log.Debug(ex, "Can't clear the default endpoint for process {ProcessId}", processId);
+                allCleared = false;
+            }
+        }
+
+        return allCleared;
+    }
+
+    public void ResetAllSetEndpoint()
+        {
+            try
+            {
+                _log.Information("Resetting Persisted Application Default Endpoints");
                 PolicyConfig.ClearAllPersistedApplicationDefaultEndpoints();
             }
             catch (Exception ex)

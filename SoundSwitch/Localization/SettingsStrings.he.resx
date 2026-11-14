@@ -1,6 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -58,364 +117,59 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="notificationOptionBanner" xml:space="preserve">
-    <value>באנר</value>
+  <data name="iconDoubleClick" xml:space="preserve">
+    <value />
   </data>
-  <data name="updateNotifyTooltip" xml:space="preserve">
-    <value>SoundSwitch יתריע לך כאשר יש עדכון זמין. כשאר תלחץ על ההודעה, יופיע חלון בו העדכון ירד ותישאל האם ברצונך להתקינו.</value>
+  <data name="importExportConfigFile" xml:space="preserve">
+    <value />
   </data>
-  <data name="updateNeverTooltip" xml:space="preserve">
-    <value>אל תעדכן את התוכנה אל אם כן עודכנה ידנית.</value>
+  <data name="importExportConfigFile.desc" xml:space="preserve">
+    <value />
   </data>
-  <data name="languageRestartRequiredCaption" xml:space="preserve">
-    <value>צריך הפעלה מחדש</value>
+  <data name="importConfigErrorMessage" xml:space="preserve">
+    <value />
   </data>
-  <data name="languageRestartRequired" xml:space="preserve">
-    <value>השפה תשתנה לאחר הפעלה מחדש של SoundSwitch.
-האם אתה רוצה להפעיל מחדש כעת?</value>
+  <data name="importConfigRestartRequired" xml:space="preserve">
+    <value />
   </data>
-  <data name="language" xml:space="preserve">
-    <value>שפה</value>
+  <data name="importConfigErrorMessage.caption" xml:space="preserve">
+    <value />
   </data>
-  <data name="activePlayback" xml:space="preserve">
-    <value>נגן: {0}</value>
+  <data name="buttonImport" xml:space="preserve">
+    <value />
   </data>
-  <data name="activeRecording" xml:space="preserve">
-    <value>הקלטה: {0}</value>
+  <data name="exportConfigFile" xml:space="preserve">
+    <value />
   </data>
-  <data name="audioFileNotFoundCaption" xml:space="preserve">
-    <value>קובץ שמע לא נמצא</value>
+  <data name="importConfigFile" xml:space="preserve">
+    <value />
   </data>
-  <data name="audioFileNotFound" xml:space="preserve">
-    <value>הקובץ שבחרת עבור ההודעות לא נמצא. SoundSwitch החליף את צליל ההודעה בחזרה אל {0}.</value>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="position.centerLeft" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
-  <data name="tooltipOnHoverOptionNone" xml:space="preserve">
-    <value>ללא הצגת טיפים</value>
+  <data name="position.centerRight" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
-  <data name="tooltipOnHoverOptionBothDevices" xml:space="preserve">
-    <value>עבור שני ההתקנים</value>
+  <data name="buttonSelect" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
-  <data name="tooltipOnHoverOptionRecordingDevice" xml:space="preserve">
-    <value>התקן הקלטה</value>
+  <data name="buttonCustom" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
-  <data name="tooltipOnHoverOptionPlaybackDevice" xml:space="preserve">
-    <value>התקן שמע</value>
+  <data name="customSoundFile" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
-  <data name="notificationTooltip" xml:space="preserve">
-    <value>התראת מערכת הפעלה: הודעה סטנדרטית באמצעות מגש המשימות של Windows.
-צליל התראה: ינוגן צליל בעת החלפת התקן השמע.
-התראה קולית מותאמת אישית: ינוגן צליל שהוגדר על ידי המשתמש בעת החלפת התקן השמע.
-הודעות צפות: תופיע הודעה צפה ייחודית מעל מגש המשימות של Windows.
-באנר: ההודעות יופיעו תמיד בקדמת המסך, שימושי בזמן משחקים.</value>
+  <data name="selectSoundButton.tooltip" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
-  <data name="notificationOptionCustomized" xml:space="preserve">
-    <value>התראה קולית מותאמת אישית</value>
+  <data name="hotkeySwitchDevice" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
-  <data name="notificationOptionSound" xml:space="preserve">
-    <value>צליל התראה</value>
+  <data name="hotkeyToggleMute" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
-  <data name="notificationOptionToast" xml:space="preserve">
-    <value>הודעות צפות</value>
-  </data>
-  <data name="notificationOptionNone" xml:space="preserve">
-    <value>ללא התראה</value>
-  </data>
-  <data name="notificationOptionWindowsDefault" xml:space="preserve">
-    <value>התראת מערכת הפעלה</value>
-  </data>
-  <data name="cycleThroughTooltip" xml:space="preserve">
-    <value>בחר בין אילו התקנים להחליף. בין ההתקנים שנבחרו או בין כולם.</value>
-  </data>
-  <data name="cycleThroughOptionOnlySelectedAudioDevices" xml:space="preserve">
-    <value>רק התקני שמע שנבחרו</value>
-  </data>
-  <data name="cycleThroughOptionAllAudioDevices" xml:space="preserve">
-    <value>כל התקני השמע</value>
-  </data>
-  <data name="recording" xml:space="preserve">
-    <value>הקלטה</value>
-  </data>
-  <data name="tooltipOnHover" xml:space="preserve">
-    <value>הצגת טיפים בעמידה מעל עם העכבר</value>
-  </data>
-  <data name="updateNever" xml:space="preserve">
-    <value>אל תבדוק אם קיימים עדכונים</value>
-  </data>
-  <data name="updateNotify" xml:space="preserve">
-    <value>אמור לי כאשר ישנם עדכונים זמינים</value>
-  </data>
-  <data name="updateInstallAutomaticallyTooltip" xml:space="preserve">
-    <value>עדכונים מותקנים אוטומטית.</value>
-  </data>
-  <data name="updateInstallAutomatically" xml:space="preserve">
-    <value>התקן עדכונים אוטומטית</value>
-  </data>
-  <data name="keepSystemTrayIconTooltip" xml:space="preserve">
-    <value>כאשר נבחר, אייקון שורת המשימות לא ישתנה כש'התקן שמע ברירת המחדל' משתנה.</value>
-  </data>
-  <data name="keepSystemTrayIcon" xml:space="preserve">
-    <value>השאר את האייקון של SoundSwitch בשורת המשימות</value>
-  </data>
-  <data name="communicationsDeviceTooltip" xml:space="preserve">
-    <value>כאשר נבחר, 'התקן תקשורת ברירת מחדל' ו'התקן שמע ברירת מחדל' יוחלפו יחדיו (שימושי עבור סקייפ, טימספיק וכו').</value>
-  </data>
-  <data name="updateIncludeBetaVersionsTooltip" xml:space="preserve">
-    <value>כאשר נבחר, SoundSwitch יחפש גרסאות בטא גם בGithub.</value>
-  </data>
-  <data name="cycleThrough" xml:space="preserve">
-    <value>עבור בין</value>
-  </data>
-  <data name="updateSettings" xml:space="preserve">
-    <value>הגדרות עדכוני תוכנה</value>
-  </data>
-  <data name="audioSettings" xml:space="preserve">
-    <value>הגדרות שמע</value>
-  </data>
-  <data name="basicSettings" xml:space="preserve">
-    <value>הגדרות בסיסיות</value>
-  </data>
-  <data name="hotkeysTooltip" xml:space="preserve">
-    <value>סמן כדי להפעיל את קיצור הדרך.</value>
-  </data>
-  <data name="selectSoundButtonTooltip" xml:space="preserve">
-    <value>בחר קובץ שמע עבור ההודעה</value>
-  </data>
-  <data name="audioFiles" xml:space="preserve">
-    <value>קבצי שמע</value>
-  </data>
-  <data name="updateIncludeBetaVersions" xml:space="preserve">
-    <value>כלול גרסאות בטא</value>
-  </data>
-  <data name="notification" xml:space="preserve">
-    <value>התראה</value>
-  </data>
-  <data name="closeTooltip" xml:space="preserve">
-    <value>שינויים נשמרים אוטומטית</value>
-  </data>
-  <data name="close" xml:space="preserve">
-    <value>סגירה</value>
-  </data>
-  <data name="startWithWindows" xml:space="preserve">
-    <value>התחלה אוטומטית עם Windows</value>
-  </data>
-  <data name="communicationsDevice" xml:space="preserve">
-    <value>החלפת התקן תקשורת כבררת מחדל</value>
-  </data>
-  <data name="hotkeys" xml:space="preserve">
-    <value>קיצור דרך</value>
-  </data>
-  <data name="settings" xml:space="preserve">
-    <value>הגדרות</value>
-  </data>
-  <data name="playback" xml:space="preserve">
-    <value>שמע</value>
-  </data>
-  <data name="disconnected" xml:space="preserve">
-    <value>מנותק</value>
-  </data>
-  <data name="connected" xml:space="preserve">
-    <value>מחובר</value>
-  </data>
-  <data name="selected" xml:space="preserve">
-    <value>נבחר</value>
-  </data>
-  <data name="mute.toggle.label" xml:space="preserve">
-    <value>הפעל\כבה השתקה</value>
-  </data>
-  <data name="notification.microphone.unmuted" xml:space="preserve">
-    <value>{0} כבר אינו מושתק.</value>
-  </data>
-  <data name="notification.microphone.muted" xml:space="preserve">
-    <value>{0} עכשיו מושתק.</value>
-  </data>
-  <data name="profile.trigger.uwp.desc" xml:space="preserve">
-    <value>הזן את שם האפליקציה המותקנת דרך Windows Store. לדוגמה נטלפיקס, אמזון פריים וכו'.</value>
-  </data>
-  <data name="profile.trigger.uwp" xml:space="preserve">
-    <value>אפליקציית Microsoft Store</value>
-  </data>
-  <data name="profile.trigger.restoreDevices.title" xml:space="preserve">
-    <value>מצב מערכת שוחזר</value>
-  </data>
-  <data name="profile.trigger.restoreDevices.desc" xml:space="preserve">
-    <value>מצריך ש"{0}" יהיה פעיל.
-
-שחזר את מצב המערכת כאשר האפליקציה נסגרת.</value>
-  </data>
-  <data name="profile.trigger.restoreDevices" xml:space="preserve">
-    <value>שחזר את המצב הקודם כאשר הטריגר להפעלה חולף (למשל כאשר התוכנה שהוגדרה נסגרת)</value>
-  </data>
-  <data name="usePrimaryScreenTooltip" xml:space="preserve">
-    <value>הצג את הבאנר על המסך הראשי במקום במסך שבשימוש.</value>
-  </data>
-  <data name="usePrimaryScreen" xml:space="preserve">
-    <value>הצג הודעות תמיד במסך הראשי (במחשבים עם יותר ממסך אחד)</value>
-  </data>
-  <data name="profile.trigger.startup.desc" xml:space="preserve">
-    <value>הפרופיל יופעל אוטומטית כאשר Soundswitch מופעל</value>
-  </data>
-  <data name="profile.trigger.startup" xml:space="preserve">
-    <value>בהפעלה</value>
-  </data>
-  <data name="profile.button.edit" xml:space="preserve">
-    <value>עריכה</value>
-  </data>
-  <data name="profile.button.save" xml:space="preserve">
-    <value>שמירה</value>
-  </data>
-  <data name="profile.notification.text" xml:space="preserve">
-    <value>פרופיל {0} מופעל</value>
-  </data>
-  <data name="profile.notify-on-activation" xml:space="preserve">
-    <value>הצג התראה כאשר הפרופיל מופעל</value>
-  </data>
-  <data name="profile.error.window" xml:space="preserve">
-    <value>כבר יש פרופיל עם שם חלונות {0}.</value>
-  </data>
-  <data name="profile.error.steam" xml:space="preserve">
-    <value>ניתן להחזיק רק בפרופיל אחד עבור Steam Big Picture.</value>
-  </data>
-  <data name="profile.error.triggers.min" xml:space="preserve">
-    <value>צריך לפחות טריגר אחד.</value>
-  </data>
-  <data name="communication" xml:space="preserve">
-    <value>מכשיר התקשרות ברירת-מחדל</value>
-  </data>
-  <data name="profile.trigger.available" xml:space="preserve">
-    <value>טריגרים זמינים</value>
-  </data>
-  <data name="profile.trigger.actives" xml:space="preserve">
-    <value>טריגרים פעילים</value>
-  </data>
-  <data name="profile.desc" xml:space="preserve">
-    <value>תיאור</value>
-  </data>
-  <data name="profile.trigger.steam.desc" xml:space="preserve">
-    <value>הפעל כאשר Steam Big Picture בשימוש (המצב יחזור לקדמותו כאשר Steam Big Picure יסגר).</value>
-  </data>
-  <data name="profile.trigger.process.desc" xml:space="preserve">
-    <value>הפעל את הפרופיל כאשר התוכנה הנבחרת בקידמת המסך</value>
-  </data>
-  <data name="profile.trigger.window.desc" xml:space="preserve">
-    <value>הפעל את הפרופיל אם התוכנה בקידמת המסך מכילה את התווים הבאים</value>
-  </data>
-  <data name="profile.trigger.hotkey.desc" xml:space="preserve">
-    <value>קיצור מקשים בשימוש להפעלת הפרופיל. אם ייעשה שימוש באותו המקש החם, תהיה לך אפשרות לעבור בין פרופילים.</value>
-  </data>
-  <data name="profile.trigger.steam" xml:space="preserve">
-    <value>Steam Big Picture</value>
-  </data>
-  <data name="profile.trigger.process" xml:space="preserve">
-    <value>נתיב אפליקציה</value>
-  </data>
-  <data name="profile.trigger.window" xml:space="preserve">
-    <value>שם התוכנה</value>
-  </data>
-  <data name="profile.error.device-not-found" xml:space="preserve">
-    <value>התקן {0} לא נמצא.</value>
-  </data>
-  <data name="hotkeyEnabled" xml:space="preserve">
-    <value>קיצור מקשים פעיל</value>
-  </data>
-  <data name="profile.defaultDevice.checkbox.tooltip" xml:space="preserve">
-    <value>כאשר האפליקציה מזוהה, Soundswitch ישנה גם את התקן ברירת המחדל.</value>
-  </data>
-  <data name="profile.defaultDevice.checkbox" xml:space="preserve">
-    <value>החלף גם התקן ברירת מחדל</value>
-  </data>
-  <data name="profile.feature.profile" xml:space="preserve">
-    <value>פרופיל</value>
-  </data>
-  <data name="profile.error.no-name" xml:space="preserve">
-    <value>יש לתת לפרופיל שם.</value>
-  </data>
-  <data name="profile.error.delete" xml:space="preserve">
-    <value>לא נמצא פרופיל.</value>
-  </data>
-  <data name="profile.deleteButton" xml:space="preserve">
-    <value>מחק</value>
-  </data>
-  <data name="profile.error.title" xml:space="preserve">
-    <value>שגיאת פרופיל</value>
-  </data>
-  <data name="profile.feature.executable" xml:space="preserve">
-    <value>קובץ הרצה (*.exe)</value>
-  </data>
-  <data name="profile.feature.add" xml:space="preserve">
-    <value>הוסף פרופיל</value>
-  </data>
-  <data name="profile.error.registerHotkeys.title" xml:space="preserve">
-    <value>קיצור מקשים כבר בשימוש</value>
-  </data>
-  <data name="profile.error.registerHotkeys" xml:space="preserve">
-    <value>כשלון ברישום קיצור מקשים עבור הפרופילים הבא: {0}</value>
-  </data>
-  <data name="profile.explanation" xml:space="preserve">
-    <value>הוסף פרופיל כדי לעבור להתקן שמע או הקלטה כאשר אפליקציה ספציפית מופעלת או מועברת לקדמת המסך.</value>
-  </data>
-  <data name="profile.error.needPlaybackOrRecording" xml:space="preserve">
-    <value>עליך לקבוע התקן שמע או התקן הקלטה.</value>
-  </data>
-  <data name="profile.error.needHKOrPath" xml:space="preserve">
-    <value>עליך לקבוע קיצור מקשים ו\או את האפליקציה.</value>
-  </data>
-  <data name="profile.error.name" xml:space="preserve">
-    <value>כבר יש פרופיל בשם {0}.</value>
-  </data>
-  <data name="profile.error.application" xml:space="preserve">
-    <value>האפליקציה {0} כבר מקושרת לפרופיל.</value>
-  </data>
-  <data name="profile.error.hotkey" xml:space="preserve">
-    <value>קיצור המקשים {0} כבר בשימוש.</value>
-  </data>
-  <data name="profile.name" xml:space="preserve">
-    <value>שם</value>
-  </data>
-  <data name="profile.program" xml:space="preserve">
-    <value>אפליקציה</value>
-  </data>
-  <data name="profile.addButton" xml:space="preserve">
-    <value>הוסף</value>
-  </data>
-  <data name="profile.tab" xml:space="preserve">
-    <value>פרופילים</value>
-  </data>
-  <data name="iconChange.tooltip" xml:space="preserve">
-    <value>בחר מתי לשנות את אייקון Soundswitch באיזור ההתראות.
-
-ברירת מחדל: אל תשנה דבר. השאר את האייקון הרגיל.
-שמע: כאשר מוחלף התקן שמע.
-הקלטה: כאשר מוחלף התקן הקלטה.
-שניהם: שנה אייקון כאשר מוחלף כל סוג של התקן.</value>
-  </data>
-  <data name="iconChange" xml:space="preserve">
-    <value>אייקון בפינת המסך</value>
-  </data>
-  <data name="foregroundAppTooltip" xml:space="preserve">
-    <value>החלף את השמע גם של אפליקציה שבשימוש כעת. שימושי עבור משחקי מחשב.</value>
-  </data>
-  <data name="foregroundApp" xml:space="preserve">
-    <value>בעת החלפה, החלף גם את התקן השמע של התוכנה שבחזית המסך</value>
-  </data>
-  <data name="disableCustomSoundTooltip" xml:space="preserve">
-    <value>נטרל את הצליל המותאם אישית.</value>
-  </data>
-  <data name="profile.trigger.trayMenu.desc" xml:space="preserve">
-    <value>הטריגר יגרום לפרופיל להופיע בתפריט האפליקציה בפינת המסך. לחץ על האייקון של Soundswitch עם המקש השמאלי של העכבר כדי לראות אותו.</value>
-  </data>
-  <data name="profile.trigger.trayMenu" xml:space="preserve">
-    <value>תפריט אפליקציה</value>
-  </data>
-  <data name="telemetry" xml:space="preserve">
-    <value>מדדים</value>
-  </data>
-  <data name="quickMenu.desc" xml:space="preserve">
-    <value>להציג תפריט מהיר כמו השפות ב־Windows בעת שימוש במקש חם</value>
-  </data>
-  <data name="quickMenu" xml:space="preserve">
-    <value>תפריט מהיר עם מקש חם</value>
-  </data>
-  <data name="telemetry.desc" xml:space="preserve">
-    <value>איסוף אלמוני של גרסה ה־SoundSwitch שבשימוש. משותף רק עם המפתח של SoundSwitch.</value>
+  <data name="selectSoundButton.error" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
   </data>
 </root>

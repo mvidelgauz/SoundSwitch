@@ -1,9 +1,11 @@
 ﻿#nullable enable
+using System;
+
 using SoundSwitch.Audio.Manager.Interop.Enum;
 
 namespace SoundSwitch.Audio.Manager.Interop.Interface.Policy.Extended;
 
-public interface IAudioPolicyConfig
+public interface IAudioPolicyConfig : IDisposable
 {
     /// <summary>
     /// Set the audio endpoint for the process
@@ -12,7 +14,8 @@ public interface IAudioPolicyConfig
     /// <param name="flow"></param>
     /// <param name="role"></param>
     /// <param name="deviceId"></param>
-    void SetPersistedDefaultAudioEndpoint(uint processId, EDataFlow flow, ERole role, string deviceId);
+    /// <returns><c>true</c> if the endpoint was written successfully; <c>false</c> otherwise.</returns>
+    bool SetPersistedDefaultAudioEndpoint(uint processId, EDataFlow flow, ERole role, string deviceId);
 
     /// <summary>
     /// Get Audio endpoint of the process

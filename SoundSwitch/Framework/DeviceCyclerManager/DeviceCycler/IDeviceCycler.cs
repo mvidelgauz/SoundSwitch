@@ -1,4 +1,4 @@
-/********************************************************************
+﻿/********************************************************************
 * Copyright (C) 2015-2017 Antoine Aflalo
 *
 * This program is free software; you can redistribute it and/or
@@ -12,24 +12,24 @@
 * GNU General Public License for more details.
 ********************************************************************/
 
-using NAudio.CoreAudioApi;
+using SoundSwitch.Audio.Manager.Interop.Enum;
+
 using SoundSwitch.Common.Framework.Audio.Device;
 using SoundSwitch.Framework.Factory;
 
-namespace SoundSwitch.Framework.DeviceCyclerManager.DeviceCycler
-{
-    public interface IDeviceCycler : IEnumImpl<DeviceCyclerTypeEnum>
-    {
-        /// <summary>
-        /// Cycle the audio device for the given type
-        /// </summary>
-        /// <param name="type"></param>
-        bool CycleAudioDevice(DataFlow type);
+namespace SoundSwitch.Framework.DeviceCyclerManager.DeviceCycler;
 
-        /// <summary>
-        ///     Attempts to set active device to the specified name
-        /// </summary>
-        /// <param name="device"></param>
-        bool SetActiveDevice(DeviceInfo device);
-    }
+public interface IDeviceCycler : IEnumImpl<DeviceCyclerType>
+{
+    /// <summary>
+    /// Cycle the audio device for the given type
+    /// </summary>
+    /// <param name="type"></param>
+    bool CycleAudioDevice(EDataFlow type);
+
+    /// <summary>
+    ///     Attempts to set active device to the specified name
+    /// </summary>
+    /// <param name="device"></param>
+    bool SetActiveDevice(DeviceInfo device);
 }

@@ -14,26 +14,27 @@
 
 using System;
 using System.Collections.Generic;
-using NAudio.CoreAudioApi;
+
+using SoundSwitch.Audio.Manager.Interop.Enum;
+
 using SoundSwitch.Common.Framework.Audio.Device;
 using SoundSwitch.Localization;
 using SoundSwitch.Model;
 
-namespace SoundSwitch.Framework.DeviceCyclerManager.DeviceCycler
-{
-    public class DeviceCyclerAvailable : ADeviceCycler
-    {
-        public override DeviceCyclerTypeEnum TypeEnum => DeviceCyclerTypeEnum.Available;
-        public override string Label => SettingsStrings.cycleThroughOptionOnlySelectedAudioDevices;
+namespace SoundSwitch.Framework.DeviceCyclerManager.DeviceCycler;
 
-        protected override IEnumerable<DeviceFullInfo> GetDevices(DataFlow type)
+public class DeviceCyclerAvailable : ADeviceCycler
+{
+    public override DeviceCyclerType TypeEnum => DeviceCyclerType.Available;
+    public override string Label => SettingsStrings.cycleThrough_option_onlySelectedAudioDevices;
+
+    protected override IEnumerable<DeviceFullInfo> GetDevices(EDataFlow type)
+    {
+        return type switch
         {
-            return type switch
-            {
-                DataFlow.Render  => AppModel.Instance.AvailablePlaybackDevices,
-                DataFlow.Capture => AppModel.Instance.AvailableRecordingDevices,
-                _                => throw new ArgumentOutOfRangeException(nameof(type), type, null)
-            };
-        }
+            EDataFlow.eRender  => AppModel.Instance.AvailablePlaybackDevices,
+            EDataFlow.eCapture => AppModel.Instance.AvailableRecordingDevices,
+            _                => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
     }
 }

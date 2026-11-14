@@ -1,4 +1,4 @@
-/********************************************************************
+﻿/********************************************************************
 * Copyright (C) 2015-2017 Antoine Aflalo
 *
 * This program is free software; you can redistribute it and/or
@@ -14,15 +14,14 @@
 
 using SoundSwitch.Framework.Factory;
 
-namespace SoundSwitch.Framework.TrayIcon.TooltipInfoManager.TootipInfo
-{
-    public interface ITooltipInfo : IEnumImpl<TooltipInfoTypeEnum>
-    {
+namespace SoundSwitch.Framework.TrayIcon.TooltipInfoManager.TootipInfo;
 
-        /// <summary>
-        /// The text to display for this ToolTip
-        /// </summary>
-        /// <returns></returns>
-        string TextToDisplay();
-    }
+public interface ITooltipInfo : IEnumImpl<TooltipInfoType>
+{
+
+    /// <summary>
+    /// The text to display for this ToolTip
+    /// </summary>
+    /// <returns></returns>
+    string TextToDisplay();
 }

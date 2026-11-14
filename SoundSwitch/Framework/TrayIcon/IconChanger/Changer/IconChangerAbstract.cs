@@ -1,0 +1,72 @@
+/********************************************************************
+* Copyright (C) 2015-2017 Antoine Aflalo
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+********************************************************************/
+
+using Serilog;
+
+using SoundSwitch.Audio.Manager;
+using SoundSwitch.Audio.Manager.Interop.Enum;
+using SoundSwitch.Common.Framework.Audio.Device;
+using SoundSwitch.Framework.Audio;
+
+namespace SoundSwitch.Framework.TrayIcon.IconChanger.Changer;
+
+public abstract class IconChangerAbstract : IIconChanger
+{
+    private readonly ILogger _log;
+
+    /// <summary>
+/// Initializes a new instance of the <see cref="IconChangerAbstract"/> class and configures its logger context.
+/// </summary>
+protected IconChangerAbstract() => _log = Log.ForContext("IconChanger", TypeEnum);
+
+    public abstract IconChanger TypeEnum { get; }
+    public abstract string Label { get; }
+
+    protected abstract EDataFlow Flow { get; }
+
+    protected virtual bool NeedsToChangeIcon(DeviceInfo deviceInfo) => deviceInfo.Type == Flow;
+
+    public void ChangeIcon(UI.Component.TrayIcon trayIcon)
+    {
+        using var audio = AudioSwitcher.Instance.GetDefaultAudioEndpoint(Flow, ERole.eConsole);
+        ChangeIcon(trayIcon, audio, ERole.eConsole);
+    }
+
+    public void ChangeIcon(UI.Component.TrayIcon trayIcon, DeviceFullInfo deviceInfo, ERole role)
+    {
+        var log = _log.ForContext("Device", deviceInfo);
+        log.Information("Changing icon");
+        if (deviceInfo == null)
+        {
+            return;
+        }
+
+        //Don't change icon for communication device
+        if (role == ERole.eCommunications)
+        {
+            return;
+        }
+
+        if (!NeedsToChangeIcon(deviceInfo))
+        {
+            log.Information("No need to change icon");
+            return;
+        }
+
+
+        using var iconHandle = deviceInfo.SmallIcon;
+        trayIcon.ReplaceIcon(iconHandle.Icon);
+        log.Information("Icon replaced");
+    }
+}

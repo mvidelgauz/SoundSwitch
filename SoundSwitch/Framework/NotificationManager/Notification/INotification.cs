@@ -12,60 +12,80 @@
 * GNU General Public License for more details.
 ********************************************************************/
 
+using System.Drawing;
+
+using JetBrains.Annotations;
+
 using SoundSwitch.Common.Framework.Audio.Device;
 using SoundSwitch.Framework.Audio;
 using SoundSwitch.Framework.Factory;
 using SoundSwitch.Framework.NotificationManager.Notification.Configuration;
+using SoundSwitch.Model;
 
-namespace SoundSwitch.Framework.NotificationManager.Notification
+namespace SoundSwitch.Framework.NotificationManager.Notification;
+
+public interface INotification : IEnumImpl<NotificationType>
 {
-    public interface INotification : IEnumImpl<NotificationTypeEnum>
-    {
-        /// <summary>
-        /// Configuration of the Notification
-        /// </summary>
-        INotificationConfiguration Configuration { get; set; }
+    /// <summary>
+    /// Configuration of the Notification
+    /// </summary>
+    INotificationConfiguration Configuration { get; set; }
 
-        /// <summary>
-        /// Notify the change of default audio device
-        /// </summary>
-        /// <param name="audioDevice"></param>
-        void NotifyDefaultChanged(DeviceFullInfo audioDevice);
+    /// <summary>
+    /// Notify the change of default audio device
+    /// </summary>
+    /// <param name="audioDevice"></param>
+    void NotifyDefaultChanged(DeviceFullInfo audioDevice);
 
-        /// <summary>
-        /// Called when the set sound changed
-        /// </summary>
-        /// <param name="newSound"></param>
-        void OnSoundChanged(CachedSound newSound);
+    /// <summary>
+    /// Notify when a profile has changed
+    /// </summary>
+    /// <param name="profile"></param>
+    /// <param name="icon"></param>
+    /// <param name="processId"></param>
+    void NotifyProfileChanged(Profile.Profile profile, [CanBeNull] Bitmap icon, uint? processId);
 
-        /// <summary>
-        /// Does the notification support a Custom Sound
-        /// </summary>
-        /// <returns></returns>
-        NotificationCustomSoundEnum SupportCustomSound();
+    /// <summary>
+    /// Notify when an App Rule has been matched
+    /// </summary>
+    /// <param name="rule"></param>
+    /// <param name="playback"></param>
+    /// <param name="recording"></param>
+    /// <param name="icon"></param>
+    /// <param name="processId"></param>
+    void NotifyAppRuleMatched(AppSoundRule rule, [CanBeNull] DeviceFullInfo playback, [CanBeNull] DeviceFullInfo recording, [CanBeNull] Bitmap icon, uint processId);
 
-        /// <summary>
-        /// Does the notification need a Custom Sound set to work
-        /// </summary>
-        /// <returns></returns>
-        bool NeedCustomSound();
+    /// <summary>
+    /// Notify that an App Rule hotkey was pressed but its application isn't running
+    /// </summary>
+    /// <param name="rule"></param>
+    void NotifyAppRuleNoProcess(AppSoundRule rule);
 
-        /// <summary>
-        /// Is this notification available
-        /// </summary>
-        /// <returns></returns>
-        bool IsAvailable();
+    /// <summary>
+    /// Notify about the mute state having changed
+    /// </summary>
+    void NotifyMicrophoneMuteChanged(string deviceId, string microphoneName, bool newMuteState);
 
-        /// <summary>
-        /// Notify when a profile has changed
-        /// </summary>
-        /// <param name="profile"></param>
-        /// <param name="processId"></param>
-        void NotifyProfileChanged(Profile.Profile profile, uint? processId);
+    /// <summary>
+    /// Does this notification support showing an icon
+    /// </summary>
+    bool SupportIcon => false;
 
-        /// <summary>
-        /// Notify about the mute state having changed
-        /// </summary>
-        void NotifyMuteChanged(string microphoneName, bool newMuteState);
-    }
+    /// <summary>
+    /// Called when the set sound changed
+    /// </summary>
+    /// <param name="newSound"></param>
+    void OnSoundChanged(CachedSound newSound);
+
+    /// <summary>
+    /// Does the notification support a Custom Sound
+    /// </summary>
+    /// <returns></returns>
+    bool SupportCustomSound();
+
+    /// <summary>
+    /// Is this notification available
+    /// </summary>
+    /// <returns></returns>
+    bool IsAvailable();
 }

@@ -3,121 +3,154 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+
 using Newtonsoft.Json;
+
 using SoundSwitch.Audio.Manager;
 using SoundSwitch.Audio.Manager.Interop.Enum;
 using SoundSwitch.Common.Framework.Audio.Device;
 using SoundSwitch.Common.Framework.Audio.Icon;
+using SoundSwitch.Common.Framework.Icon;
 using SoundSwitch.Properties;
 
-namespace SoundSwitch.Framework.Profile
+namespace SoundSwitch.Framework.Profile;
+
+public class Profile : IEquatable<Profile>, IDisposable
 {
-    public class Profile : IEquatable<Profile>
+    private bool? _restoreDevices;
+
+    private static readonly IconHandle DefaultProfileIcon = IconExtractor.CreatePermanent(Resources.profile);
+
+    internal class DeviceRoleWrapper
     {
-        private bool? _restoreDevices = null;
-
-        internal class DeviceRoleWrapper
-        {
-            public DeviceInfo DeviceInfo { get; }
-            public ERole Role { get; }
-
-            internal DeviceRoleWrapper(DeviceInfo deviceInfo, ERole role)
-            {
-                DeviceInfo = deviceInfo;
-                Role = role;
-            }
-        }
-
-        public DeviceInfo? Playback { get; set; }
-        public DeviceInfo? Communication { get; set; }
-        public DeviceInfo? Recording { get; set; }
-
-        public string Name { get; set; } = "";
-        public IList<Trigger.Trigger> Triggers { get; set; } = new List<Trigger.Trigger>();
-
-        public bool AlsoSwitchDefaultDevice { get; set; } = false;
-
-        [JsonIgnore]
-        public Icon Icon
-        {
-            get
-            {
-                var device = AudioSwitcher.Instance.GetDevice(Devices.First().DeviceInfo.Id);
-                if (device == null)
-                {
-                    return Resources.profile;
-                }
-
-                return AudioSwitcher.Instance.InteractWithMmDevice(device, mmDevice => AudioDeviceIconExtractor.ExtractIconFromPath(mmDevice.IconPath, mmDevice.DataFlow, true));
-            }
-        }
+        public DeviceInfo DeviceInfo { get; }
 
         /// <summary>
-        /// Should the device be restore when the profile is disabled
+        /// The native roles this device entry applies to. The native ERole values are not powers
+        /// of two (eConsole = 0, eMultimedia = 1, eCommunications = 2), so they cannot be combined
+        /// with bitwise OR or tested with HasFlag — keep them as a set of individual values.
         /// </summary>
-        public bool RestoreDevices
+        public IReadOnlyCollection<ERole> Roles { get; }
+
+        internal DeviceRoleWrapper(DeviceInfo deviceInfo, params ERole[] roles)
         {
-            get => AlsoSwitchDefaultDevice && (_restoreDevices ?? AlsoSwitchDefaultDevice);
-            set => _restoreDevices = value;
+            DeviceInfo = deviceInfo;
+            Roles = roles;
         }
+    }
 
-        public bool NotifyOnActivation { get; set; } = true;
+    public DeviceInfo? Playback { get; set; }
+    public DeviceInfo? Communication { get; set; }
+    public DeviceInfo? Recording { get; set; }
+    public DeviceInfo? RecordingCommunication { get; set; }
+    public string Name { get; set; } = "";
+    public IList<Trigger.Trigger> Triggers { get; set; } = new List<Trigger.Trigger>();
 
-        /// <summary>
-        /// Deep copy the profile
-        /// </summary>
-        public Profile Copy()
+    public bool AlsoSwitchDefaultDevice { get; set; }
+
+    public bool SwitchForegroundApp { get; set; }
+
+    public bool NotifyOnActivation { get; set; } = true;
+
+    [JsonIgnore]
+    public IconHandle Icon
+    {
+        get
         {
-            return new()
+            // The AudioDevice properties are an immutable snapshot — safe to read off the ComThread.
+            using var device = AudioSwitcher.Instance.GetDevice(Devices.First().DeviceInfo.Id);
+            if (device == null)
             {
-                AlsoSwitchDefaultDevice = AlsoSwitchDefaultDevice,
-                Communication = Communication,
-                Name = Name,
-                Playback = Playback,
-                Recording = Recording,
-                RestoreDevices = RestoreDevices,
-                Triggers = Triggers.Select(trigger => new Trigger.Trigger(trigger.Type)
+                return DefaultProfileIcon.Acquire();
+            }
+
+            return AudioDeviceIconExtractor.ExtractIconFromAudioDevice(device, true);
+        }
+    }
+
+    /// <summary>
+    /// Should the device be restore when the profile is disabled
+    /// </summary>
+    public bool RestoreDevices
+    {
+        get => AlsoSwitchDefaultDevice && (_restoreDevices ?? AlsoSwitchDefaultDevice);
+        set => _restoreDevices = value;
+    }
+
+
+    /// <summary>
+    /// Deep copy the profile
+    /// </summary>
+    public Profile Copy()
+    {
+        return new()
+        {
+            AlsoSwitchDefaultDevice = AlsoSwitchDefaultDevice,
+            Communication = Communication,
+            Name = Name,
+            Playback = Playback,
+            Recording = Recording,
+            RecordingCommunication = RecordingCommunication,
+            RestoreDevices = RestoreDevices,
+            NotifyOnActivation = NotifyOnActivation,
+            SwitchForegroundApp = SwitchForegroundApp,
+            Triggers = Triggers.Select(trigger => new Trigger.Trigger(trigger.Type)
                 {
                     HotKey = trigger.HotKey,
                     ApplicationPath = trigger.ApplicationPath,
                     WindowName = trigger.WindowName,
                     ShouldRestoreDevices = trigger.ShouldRestoreDevices
-                }).ToList()
-            };
-        }
+                })
+                .ToList()
+        };
+    }
 
-        [JsonIgnore]
-        internal IEnumerable<DeviceRoleWrapper> Devices
+    [JsonIgnore]
+    internal IEnumerable<DeviceRoleWrapper> Devices
+    {
+        get
         {
-            get
-            {
-                if (Playback != null)
-                    yield return new DeviceRoleWrapper(Playback, Communication == null ? ERole.ERole_enum_count : ERole.eConsole | ERole.eMultimedia);
-                if (Communication != null)
-                    yield return new DeviceRoleWrapper(Communication, ERole.eCommunications);
-                if (Recording != null)
-                    yield return new DeviceRoleWrapper(Recording, ERole.ERole_enum_count);
-            }
+            if (Playback != null)
+                yield return new DeviceRoleWrapper(Playback, ERole.eConsole, ERole.eMultimedia);
+            if (Communication != null)
+                yield return new DeviceRoleWrapper(Communication, ERole.eCommunications);
+            if (Recording != null)
+                yield return new DeviceRoleWrapper(Recording, ERole.eConsole, ERole.eMultimedia);
+            if (RecordingCommunication != null)
+                yield return new DeviceRoleWrapper(RecordingCommunication, ERole.eCommunications);
         }
+    }
 
-        public bool Equals(Profile? other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return Name == other.Name;
-        }
+    public bool Equals(Profile? other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return Name == other.Name;
+    }
 
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((Profile) obj);
-        }
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((Profile)obj);
+    }
 
-        public override int GetHashCode()
+    public override string ToString()
+    {
+        return $"{nameof(Name)}: {Name}, {nameof(Devices)}: [{string.Join(", ", Devices)}]";
+    }
+
+    public void Dispose()
+    {
+        foreach (var device in Devices.Select(wrapper => wrapper.DeviceInfo).Where(info => info is DeviceFullInfo).Cast<DeviceFullInfo>())
         {
-            return Name.GetHashCode();
+            device.Dispose();
         }
+    }
+
+    public override int GetHashCode()
+    {
+        return Name.GetHashCode();
     }
 }

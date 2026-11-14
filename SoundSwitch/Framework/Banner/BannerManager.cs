@@ -1,60 +1,120 @@
 ﻿/********************************************************************
-* Copyright (C) 2015-2017 Antoine Aflalo
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-********************************************************************/
+ * Copyright (C) 2015-2017 Antoine Aflalo
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ ********************************************************************/
 
 using System;
+using System.Collections.Generic;
+
 using Serilog;
 
-namespace SoundSwitch.Framework.Banner
+using SoundSwitch.Framework.Telemetry;
+using SoundSwitch.Framework.Toast;
+using SoundSwitch.Model;
+
+namespace SoundSwitch.Framework.Banner;
+
+/// <summary>
+/// Class to manage the banners. This class is the entrypoint to show a notification banner.
+/// </summary>
+public class BannerManager
 {
+    private static System.Threading.SynchronizationContext _syncContext;
+    private readonly Dictionary<Guid, BannerForm> _bannerForms = new();
+    private BannerForm _singleBanner;
+    private BannerForm _customPositionBanner;
+    private const int SPACING = 10;
+
     /// <summary>
-    /// Class to manage the banners. This class is the entrypoint to show a notification banner.
+    /// Show a banner notification with the given data
     /// </summary>
-    public class BannerManager
+    /// <param name="data"></param>
+    public void ShowNotification(BannerData data)
     {
-        private static System.Threading.SynchronizationContext syncContext;
-        private static BannerForm banner;
+        TelemetryService.TrackNotificationBanner("shown");
+        TelemetryService.AddBreadcrumb("notification", "Banner shown");
 
-        /// <summary>
-        /// Show a banner notification with the given data
-        /// </summary>
-        /// <param name="data"></param>
-        public void ShowNotification(BannerData data)
+        if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763) && ExclusiveFullscreenDetector.IsForegroundInExclusiveFullscreen())
         {
-            // Execute the banner in the context of the UI thread
-            syncContext.Post((d) =>
+            Log.Debug("Foreground window is in exclusive fullscreen — routing to Toast notification");
+            ToastNotificationRenderer.Show(data);
+            return;
+        }
+
+        if (data.CustomPositionMode)
+        {
+            ShowOrUpdateCustomPositionNotification(data);
+            return;
+        }
+
+        if (AppModel.Instance.MaxNumberNotification > 1)
+        {
+            MultipleBannerShow(data);
+            return;
+        }
+
+        _syncContext.Send(_ =>
+        {
+            if (_singleBanner == null)
             {
-                if (banner == null)
-                {
-                    banner = new BannerForm();
-                    banner.Disposed += (s, e) => banner = null;
-                }
+                _singleBanner = new BannerForm();
+                _singleBanner.Disposed += (s, e) => { _singleBanner = null; };
+            }
 
-                banner.SetData(data);
-            }, null);
-        }
+            _singleBanner.SetData(data);
+        }, null);
+    }
 
-        /// <summary>
-        /// Because notifications dispatched asynchronously, this method must be called in the context of the UI thread
-        /// <remarks>This method requires that at least one System.Windows.Form.Control has been created or Application.Run() called</remarks>
-        /// </summary>
-        internal static void Setup()
+    private void ShowOrUpdateCustomPositionNotification(BannerData data)
+    {
+        _syncContext.Send(_ =>
         {
-            // Grab the synchronization context of the UI thread!
-            syncContext = System.Threading.SynchronizationContext.Current;
-            if (!(syncContext is System.Windows.Forms.WindowsFormsSynchronizationContext))
-                throw new InvalidOperationException("BannerManager must be called in the context of the UI thread.");
-            Log.Information("Banner manager initialized");
-        }
+            if (_customPositionBanner == null)
+            {
+                _customPositionBanner = new BannerForm();
+                _customPositionBanner.Disposed += (s, e) => { _customPositionBanner = null; };
+            }
+
+            _customPositionBanner.SetData(data);
+        }, null);
+    }
+
+    private void MultipleBannerShow(BannerData data)
+    {
+        // Execute the banner in the context of the UI thread
+        _syncContext.Send(_ =>
+        {
+            var banner = new BannerForm();
+            banner.Disposed += (s, e) => { _bannerForms.Remove(banner.Id); };
+            banner.SetData(data);
+            foreach (var bannerForm in _bannerForms.Values)
+            {
+                bannerForm.UpdateLocationOpacity(banner.Height + SPACING,  0.10, 100/AppModel.Instance.MaxNumberNotification);
+            }
+
+            _bannerForms.Add(banner.Id, banner);
+        }, null);
+    }
+
+    /// <summary>
+    /// Because notifications dispatched asynchronously, this method must be called in the context of the UI thread
+    /// <remarks>This method requires that at least one System.Windows.Form.Control has been created or Application.Run() called</remarks>
+    /// </summary>
+    internal static void Setup()
+    {
+        // Grab the synchronization context of the UI thread!
+        _syncContext = System.Threading.SynchronizationContext.Current;
+        if (!(_syncContext is System.Windows.Forms.WindowsFormsSynchronizationContext))
+            throw new InvalidOperationException("BannerManager must be called in the context of the UI thread.");
+        Log.Information("Banner manager initialized");
     }
 }

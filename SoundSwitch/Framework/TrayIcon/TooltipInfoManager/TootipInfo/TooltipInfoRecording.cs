@@ -12,32 +12,53 @@
 * GNU General Public License for more details.
 ********************************************************************/
 
+using SoundSwitch.Framework.Audio;
+
 using SoundSwitch.Audio.Manager;
 using SoundSwitch.Audio.Manager.Interop.Enum;
+using SoundSwitch.Common.Framework.Audio.Device;
 using SoundSwitch.Localization;
+using SoundSwitch.Model;
 
-namespace SoundSwitch.Framework.TrayIcon.TooltipInfoManager.TootipInfo
+namespace SoundSwitch.Framework.TrayIcon.TooltipInfoManager.TootipInfo;
+
+public class TooltipInfoRecording : ITooltipInfo
 {
-    public class TooltipInfoRecording : ITooltipInfo
+    private DeviceFullInfo _defaultDevice;
+    public TooltipInfoType TypeEnum => TooltipInfoType.Recording;
+    public string Label => SettingsStrings.tooltipOnHover_option_recordingDevice;
+
+    public TooltipInfoRecording()
     {
-        public TooltipInfoTypeEnum TypeEnum => TooltipInfoTypeEnum.Recording;
-        public string Label => SettingsStrings.tooltipOnHoverOptionRecordingDevice;
-
-        /// <summary>
-        /// The text to display for this ToolTip
-        /// </summary>
-        /// <returns></returns>
-        public string TextToDisplay()
+        AppModel.Instance.DefaultDeviceChanged += (sender, @event) =>
         {
-            var recordingDevice = AudioSwitcher.Instance.GetDefaultAudioEndpoint(EDataFlow.eCapture, ERole.eConsole);
-            return recordingDevice == null
-                ? null
-                : string.Format(SettingsStrings.activeRecording + " - {1}%", recordingDevice.NameClean, recordingDevice.Volume);
-        }
-
-        public override string ToString()
-        {
-            return Label;
-        }
+            if (@event.Device.Type != EDataFlow.eCapture)
+                return;
+            if (_defaultDevice != null)
+            {
+                _defaultDevice.Dispose();
+            }
+            _defaultDevice = AudioSwitcher.Instance.GetAudioEndpoint(@event.DeviceId);
+            if (_defaultDevice != null)
+                // Subscribe to OS-level volume notifications (marshalled onto the ComThread internally)
+                _defaultDevice.SubscribeToVolumeNotifications();
+        };
+        _defaultDevice = AudioSwitcher.Instance.GetDefaultAudioEndpoint(EDataFlow.eCapture, ERole.eConsole);
+        if (_defaultDevice != null)
+            // Subscribe to OS-level volume notifications (marshalled onto the ComThread internally)
+            _defaultDevice.SubscribeToVolumeNotifications();
     }
+
+    /// <summary>
+    /// The text to display for this ToolTip
+    /// </summary>
+    /// <returns></returns>
+    public string TextToDisplay()
+    {
+        return _defaultDevice == null
+            ? null
+            : string.Format("[{1}%] " + SettingsStrings.activeRecording, _defaultDevice.NameClean, _defaultDevice.Volume);
+    }
+
+    public override string ToString() => Label;
 }

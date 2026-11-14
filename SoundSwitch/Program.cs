@@ -1,88 +1,90 @@
 ﻿/********************************************************************
-* Copyright (C) 2015 Jeroen Pelgrims
-* Copyright (C) 2015-2017 Antoine Aflalo
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-********************************************************************/
+ * Copyright (C) 2015 Jeroen Pelgrims
+ * Copyright (C) 2015-2024 Antoine Aflalo
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ ********************************************************************/
 
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using ContribSentry;
+
 using Sentry;
+
 using Serilog;
+
 using SoundSwitch.Framework;
 using SoundSwitch.Framework.Configuration;
 using SoundSwitch.Framework.Logger.Configuration;
 using SoundSwitch.Framework.NotificationManager;
+using SoundSwitch.Framework.Telemetry;
 using SoundSwitch.Framework.Threading;
+using SoundSwitch.Framework.Theme;
 using SoundSwitch.Framework.WinApi;
+using SoundSwitch.IPC.Pipe;
+using SoundSwitch.IPC.Pipe.Messages.OpenSettings;
 using SoundSwitch.Localization.Factory;
 using SoundSwitch.Model;
 using SoundSwitch.Util;
 using SoundSwitch.Util.Url;
 
-namespace SoundSwitch
+namespace SoundSwitch;
+
+internal static class Program
 {
-    internal static class Program
+    public static bool SkipUpdate { get; private set; }
+    private const string SentryDsn = "https://7d52dfb4f6554bf0b58b256337835332@o631137.ingest.sentry.io/5755327";
+    private static WindowsFormsSynchronizationContext _synchronizationContext;
+
+    [STAThread]
+    private static void Main(string[] args) => OldMain(args).GetAwaiter().GetResult();
+ 
+    private static async Task OldMain(string[] args)
     {
-        private static WindowsFormsSynchronizationContext _synchronizationContext;
+        // Must be called before the first IWin32Window object is created.
+        // WindowsAPIAdapter.Start() creates a hidden message-pump Form on a
+        // background STA thread, so this cannot wait until the normal
+        // application startup block below.
+        Application.SetCompatibleTextRenderingDefault(false);
 
-        [DllImport("user32.dll")]
-        private static extern bool SetProcessDPIAware();
-
-        [HandleProcessCorruptedStateExceptions]
-        [STAThread]
-        private static void Main()
+        if (args != null && args.Any(arg => arg.Equals("--disable-updater", StringComparison.OrdinalIgnoreCase) || arg.Equals("-s", StringComparison.OrdinalIgnoreCase)))
         {
-            var sentryOptions = new SentryOptions
-            {
-                Dsn = "https://7d52dfb4f6554bf0b58b256337835332@o631137.ingest.sentry.io/5755327",
-                Environment = AssemblyUtils.GetReleaseState().ToString(),
-                DefaultTags = { { "ReleaseState", AssemblyUtils.GetReleaseState().ToString() } },
-                Release = $"{Application.ProductName}@{Application.ProductVersion}",
-            };
-            var user = new User
-            {
-                Id = AppConfigs.Configuration.UniqueInstallationId.ToString(),
-                Username = Environment.UserName
-            };
-            //Only track session if Telemetry is enabled
-            if (AppConfigs.Configuration.Telemetry)
-            {
-                var contribOptions = new ContribSentryOptions(true, true, true)
-                {
-                    GlobalSessionMode = true,
-                    CacheDirPath = Path.Combine(ApplicationPath.Default, "Session")
-                };
-                sentryOptions.AddIntegration(new ContribSentrySdkIntegration(contribOptions));
-            }
+            SkipUpdate = true;
+        }
 
-            using var _ = SentrySdk.Init(sentryOptions);
-            //Needs to be started AFTER the init of the main SDK
-            //else the ContribSentrySdk isn't enabled and no tracking is done
-            if (AppConfigs.Configuration.Telemetry)
-            {
-                ContribSentrySdk.StartSession(user);
-            }
+        using var mainCts = new CancellationTokenSource();
+        var sentryOptions = new SentryOptions
+        {
+            Dsn = SentryDsn,
+            Environment = AssemblyUtils.GetReleaseState().ToString(),
+            DefaultTags = { { "ReleaseState", AssemblyUtils.GetReleaseState().ToString() } },
+            Release = $"{Application.ProductName}@{Application.ProductVersion}",
+            // Only track session if telemetry is enabled
+            AutoSessionTracking = AppConfigs.Configuration.Telemetry,
+        };
+        var user = new SentryUser
+        {
+            Id = AppConfigs.Configuration.UniqueInstallationId.ToString(),
+            Username = TelemetryService.UserNameHash()
+        };
+
+        using var _ = SentrySdk.Init(sentryOptions);
 
 
-            SentrySdk.ConfigureScope(scope => { scope.User = user; });
-
-            InitializeLogger();
-            Log.Information("Application Starts");
+        SentrySdk.ConfigureScope(scope => { scope.User = user; });
+        InitializeLogger();
+        Log.Information("Application Starts");
 #if !DEBUG
             AppDomain.CurrentDomain.UnhandledException += (sender, args) => { HandleException((Exception)args.ExceptionObject); };
 
@@ -91,61 +93,92 @@ namespace SoundSwitch
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             WindowsAPIAdapter.Start(Application_ThreadException);
 #else
-            WindowsAPIAdapter.Start();
+        WindowsAPIAdapter.Start();
 #endif
-            Thread.CurrentThread.CurrentUICulture = new LanguageFactory().Get(AppModel.Instance.Language).CultureInfo;
-            Thread.CurrentThread.Name = "Main Thread";
-            var userMutexName = Application.ProductName + Environment.UserName;
+        Thread.CurrentThread.CurrentUICulture = new LanguageFactory().Get(AppModel.Instance.Language).CultureInfo;
+        Thread.CurrentThread.Name = "Main Thread";
+        var userMutexName = PipeConstants.GetUserPipeName();
 
-            using var mainMutex = new Mutex(true, Application.ProductName);
-            using var userMutex = new Mutex(true, userMutexName, out var userMutexHasOwnership);
-            if (!userMutexHasOwnership)
+        using var mainMutex = new Mutex(true, Application.ProductName);
+        using var userMutex = new Mutex(true, userMutexName, out var userMutexHasOwnership);
+        if (!userMutexHasOwnership)
+        {
+            Log.Warning("SoundSwitch is already running for this user {@Mutex}", userMutexName);
+            try
             {
-                Log.Warning("SoundSwitch is already running for this user {@Mutex}", userMutexName);
-                WindowsAPIAdapter.Stop();
-                Log.CloseAndFlush();
-                return;
-            }
-
-
-            SetProcessDPIAware();
-
-            Application.EnableVisualStyles();
-#if NETCORE
-            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-#endif
-            Application.SetCompatibleTextRenderingDefault(false);
-            // Manage the Closing events send by Windows
-            // Since this app don't use a Form as "main window" the app doesn't close
-            // when it should without this.
-            WindowsAPIAdapter.RestartManagerTriggered += (sender, @event) =>
-            {
-                Log.Debug("Restart Event received: {Event}", @event);
-                switch (@event.Type)
+                var response = await NamedPipe.SendRequestAsync<OpenSettingsResponse>(userMutexName, new OpenSettingsRequest(), mainCts.Token);
+                if (!response.Success)
                 {
-                    case WindowsAPIAdapter.RestartManagerEventType.Query:
-                        @event.Result = new IntPtr(1);
-
-                        break;
-                    case WindowsAPIAdapter.RestartManagerEventType.EndSession:
-                    case WindowsAPIAdapter.RestartManagerEventType.ForceClose:
-                        Log.Debug("Close Application");
-                        Environment.Exit(0);
-                        break;
+                    Log.Warning("Failed to open settings in existing instance");
                 }
-            };
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to communicate with existing instance");
+            }
+            WindowsAPIAdapter.Stop();
+            Log.CloseAndFlush();
+            return;
+        }
 
-            Log.Information("Starting Application context");
+
+        // DPI awareness is declared in app.manifest (PerMonitorV2) and applied at process
+        // creation. Do not call SetProcessDPIAware() or Application.SetHighDpiMode here: they run
+        // too late to take effect and would silently downgrade the manifest declaration
+        // (docs/design/ui/2026-11-06-dpi-awareness-scalable-dialogs.md).
+
+        Application.EnableVisualStyles();
+#if NETCORE
+        // Follow the user-selected theme (General tab): System follows the OS light/dark
+        // app-mode so every form created afterwards honours the Windows "Apps use
+        // light/dark theme" setting; Light/Dark force it. On Windows 10 WinForms renders
+        // dark only partially (Microsoft: "the dark color mode is only available from
+        // Windows 11 on or later versions"), so the resolver keeps a coherent light
+        // palette there instead of the half-broken mix (#2567).
+        // See docs/design/ui/2026-11-06-app-theme-setting.md.
+        Application.SetColorMode(ThemeResolver.ResolveColorMode());
+#endif
+        // Manage the Closing events send by Windows
+        // Since this app don't use a Form as "main window" the app doesn't close
+        // when it should without this.
+        WindowsAPIAdapter.RestartManagerTriggered += (sender, @event) =>
+        {
+            Log.Debug("Restart Event received: {Event}", @event);
+            switch (@event.Type)
+            {
+                case WindowsAPIAdapter.RestartManagerEventType.Query:
+                    @event.Result = new IntPtr(1);
+
+                    break;
+                case WindowsAPIAdapter.RestartManagerEventType.EndSession:
+                case WindowsAPIAdapter.RestartManagerEventType.ForceClose:
+                    Log.Debug("Close Application");
+                    try
+                    {
+                        mainCts.Cancel();
+                    }
+                    catch (Exception)
+                    {
+                        // We're closing anyway
+                    }
+
+                    Environment.Exit(0);
+                    break;
+            }
+        };
+
+        Log.Information("Starting Application context");
 #if !DEBUG
             try
             {
 #endif
-                MMNotificationClient.Instance.Register();
+        _synchronizationContext = new WindowsFormsSynchronizationContext();
+        SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
 
-                _synchronizationContext = new WindowsFormsSynchronizationContext();
-                SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
+        var appContext = new SoundSwitchApplicationContext();
+        NamedPipe.StartListening(userMutexName, mainCts.Token);
 
-                Application.Run(new SoundSwitchApplicationContext());
+        Application.Run(appContext);
 
 
 #if !DEBUG
@@ -155,87 +188,98 @@ namespace SoundSwitch
                 HandleException(ex);
             }
 #endif
-            ContribSentrySdk.EndSession();
-            AppModel.Instance.Dispose();
-            WindowsAPIAdapter.Stop();
-            MMNotificationClient.Instance?.Dispose();
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-            JobScheduler.Instance.StopAsync(cts.Token).GetAwaiter().GetResult();
-            Log.CloseAndFlush();
+        SentrySdk.EndSession();
+        await SentrySdk.FlushAsync(TimeSpan.FromSeconds(2));
+        AppModel.Instance.Dispose();
+        WindowsAPIAdapter.Stop();
+        MMNotificationClient.Instance?.Dispose();
+        NamedPipe.Cleanup();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+        JobScheduler.Instance.StopAsync(cts.Token).GetAwaiter().GetResult();
+        Log.CloseAndFlush();
+    }
+
+    /// <summary>
+    /// Initialize the logger
+    /// </summary>
+    private static void InitializeLogger()
+    {
+        LoggerConfigurator.ConfigureLogger();
+        Log.Information(
+            $"{Application.ProductName}  {AssemblyUtils.GetReleaseState()} ({Application.ProductVersion})");
+        Log.Information($"OS: {Environment.OSVersion}");
+        Log.Information($"Framework: {Environment.Version}");
+    }
+
+    /// <summary>
+    /// Restarts the application itself.
+    /// </summary>
+    public static void RestartApp()
+    {
+        var info = new ProcessStartInfo
+        {
+            Arguments = $"/C ping 127.0.0.1 -n 3 && \"{ApplicationPath.Executable}\"",
+            WindowStyle = ProcessWindowStyle.Hidden,
+            CreateNoWindow = true,
+            FileName = "cmd.exe"
+        };
+        Process.Start(info);
+        Application.Exit();
+    }
+
+    private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+    {
+        HandleException(e.Exception);
+    }
+
+    private static void HandleException(Exception exception)
+    {
+        if (exception == null)
+            return;
+
+        var eventId = SentrySdk.CaptureException(exception, scope => { scope.AddAttachment(AppConfigs.Configuration.FileLocation); });
+
+        var exceptionMessage = exception.Message;
+        if (exception.InnerException != null)
+        {
+            exceptionMessage += $"\n{exception.InnerException.Message}";
         }
 
-        /// <summary>
-        /// Initialize the logger
-        /// </summary>
-        private static void InitializeLogger()
-        {
-            LoggerConfigurator.ConfigureLogger();
-            Log.Information(
-                $"{Application.ProductName}  {AssemblyUtils.GetReleaseState()} ({Application.ProductVersion})");
-            Log.Information($"OS: {Environment.OSVersion}");
-            Log.Information($"Framework: {Environment.Version}");
-        }
-
-        /// <summary>
-        /// Restarts the application itself.
-        /// </summary>
-        public static void RestartApp()
-        {
-            var info = new ProcessStartInfo
-            {
-                Arguments = $"/C ping 127.0.0.1 -n 3 && \"{ApplicationPath.Executable}\"",
-                WindowStyle = ProcessWindowStyle.Hidden,
-                CreateNoWindow = true,
-                FileName = "cmd.exe"
-            };
-            Process.Start(info);
-            Application.Exit();
-        }
-
-        private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
-        {
-            HandleException(e.Exception);
-        }
-
-        private static void HandleException(Exception exception)
-        {
-            if (exception == null)
-                return;
-
-            SentryId eventId = default;
-            SentrySdk.WithScope(scope =>
-                {
-                    scope.AddAttachment(AppConfigs.Configuration.FileLocation);
-                    eventId = SentrySdk.CaptureException(exception);
-                }
-            );
-
-            var exceptionMessage = exception.Message;
-            if (exception.InnerException != null)
-            {
-                exceptionMessage += $"\n{exception.InnerException.Message}";
-            }
-
-            var message =
-                $@"It seems {Application.ProductName} has crashed.
+        var message =
+            $@"It seems {Application.ProductName} has crashed.
 
 {exceptionMessage}
 
 Would you like to share more information with the developers?";
-            var result = DialogResult.None;
-            _synchronizationContext.Send(state =>
+        var result = DialogResult.None;
+        var syncContext = _synchronizationContext ?? SynchronizationContext.Current;
+        syncContext?.Send(state =>
+        {
+            try
             {
-                result = MessageBox.Show(message, $@"{Application.ProductName} crashed...", MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Error);
-            }, null);
-
-
-            if (result != DialogResult.Yes) return;
-
-            using (new HourGlass())
-            {
-                BrowserUtil.OpenUrl($"https://soundswitch.aaflalo.me/#sentry?eventId={eventId}");
+                try
+                {
+                    result = MessageBox.Show(message, $@"{Application.ProductName} crashed...", MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Error);
+                }
+                catch (InvalidOperationException)
+                {
+                    result = MessageBox.Show(message, $@"{Application.ProductName} crashed...", MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.ServiceNotification);
+                }
             }
+            catch (Exception)
+            {
+                Log.Warning("Couldn't warn the user about the crash");
+            }
+        }, null);
+
+
+        if (result != DialogResult.Yes) return;
+
+        using (new HourGlass())
+        {
+            BrowserUtil.OpenUrl($"https://soundswitch.aaflalo.me/#sentry?eventId={eventId}");
         }
     }
 }

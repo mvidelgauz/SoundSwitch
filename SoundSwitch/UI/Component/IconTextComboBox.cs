@@ -1,85 +1,153 @@
-﻿using System.Drawing;
+﻿using System;
+using System.ComponentModel;
+using System.Drawing;
 using System.Windows.Forms;
 
-namespace SoundSwitch.UI.Component
+using SoundSwitch.Common.Framework.Icon;
+using SoundSwitch.Framework.WinApi;
+
+namespace SoundSwitch.UI.Component;
+
+public class IconTextComboBox : ComboBox
 {
-    public class IconTextComboBox : ComboBox
+    public class DropDownItem : IDisposable
     {
-        public class DropDownItem
+        public static DropDownItem Empty = new DropDownItem
         {
-            public static DropDownItem Empty = new DropDownItem
+            Text = ""
+        };
+
+        /// <summary>
+        /// Tag of the item
+        /// </summary>
+        public object Tag { get; set; }
+
+        /// <summary>
+        /// Reference-counted GDI icon handle for this item.
+        /// The <see cref="DropDownItem"/> owns this handle and disposes it in <see cref="Dispose"/>.
+        /// </summary>
+        public IconHandle IconHandle { get; set; }
+
+        /// <summary>
+        /// Text to use in the dropdown
+        /// </summary>
+        public string Text { get; set; }
+
+        /// <summary>
+        /// Cast the tag in the wanted type
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T CastTag<T>()
+        {
+            return (T) Tag;
+        }
+
+        public void Dispose()
+        {
+            IconHandle?.Dispose();
+        }
+    }
+
+    public IconTextComboBox()
+    {
+        DrawMode = DrawMode.OwnerDrawFixed;
+        DropDownStyle = ComboBoxStyle.DropDownList;
+        ValueMember = nameof(DropDownItem.Tag);
+    }
+
+    protected override CreateParams CreateParams
+    {
+        get
+        {
+            // Opt into .NET 10 implicit theming for the owner-drawn surfaces.
+            // Must be called BEFORE base.CreateParams is read, per the .NET 10 docs.
+            SetStyle(ControlStyles.ApplyThemingImplicitly, true);
+            return base.CreateParams;
+        }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public new DropDownItem[] DataSource
+    {
+        get => (DropDownItem[]) base.DataSource;
+        set
+        {
+            var old = base.DataSource as DropDownItem[];
+            // Avoid disposing items that are still being assigned to the same control.
+            if (ReferenceEquals(old, value)) return;
+            base.DataSource = value;
+            if (old != null)
             {
-                Text = ""
-            };
-
-            /// <summary>
-            /// Tag of the item
-            /// </summary>
-            public object Tag { get; set; }
-
-            /// <summary>
-            /// Icon to use in the dropdown
-            /// </summary>
-            public Icon Icon { get; set; }
-
-            /// <summary>
-            /// Text to use in the dropdown
-            /// </summary>
-            public string Text { get; set; }
-
-            /// <summary>
-            /// Cast the tag in the wanted type
-            /// </summary>
-            /// <typeparam name="T"></typeparam>
-            /// <returns></returns>
-            public T CastTag<T>()
-            {
-                return (T) Tag;
+                foreach (var item in old)
+                    item.Dispose();
             }
         }
+    }
 
-        public IconTextComboBox()
+    // Draws the items into the ColorSelector object
+    protected override void OnDrawItem(DrawItemEventArgs e)
+    {
+        e.DrawBackground();
+        e.DrawFocusRectangle();
+        if (e.Index >= 0 && e.Index < Items.Count)
         {
-            DrawMode = DrawMode.OwnerDrawFixed;
-            DropDownStyle = ComboBoxStyle.DropDownList;
-            ValueMember = nameof(DropDownItem.Tag);
-        }
+            var item = (DropDownItem) Items[e.Index];
 
-        public new DropDownItem[] DataSource
-        {
-            get => (DropDownItem[]) base.DataSource;
-            set => base.DataSource = value;
-        }
-
-        // Draws the items into the ColorSelector object
-        protected override void OnDrawItem(DrawItemEventArgs e)
-        {
-            e.DrawBackground();
-            e.DrawFocusRectangle();
-            if (e.Index >= 0 && e.Index < Items.Count)
+            if (item == DropDownItem.Empty)
             {
-                var item = (DropDownItem) Items[e.Index];
+                base.OnDrawItem(e);
+                return;
+            }
 
-                if (item == DropDownItem.Empty)
+            var iconHandle = item.IconHandle;
+            if (iconHandle == null)
+            {
+                // Items without an icon (e.g. the pair builder's "Keep current") still
+                // need their text drawn: base.OnDrawItem does not paint owner-drawn text.
+                if (string.IsNullOrEmpty(item.Text))
                 {
                     base.OnDrawItem(e);
                     return;
                 }
 
-                var icon = item.Icon;
-                e.DrawBackground();
-
-                var imageRect = new Rectangle(e.Bounds.X, e.Bounds.Y, e.Bounds.Height, e.Bounds.Height);
-                e.Graphics.DrawIcon(icon, imageRect);
-
-                e.Graphics.DrawString(item.Text,
-                    e.Font,
-                    new SolidBrush(e.ForeColor),
-                    (e.Bounds.Location.X + icon.Width + 5),
-                    e.Bounds.Location.Y);
+                TextRenderer.DrawText(e.Graphics, item.Text, e.Font, e.Bounds, e.ForeColor,
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+                return;
             }
 
-            base.OnDrawItem(e);
+            if (e.State.HasFlag(DrawItemState.Selected))
+                        {
+                            // Selected row: keep the system highlight in light mode, but use a
+                            // dark grey in dark mode so the white highlight text stays readable.
+                            // Use WindowsThemeHelper.IsDarkModeEnabled (the project's single
+                            // source of truth) so custom colours match the tray icon's
+                            // theme-driven icon selection. High Contrast deferral is
+                            // documented as out of scope for this PR.
+                            var highlightColor = WindowsThemeHelper.IsDarkModeEnabled()
+                                ? Color.FromArgb(51, 51, 51)
+                                : SystemColors.Highlight;
+                            using var highlightBrush = new SolidBrush(highlightColor);
+                            e.Graphics.FillRectangle(highlightBrush, e.Bounds);
+                            // Re-draw the focus cue on top of our custom fill so keyboard focus is still visible.
+                            e.DrawFocusRectangle();
+                        }
+                        else
+                        {
+                            e.DrawBackground();
+                        }
+
+            var icon = iconHandle.Icon;
+            var imageRect = new Rectangle(e.Bounds.X, e.Bounds.Y, e.Bounds.Height, e.Bounds.Height);
+            e.Graphics.DrawIcon(icon, imageRect);
+
+            e.Graphics.DrawString(item.Text,
+                e.Font,
+                new SolidBrush(e.ForeColor),
+                (e.Bounds.Location.X + icon.Width + 5),
+                e.Bounds.Location.Y);
         }
+
+        base.OnDrawItem(e);
     }
 }

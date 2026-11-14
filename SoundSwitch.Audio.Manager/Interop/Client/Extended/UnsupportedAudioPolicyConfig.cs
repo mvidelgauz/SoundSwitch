@@ -1,12 +1,14 @@
-﻿using SoundSwitch.Audio.Manager.Interop.Enum;
+﻿#nullable enable
+using SoundSwitch.Audio.Manager.Interop.Enum;
 using SoundSwitch.Audio.Manager.Interop.Interface.Policy.Extended;
 
 namespace SoundSwitch.Audio.Manager.Interop.Client.Extended;
 
 public class UnsupportedAudioPolicyConfig : IAudioPolicyConfig
 {
-    public void SetPersistedDefaultAudioEndpoint(uint processId, EDataFlow flow, ERole role, string deviceId)
+    public bool SetPersistedDefaultAudioEndpoint(uint processId, EDataFlow flow, ERole role, string deviceId)
     {
+        return false;
     }
 
     public string? GetPersistedDefaultAudioEndpoint(uint processId, EDataFlow flow, ERole role)
@@ -15,6 +17,10 @@ public class UnsupportedAudioPolicyConfig : IAudioPolicyConfig
     }
 
     public void ClearAllPersistedApplicationDefaultEndpoints()
+    {
+    }
+
+    public void Dispose()
     {
     }
 }

@@ -1,23 +1,19 @@
 ﻿using System;
 
-namespace SoundSwitch.Framework.Factory
+namespace SoundSwitch.Framework.Factory;
+
+public class DisplayEnumObject<TEnum>(IEnumImpl<TEnum> implementation)
+    where TEnum : Enum, IConvertible
 {
-    public class DisplayEnumObject<TEnum> where TEnum : Enum, IConvertible
-    {
-        /// <summary>
-        /// Enum used
-        /// </summary>
-        public TEnum Enum  {get;}
+    private readonly IEnumImpl<TEnum> _implementation = implementation;
 
-        /// <summary>
-        /// Text to display
-        /// </summary>
-        public string Display { get; }
+    /// <summary>
+    /// Enum used
+    /// </summary>
+    public TEnum Enum { get; } = implementation.TypeEnum;
 
-        public DisplayEnumObject(IEnumImpl<TEnum> implementation)
-        {
-            Enum = implementation.TypeEnum;
-            Display = implementation.Label;
-        }
-    }
+    /// <summary>
+    /// Text to display
+    /// </summary>
+    public string Display => _implementation.Label;
 }

@@ -1,796 +1,2200 @@
 ﻿/********************************************************************
-* Copyright (C) 2015 Jeroen Pelgrims
-* Copyright (C) 2015-2017 Antoine Aflalo
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-********************************************************************/
+ * Copyright (C) 2015 Jeroen Pelgrims
+ * Copyright (C) 2015-2017 Antoine Aflalo
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ ********************************************************************/
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Windows.Forms;
-using NAudio.CoreAudioApi;
+
+using Microsoft.Win32;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+using Serilog;
+
+using SoundSwitch.Audio.Manager;
+using SoundSwitch.Audio.Manager.Interop.Enum;
+using SoundSwitch.Common.Framework.Audio.Collection;
 using SoundSwitch.Common.Framework.Audio.Device;
 using SoundSwitch.Common.Framework.Icon;
+using SoundSwitch.Framework;
 using SoundSwitch.Framework.Audio;
+using SoundSwitch.Framework.Banner;
+using SoundSwitch.Framework.Banner.BannerDisplayInfo;
+using SoundSwitch.Framework.Banner.BannerPosition;
+using SoundSwitch.Framework.Banner.MicrophoneMute;
 using SoundSwitch.Framework.Configuration;
 using SoundSwitch.Framework.DeviceCyclerManager;
 using SoundSwitch.Framework.Factory;
+using SoundSwitch.Framework.Logger.Configuration;
 using SoundSwitch.Framework.NotificationManager;
 using SoundSwitch.Framework.Profile;
 using SoundSwitch.Framework.Profile.Trigger;
-using SoundSwitch.Framework.TrayIcon.Icon;
+using SoundSwitch.Framework.Telemetry;
+using SoundSwitch.Framework.Theme;
+using SoundSwitch.Framework.TrayIcon.IconChanger;
+using SoundSwitch.Framework.TrayIcon.IconDoubleClick;
 using SoundSwitch.Framework.TrayIcon.TooltipInfoManager;
-using SoundSwitch.Framework.TrayIcon.TooltipInfoManager.TootipInfo;
 using SoundSwitch.Framework.Updater;
+using SoundSwitch.Framework.WinApi;
 using SoundSwitch.Framework.WinApi.Keyboard;
 using SoundSwitch.Localization;
 using SoundSwitch.Localization.Factory;
 using SoundSwitch.Model;
 using SoundSwitch.Properties;
+using SoundSwitch.Services;
 using SoundSwitch.UI.Component;
 using SoundSwitch.UI.Component.ListView;
 using SoundSwitch.Util;
+using SoundSwitch.Util.Url;
 
-namespace SoundSwitch.UI.Forms
+namespace SoundSwitch.UI.Forms;
+
+public sealed partial class SettingsForm : Form
 {
-    public sealed partial class SettingsForm : Form
+    private static readonly Icon ResourceSettingsIcon = Resources.SettingsIcon;
+    private static readonly IconHandle FallbackAppIconHandle = IconExtractor.CreatePermanent(Resources.program);
+    private const int BaseDpi = 96;
+    private const int BasicNotificationGroupBoxHeight = 93;
+    private const int AdvancedNotificationGroupBoxHeight = 166;
+
+    private readonly bool _loaded;
+    private readonly IAudioDeviceLister _audioDeviceLister;
+    private readonly BannerManager _bannerManager = new();
+    private IDisposable _deviceListRefreshedSubscription;
+    private IDisposable _themeChangedSubscription;
+    private IDisposable _displaySettingsChangedSubscription;
+    private bool _suppressBannerMonitorSelection;
+    private Panel _bannerColorSwatch;
+    private ComboBox _bannerMonitorComboBox;
+    private Button _bannerColorButton;
+    private NumericUpDownWithUnits _bannerScaleUpDown;
+    private TableLayoutPanel _muteTargetPanel;
+    private Label _muteTargetLabel;
+    private ComboBox _muteTargetComboBox;
+    private bool _suppressMuteTargetSelection;
+    private CheckBox _limitMuteBannersCheckBox;
+
+    private const int RECT_PEN_WIDTH = 4;
+    private const int OFFSET_W = 15;
+    private const int OFFSET_H = 12;
+
+    /// <summary>
+    /// Colour of the custom outline borders, following the Windows app light/dark mode:
+    /// dark grey so the border stays visible on a dark background.
+    /// </summary>
+    private static Color OutlineColor => WindowsThemeHelper.IsDarkModeEnabled()
+            ? Color.FromArgb(80, 80, 80)   // dark grey on dark bg
+            : Color.Gainsboro;
+
+    /// <summary>
+    /// Foreground used by the custom surfaces and GroupBox captions, following the
+    /// Windows app light/dark mode.
+    /// </summary>
+    internal static Color GetThemeTextColor(bool darkModeEnabled) => darkModeEnabled
+            ? Color.FromArgb(240, 240, 240)
+            : SystemColors.ControlText;
+
+    private static Color ThemeTextColor => GetThemeTextColor(WindowsThemeHelper.IsDarkModeEnabled());
+
+    /// <summary>
+    /// Surface used by the Notifications GroupBox. It preserves the explicit light-mode
+    /// white from the Designer while providing a dark-mode equivalent.
+    /// </summary>
+    internal static Color GetNotificationPanelColor(bool darkModeEnabled) => darkModeEnabled
+            ? Color.FromArgb(32, 32, 32)
+            : Color.White;
+
+    /// <summary>
+    /// Accent used by <see cref="LinkLabel"/> links. The framework defaults
+    /// (blue / red / purple) are unreadable on the dark surface, so dark mode uses the
+    /// same light accent as the ListView group captions. <see cref="Color.Empty"/> keeps
+    /// the framework defaults in light mode.
+    /// </summary>
+    internal static Color GetLinkColor(bool darkModeEnabled) => darkModeEnabled
+            ? Color.LightSkyBlue
+            : Color.Empty;
+
+    /// <summary>
+    /// Surface used by the settings tab pages. The Designer sets
+    /// <c>UseVisualStyleBackColor = true</c>, which paints the classic light tab-page strip
+    /// even when Windows is in dark app mode, so the pages take an explicit surface instead.
+    /// </summary>
+    internal static Color GetTabPageColor(bool darkModeEnabled) => darkModeEnabled
+            ? Color.FromArgb(32, 32, 32)
+            : SystemColors.Control;
+
+    /// <summary>
+    /// Surface used by the custom-painted banner-position preview, following the
+    /// Windows app light/dark mode.
+    /// </summary>
+    internal static Color GetPreviewFillColor(bool darkModeEnabled) => darkModeEnabled
+            ? Color.FromArgb(45, 45, 45)
+            : Color.AliceBlue;
+
+    private static Color PreviewFillColor => GetPreviewFillColor(WindowsThemeHelper.IsDarkModeEnabled());
+
+    private static Pen PenLine(int width = 1) => new(OutlineColor, width);
+
+    private static Rectangle RectOutline(int offsetW, int offsetH, Control topLeft, Control bottomRight) =>
+        new(topLeft.Location.X - offsetW, topLeft.Location.Y - offsetH,
+            bottomRight.Location.X + bottomRight.Width - topLeft.Location.X + offsetW * 2,
+            bottomRight.Location.Y + bottomRight.Height - topLeft.Location.Y + offsetH * 2);
+    
+    private static Point CenterPoint(Control control, Control container = null) =>
+        new((container != null ? container.Location.X : 0) + control.Location.X + control.Width / 2,
+            (container != null ? container.Location.Y : 0) + control.Location.Y + control.Height / 2);
+
+    public SettingsForm(IAudioDeviceLister audioDeviceLister)
     {
-        private static readonly Icon RessourceSettingsIcon = Resources.SettingsIcon;
-
-        private bool _loaded;
-        private IAudioDeviceLister _audioDeviceLister;
-
-        public SettingsForm(IAudioDeviceLister audioDeviceLister)
+        _audioDeviceLister = audioDeviceLister;
+        // Form itself
+        InitializeComponent();
+        InitializeBannerAppearanceControls();
+        InitializeMuteTargetControls();
+        ApplyTheme();
+#if NIGHTLY
+        var nightlyChannelCheckBox = new CheckBox
         {
-            _audioDeviceLister = audioDeviceLister;
-            // Form itself
-            InitializeComponent();
-            Icon = RessourceSettingsIcon;
-            Text = AssemblyUtils.GetReleaseState() == AssemblyUtils.ReleaseState.Beta
-                ? $"{SettingsStrings.settings} {AssemblyUtils.GetReleaseState()}"
-                : SettingsStrings.settings;
-            LocalizeForm();
+            Checked = true,
+            Enabled = false,
+            AutoCheck = false,
+            AutoSize = true,
+            Location = new Point(6, 122),
+            TabIndex = 0,
+            Text = SettingsStrings.updateNightlyChannel,
+            UseVisualStyleBackColor = true
+        };
+        updateSettingsGroupBox.Controls.Add(nightlyChannelCheckBox);
+        new ToolTip().SetToolTip(nightlyChannelCheckBox, SettingsStrings.updateNightlyChannel_tooltip);
+        telemetryCheckbox.Location = new Point(6, 147);
+#endif
+        Icon = ResourceSettingsIcon;
+        Text = AssemblyUtils.GetReleaseState() == AssemblyUtils.ReleaseState.Beta
+            ? $"{SettingsStrings.settings} {AssemblyUtils.GetReleaseState()}"
+            : SettingsStrings.settings;
+        LocalizeForm();
 
-            var closeToolTip = new ToolTip();
-            closeToolTip.SetToolTip(closeButton, SettingsStrings.closeTooltip);
+        new ToolTip().SetToolTip(closeButton, SettingsStrings.buttonClose_tooltip);
 
-            hotKeyControl.HotKey = AppConfigs.Configuration.PlaybackHotKey;
-            hotKeyControl.Tag =
-                new Tuple<HotKeyAction, HotKey>(HotKeyAction.Playback, AppConfigs.Configuration.PlaybackHotKey);
-            hotKeyControl.Enabled = hotkeysCheckBox.Checked = AppConfigs.Configuration.PlaybackHotKey.Enabled;
+        hotKeyControl.HotKey = AppConfigs.Configuration.PlaybackHotKey;
+        hotKeyControl.Tag =
+            new Tuple<HotKeyAction, HotKey>(HotKeyAction.Playback, AppConfigs.Configuration.PlaybackHotKey);
+        hotKeyControl.Enabled = hotKeyCheckBox.Checked = AppConfigs.Configuration.PlaybackHotKey.Enabled;
 
-            muteHotKey.HotKey = AppConfigs.Configuration.MuteRecordingHotKey;
-            muteHotKey.Tag = new Tuple<HotKeyAction, HotKey>(HotKeyAction.Mute, AppConfigs.Configuration.MuteRecordingHotKey);
-            muteHotKey.Enabled = muteHotKeyCheckbox.Checked = AppConfigs.Configuration.MuteRecordingHotKey.Enabled;
+        muteHotKey.HotKey = AppConfigs.Configuration.MuteRecordingHotKey;
+        muteHotKey.Tag = new Tuple<HotKeyAction, HotKey>(HotKeyAction.Mute, AppConfigs.Configuration.MuteRecordingHotKey);
+        muteHotKey.Enabled = muteHotKeyCheckBox.Checked = AppConfigs.Configuration.MuteRecordingHotKey.Enabled;
 
-            var hotkeysToolTip = new ToolTip();
-            hotkeysToolTip.SetToolTip(hotkeysCheckBox, SettingsStrings.hotkeysTooltip);
+        new ToolTip().SetToolTip(hotKeyCheckBox, SettingsStrings.hotkey_tooltip);
 
-            // Settings - Basic
-            startWithWindowsCheckBox.Checked = AppModel.Instance.RunAtStartup;
+        // Settings - Basic
+        startWithWindowsCheckBox.Checked = AppModel.Instance.RunAtStartup;
 
-            new IconChangerFactory().ConfigureListControl(iconChangeChoicesComboBox);
-            iconChangeChoicesComboBox.SelectedValue = AppConfigs.Configuration.SwitchIcon;
+        new IconChangerFactory().ConfigureListControl(iconChangeChoicesComboBox);
+        iconChangeChoicesComboBox.SelectedValue = AppConfigs.Configuration.SwitchIcon;
+        new ToolTip().SetToolTip(iconChangeChoicesComboBox, SettingsStrings.iconChange_tooltip);
 
-            var iconChangeToolTip = new ToolTip();
-            iconChangeToolTip.SetToolTip(iconChangeLabel, SettingsStrings.iconChange_tooltip);
+        new IconDoubleClickFactory().ConfigureListControl(iconDoubleClickComboBox);
+        iconDoubleClickComboBox.SelectedValue = AppConfigs.Configuration.IconDoubleClick;
+        new ToolTip().SetToolTip(iconDoubleClickComboBox, SettingsStrings.iconDoubleClick_tooltip);
 
-            // Settings - Audio
-            switchCommunicationDeviceCheckBox.Checked = AppModel.Instance.SetCommunications;
+        // Settings - Audio
+        switchCommunicationDeviceCheckBox.Checked = AppModel.Instance.SetCommunications;
+        new ToolTip().SetToolTip(switchCommunicationDeviceCheckBox, SettingsStrings.communicationsDevice_tooltip);
 
-            var switchCommunicationsDeviceToolTip = new ToolTip();
-            switchCommunicationsDeviceToolTip.SetToolTip(switchCommunicationDeviceCheckBox,
-                SettingsStrings.communicationsDeviceTooltip);
+        foregroundAppCheckbox.Checked = AppModel.Instance.SwitchForegroundProgram;
+        new ToolTip().SetToolTip(foregroundAppCheckbox, SettingsStrings.foregroundApp_tooltip);
 
-            foregroundAppCheckbox.Checked = AppModel.Instance.SwitchForegroundProgram;
+        quickMenuCheckbox.DataBindings.Add(nameof(CheckBox.Checked), AppModel.Instance,
+            nameof(AppModel.QuickMenuEnabled), false, DataSourceUpdateMode.OnPropertyChanged);
+        new ToolTip().SetToolTip(quickMenuCheckbox, SettingsStrings.quickMenu_tooltip);
 
-            var foregroundAppToolTip = new ToolTip();
-            foregroundAppToolTip.SetToolTip(foregroundAppCheckbox, SettingsStrings.foregroundAppTooltip);
+        keepVolumeCheckbox.DataBindings.Add(nameof(CheckBox.Checked), AppModel.Instance,
+            nameof(AppModel.KeepVolumeEnabled), false, DataSourceUpdateMode.OnPropertyChanged);
+        new ToolTip().SetToolTip(keepVolumeCheckbox, SettingsStrings.keepVolume_tooltip);
 
-            usePrimaryScreenCheckbox.Checked = AppModel.Instance.NotifyUsingPrimaryScreen;
-            usePrimaryScreenCheckbox.Enabled = AppModel.Instance.NotificationSettings == NotificationTypeEnum.BannerNotification;
+        new TooltipInfoFactory().ConfigureListControl(tooltipInfoComboBox);
+        tooltipInfoComboBox.SelectedValue = TooltipInfoManager.CurrentTooltipInfo;
 
-            var usePrimaryScreenTooltip = new ToolTip();
-            usePrimaryScreenTooltip.SetToolTip(usePrimaryScreenCheckbox, SettingsStrings.usePrimaryScreenTooltip);
+        new DeviceCyclerFactory().ConfigureListControl(cycleThroughComboBox);
+        cycleThroughComboBox.SelectedValue = DeviceCyclerManager.CurrentCycler;
+        new ToolTip().SetToolTip(cycleThroughComboBox, SettingsStrings.cycleThrough_tooltip);
 
-            var notificationToolTip = new ToolTip();
-            notificationToolTip.SetToolTip(notificationComboBox, SettingsStrings.notificationTooltip);
+        // Settings - Notification
+        var isAdvancedMode = AppModel.Instance.NotificationAdvancedMode;
+        advancedModeCheckBox.Checked = isAdvancedMode;
+        NotificationAdvancedMode(isAdvancedMode);
 
-            var notificationFactory = new NotificationFactory();
-            notificationFactory.ConfigureListControl(notificationComboBox);
-            notificationComboBox.SelectedValue = AppModel.Instance.NotificationSettings;
+        var notificationFactory = new NotificationFactory();
+        notificationFactory.ConfigureListControl(switchDeviceNotificationComboBox);
+        notificationFactory.ConfigureListControl(switchProfileNotificationComboBox);
+        notificationFactory.ConfigureListControl(microphoneMuteNotificationComboBox);
+        switchDeviceNotificationComboBox.SelectedValue = AppModel.Instance.SwitchDeviceNotification;
+        switchProfileNotificationComboBox.SelectedValue = AppModel.Instance.SwitchProfileNotification;
+        microphoneMuteNotificationComboBox.SelectedValue = AppModel.Instance.MicrophoneMuteNotification;
+        new ToolTip().SetToolTip(switchDeviceNotificationComboBox, SettingsStrings.notification_tooltip);
+        new ToolTip().SetToolTip(switchProfileNotificationComboBox, SettingsStrings.notification_tooltip);
+        new ToolTip().SetToolTip(microphoneMuteNotificationComboBox, SettingsStrings.notification_tooltip);
 
-            selectSoundFileDialog.Filter = SettingsStrings.audioFiles + @" (*.wav;*.mp3)|*.wav;*.mp3;*.aiff";
-            selectSoundFileDialog.FileOk += SelectSoundFileDialogOnFileOk;
-            selectSoundFileDialog.CheckFileExists = true;
-            selectSoundFileDialog.CheckPathExists = true;
+        onScreenUpDown.DataBindings.Add(nameof(NumericUpDown.Value), AppModel.Instance,
+            nameof(AppModel.BannerOnScreenTimeSecs), false, DataSourceUpdateMode.OnPropertyChanged);
+        var onScreenTimeTooltip = new ToolTip();
+        onScreenTimeTooltip.SetToolTip(onScreenUpDown, SettingsStrings.banner_onscreen_time_tooltip);
+        onScreenTimeTooltip.SetToolTip(onScreenTimeLabel, SettingsStrings.banner_onscreen_time_tooltip);
 
-            var soundSupported = notificationFactory.Get(AppModel.Instance.NotificationSettings).SupportCustomSound() !=
-                                 NotificationCustomSoundEnum.NotSupported;
-            selectSoundButton.Visible = soundSupported;
+        opacityUpDown.DataBindings.Add(nameof(NumericUpDown.Value), AppModel.Instance,
+            nameof(AppModel.BannerOpacityPercentage), false, DataSourceUpdateMode.OnPropertyChanged);
+        new ToolTip().SetToolTip(opacityUpDown, SettingsStrings.banner_opacity_tooltip);
 
-            var removeCustomSoundToolTip = new ToolTip();
-            removeCustomSoundToolTip.SetToolTip(deleteSoundButton, SettingsStrings.disableCustomSoundTooltip);
-            try
-            {
-                deleteSoundButton.Visible = soundSupported && AppModel.Instance.CustomNotificationSound != null;
-            }
-            catch (CachedSoundFileNotExistsException)
-            {
-            }
+        singleNotificationCheckbox.DataBindings.Add(nameof(CheckBox.Checked), AppModel.Instance,
+            nameof(AppModel.IsSingleNotification), false, DataSourceUpdateMode.OnPropertyChanged);
+        new ToolTip().SetToolTip(singleNotificationCheckbox, SettingsStrings.notification_single_tooltip);
 
-            var selectSoundButtonToolTip = new ToolTip();
-            selectSoundButtonToolTip.SetToolTip(selectSoundButton, SettingsStrings.selectSoundButtonTooltip);
+        usePrimaryScreenCheckbox.Checked = AppModel.Instance.NotifyUsingPrimaryScreen;
+        new ToolTip().SetToolTip(usePrimaryScreenCheckbox, SettingsStrings.usePrimaryScreen_tooltip);
 
-            new TooltipInfoFactory().ConfigureListControl(tooltipInfoComboBox);
-            tooltipInfoComboBox.SelectedValue = TooltipInfoManager.CurrentTooltipInfo;
+        new MicrophoneMuteFactory().ConfigureListControl(microphoneMuteBannerComboBox);
+        microphoneMuteBannerComboBox.SelectedValue = AppModel.Instance.MicrophoneMuteBanner;
+        new ToolTip().SetToolTip(microphoneMuteBannerComboBox, SettingsStrings.banner_mute_tooltip);
 
-            new DeviceCyclerFactory().ConfigureListControl(cycleThroughComboBox);
-            cycleThroughComboBox.SelectedValue = DeviceCyclerManager.CurrentCycler;
+        new MicrophoneMuteFactory().ConfigureListControl(microphoneUnmuteBannerComboBox);
+        microphoneUnmuteBannerComboBox.SelectedValue = AppModel.Instance.MicrophoneUnmuteBanner;
+        new ToolTip().SetToolTip(microphoneUnmuteBannerComboBox, SettingsStrings.banner_mute_tooltip);
 
-            var cycleThroughToolTip = new ToolTip();
-            cycleThroughToolTip.SetToolTip(cycleThroughComboBox, SettingsStrings.cycleThroughTooltip);
+        new BannerDisplayInfoFactory().ConfigureListControl(bannerDisplayComboBox);
+        bannerDisplayComboBox.SelectedValue = AppModel.Instance.BannerDisplayInfo;
+        new ToolTip().SetToolTip(bannerDisplayComboBox, SettingsStrings.banner_displayInfo_tooltip);
 
-            // Settings - Update
-            includeBetaVersionsCheckBox.Checked = AppModel.Instance.IncludeBetaVersions;
+        CustomSoundNotificationCheck();
 
-            switch (AppModel.Instance.UpdateMode)
-            {
-                case UpdateMode.Silent:
-                    updateSilentRadioButton.Checked = true;
-                    break;
-                case UpdateMode.Notify:
-                    updateNotifyRadioButton.Checked = true;
-                    break;
-                case UpdateMode.Never:
-                    updateNeverRadioButton.Checked = true;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+        selectSoundFileDialog.Filter = SettingsStrings.audioFiles + "|*.wav;*.mp3;*.aac;*.m4a";
+        selectSoundFileDialog.FileOk += SelectSoundFileDialog_FileOk;
+        selectSoundFileDialog.CheckFileExists = true;
+        selectSoundFileDialog.CheckPathExists = true;
 
-            var updateSilentToolTip = new ToolTip();
-            updateSilentToolTip.SetToolTip(updateSilentRadioButton, SettingsStrings.updateInstallAutomaticallyTooltip);
-            var updateNotifyToolTip = new ToolTip();
-            updateNotifyToolTip.SetToolTip(updateNotifyRadioButton, SettingsStrings.updateNotifyTooltip);
-            var updateNeverToolTip = new ToolTip();
-            updateNeverToolTip.SetToolTip(updateNeverRadioButton, SettingsStrings.updateNeverTooltip);
+        deleteSoundButton.Visible = AppModel.Instance.CustomNotificationSound != null;
+        new ToolTip().SetToolTip(deleteSoundButton, SettingsStrings.disableCustomSound_tooltip);        
+        new ToolTip().SetToolTip(selectSoundButton, SettingsStrings.selectSoundButton_tooltip);
 
-            var includeBetaVersionsToolTip = new ToolTip();
-            includeBetaVersionsToolTip.SetToolTip(includeBetaVersionsCheckBox, SettingsStrings.updateIncludeBetaVersionsTooltip);
-
-            // Settings - Language
-            new LanguageFactory().ConfigureListControl(languageComboBox);
-            languageComboBox.SelectedValue = AppModel.Instance.Language;
-
-            muteHotKey.Visible = false;
-            muteHotKeyCheckbox.Visible = false;
-            toggleMuteLabel.Visible = false;
-            
-            telemetryCheckbox.DataBindings.Add(nameof(CheckBox.Checked), AppModel.Instance, nameof(AppModel.Telemetry), false, DataSourceUpdateMode.OnPropertyChanged);
-            var telemetryToolTip = new ToolTip();
-            telemetryToolTip.SetToolTip(telemetryCheckbox, SettingsStrings.telemetry_desc);
-            
-            quickMenuCheckbox.DataBindings.Add(nameof(CheckBox.Checked), AppModel.Instance, nameof(AppModel.QuickMenuEnabled), false, DataSourceUpdateMode.OnPropertyChanged);
-            var quickMenuCheckboxToolTip = new ToolTip();
-            quickMenuCheckboxToolTip.SetToolTip(quickMenuCheckbox, SettingsStrings.quickMenu_desc);
-            
-            PopulateSettings();
-
-            _loaded = true;
+        switch (AppModel.Instance.BannerPosition)
+        {
+            case BannerPosition.TopLeft:
+                positionTopLeftRadioButton.Checked = true;
+                break;
+            case BannerPosition.TopCenter:
+                positionTopCenterRadioButton.Checked = true;
+                break;
+            case BannerPosition.TopRight:
+                positionTopRightRadioButton.Checked = true;
+                break;
+            case BannerPosition.CenterLeft:
+                positionCenterLeftRadioButton.Checked = true;
+                break;
+            case BannerPosition.Center:
+                positionCenterRadioButton.Checked = true;
+                break;
+            case BannerPosition.CenterRight:
+                positionCenterRightRadioButton.Checked = true;
+                break;
+            case BannerPosition.BottomLeft:
+                positionBottomLeftRadioButton.Checked = true;
+                break;
+            case BannerPosition.BottomCenter:
+                positionBottomCenterRadioButton.Checked = true;
+                break;
+            case BannerPosition.BottomRight:
+                positionBottomRightRadioButton.Checked = true;
+                break;
+            case BannerPosition.Custom:
+                positionCustomRadioButton.Checked = true;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
 
-        private void PopulateSettings()
+        // Settings - Update
+        includeBetaVersionsCheckBox.Checked = AppModel.Instance.IncludeBetaVersions;
+
+        switch (AppModel.Instance.UpdateMode)
         {
-            PopulateAudioDevices();
-            playbackListView.SetGroupsState(ListViewGroupState.Collapsible);
-            recordingListView.SetGroupsState(ListViewGroupState.Collapsible);
-            // Profiles
-            PopulateProfiles();
+            case UpdateMode.Silent:
+                updateSilentRadioButton.Checked = true;
+                break;
+            case UpdateMode.Notify:
+                updateNotifyRadioButton.Checked = true;
+                break;
+            case UpdateMode.Never:
+                updateNeverRadioButton.Checked = true;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
 
-        private void PopulateProfiles()
-        {
-            profilesListView.Columns.Add(SettingsStrings.profile_name, 50, HorizontalAlignment.Left);
-            profilesListView.Columns.Add(SettingsStrings.profile_program, 100, HorizontalAlignment.Left);
-            profilesListView.Columns.Add(SettingsStrings.hotkeys, 150, HorizontalAlignment.Left);
-            profilesListView.Columns.Add(SettingsStrings.playback, 150, HorizontalAlignment.Left);
-            profilesListView.Columns.Add(SettingsStrings.recording, 150, HorizontalAlignment.Left);
-            profilesListView.Columns.Add(SettingsStrings.communication, 150, HorizontalAlignment.Left);
+        new ToolTip().SetToolTip(updateSilentRadioButton, SettingsStrings.updateInstallAutomatically_tooltip);
+        new ToolTip().SetToolTip(updateNotifyRadioButton, SettingsStrings.updateNotify_tooltip);
+        new ToolTip().SetToolTip(updateNeverRadioButton, SettingsStrings.updateNever_tooltip);
+        new ToolTip().SetToolTip(includeBetaVersionsCheckBox, SettingsStrings.updateIncludeBetaVersions_tooltip);
 
-            RefreshProfiles();
-        }
+        // Settings - Language
+        new LanguageFactory().ConfigureListControl(languageComboBox);
+        languageComboBox.SelectedValue = AppModel.Instance.Language;
 
-        public void RefreshProfiles()
+        // Settings - Theme
+        new ThemeFactory().ConfigureListControl(themeComboBox);
+        // An out-of-range persisted value (older config formats) resolves to System
+        // behaviour; show the matching entry instead of a blank selector.
+        themeComboBox.SelectedValue = AppConfigs.Configuration.ThemeMode switch
         {
-            ListViewItem ProfileToListViewItem(Profile profile)
+            ThemeMode.Light => ThemeMode.Light,
+            ThemeMode.Dark => ThemeMode.Dark,
+            _ => ThemeMode.System
+        };
+
+        muteHotKey.Visible = false;
+        muteHotKeyCheckBox.Visible = false;
+        toggleMuteLabel.Visible = false;
+
+        telemetryCheckbox.DataBindings.Add(nameof(CheckBox.Checked), AppModel.Instance, nameof(AppModel.Telemetry), false, DataSourceUpdateMode.OnPropertyChanged);
+        new ToolTip().SetToolTip(telemetryCheckbox, SettingsStrings.telemetry_tooltip);
+
+        PopulateSettings();
+
+        _loaded = true;
+
+        _deviceListRefreshedSubscription = _audioDeviceLister.DeviceListRefreshed
+            .Throttle(TimeSpan.FromMilliseconds(500))
+            .Subscribe(_ =>
             {
-                var listViewItem = new ListViewItem(profile.Name) {Tag = profile};
-                Icon appIcon = null;
-                DeviceFullInfo recording = null;
-                DeviceFullInfo playback = null;
-                DeviceFullInfo communication = null;
+                if (!IsHandleCreated || IsDisposed) return;
+                BeginInvoke(RefreshAudioDevices);
+            });
 
-                var applicationTrigger = profile.Triggers.FirstOrDefault(trig => trig.Type == TriggerFactory.Enum.Process);
-                var hotkeyTrigger = profile.Triggers.FirstOrDefault(trig => trig.Type == TriggerFactory.Enum.HotKey);
+        // Repaint the custom-drawn surfaces when the OS light/dark theme flips
+        // while the form is open (standard controls follow via SetColorMode).
+        _themeChangedSubscription = Observable
+            .FromEventPattern<EventHandler, EventArgs>(
+                h => WindowsAPIAdapter.SystemThemeChanged += h,
+                h => WindowsAPIAdapter.SystemThemeChanged -= h)
+            .Subscribe(_ =>
+            {
+                if (!IsHandleCreated || IsDisposed) return;
+                BeginInvoke(RefreshTheme);
+            });
 
-                if (applicationTrigger != null)
+        // The monitor selector is built from a snapshot of the connected displays, so refresh it
+        // when one is plugged in or unplugged while the form is open.
+        _displaySettingsChangedSubscription = Observable
+            .FromEventPattern<EventHandler, EventArgs>(
+                h => SystemEvents.DisplaySettingsChanged += h,
+                h => SystemEvents.DisplaySettingsChanged -= h)
+            .Subscribe(_ =>
+            {
+                if (!IsHandleCreated || IsDisposed) return;
+                BeginInvoke(() =>
                 {
-                    try
-                    {
-                        appIcon = IconExtractor.Extract(applicationTrigger.ApplicationPath, 0, false);
-                    }
-                    catch
-                    {
-                        appIcon = Resources.program;
-                    }
-                }
-
-                if (profile.Playback != null)
-                {
-                    playback = _audioDeviceLister.PlaybackDevices.FirstOrDefault(info =>
-                        info.Equals(profile.Playback));
-                }
-
-                if (profile.Recording != null)
-                {
-                    recording = _audioDeviceLister.RecordingDevices.FirstOrDefault(info =>
-                        info.Equals(profile.Recording));
-                }
-
-                if (profile.Communication != null)
-                {
-                    communication = _audioDeviceLister.PlaybackDevices.FirstOrDefault(info =>
-                        info.Equals(profile.Communication));
-                }
-
-                listViewItem.SubItems.AddRange(new[]
-                {
-                    new ListViewItem.ListViewSubItem(listViewItem, applicationTrigger?.ApplicationPath.Split('\\').Last() ?? "")
-                        {Tag = appIcon},
-                    new ListViewItem.ListViewSubItem(listViewItem, hotkeyTrigger?.HotKey.ToString() ?? ""),
-                    new ListViewItem.ListViewSubItem(listViewItem, playback?.NameClean ?? profile.Playback?.ToString() ?? "")
-                        {Tag = playback?.SmallIcon},
-                    new ListViewItem.ListViewSubItem(listViewItem,
-                        recording?.NameClean ?? profile.Recording?.ToString() ?? "") {Tag = recording?.SmallIcon},
-                    new ListViewItem.ListViewSubItem(listViewItem,
-                        communication?.NameClean ?? profile.Communication?.ToString() ?? "") {Tag = communication?.SmallIcon},
+                    if (IsDisposed || _bannerMonitorComboBox == null) return;
+                    PopulateBannerMonitorChoices();
                 });
+            });
+    }
 
-                return listViewItem;
-            }
+    /// <summary>
+    /// One entry of the banner monitor selector.
+    /// <para>
+    /// <see cref="DeviceName"/> is null for the two pseudo entries that map onto the legacy
+    /// <see cref="INotificationSettings.NotifyUsingPrimaryScreen"/> setting.
+    /// </para>
+    /// </summary>
+    private sealed record BannerMonitorChoice(string Label, string DeviceName, bool IsPrimary)
+    {
+        public override string ToString() => Label;
+    }
 
-            profilesListView.Items.Clear();
+    private sealed record MuteTargetChoice(string Label, DeviceInfo Device)
+    {
+        public override string ToString() => Label;
+    }
 
-            foreach (var profile in AppModel.Instance.ProfileManager.Profiles)
+    private void InitializeMuteTargetControls()
+    {
+        _muteTargetPanel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Bottom,
+            ColumnCount = 2,
+            RowCount = 1,
+            Height = Math.Max(muteHotKey.Height, Font.Height) + 12,
+            Padding = new Padding(3),
+        };
+        _muteTargetPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        _muteTargetPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        _muteTargetPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+        _muteTargetLabel = new Label
+        {
+            AutoSize = true,
+            Dock = DockStyle.Fill,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Text = GetBannerString("mute.target"),
+        };
+        _muteTargetComboBox = new ComboBox
+        {
+            Dock = DockStyle.Fill,
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Name = "muteTargetComboBox",
+        };
+        _muteTargetComboBox.SelectedIndexChanged += (_, _) =>
+        {
+            if (!_loaded || _suppressMuteTargetSelection || _muteTargetComboBox.SelectedItem is not MuteTargetChoice choice)
+                return;
+
+            AppModel.Instance.MuteRecordingDevice = choice.Device;
+        };
+
+        var tooltip = new ToolTip();
+        tooltip.SetToolTip(_muteTargetLabel, GetBannerString("mute.target.tooltip"));
+        tooltip.SetToolTip(_muteTargetComboBox, GetBannerString("mute.target.tooltip"));
+        _muteTargetPanel.Controls.Add(_muteTargetLabel, 0, 0);
+        _muteTargetPanel.Controls.Add(_muteTargetComboBox, 1, 0);
+        recordingTabPage.Controls.Add(_muteTargetPanel);
+        recordingListView.BringToFront();
+    }
+
+    private void PopulateMuteTargetChoices()
+    {
+        _suppressMuteTargetSelection = true;
+        try
+        {
+            var stored = AppModel.Instance.MuteRecordingDevice;
+            var devices = _audioDeviceLister.GetDevices(EDataFlow.eCapture, EDeviceState.Active | EDeviceState.Unplugged);
+
+            _muteTargetComboBox.Items.Clear();
+            var defaultChoice = new MuteTargetChoice(GetBannerString("mute.target.default"), null);
+            _muteTargetComboBox.Items.Add(defaultChoice);
+
+            foreach (var device in devices.OrderBy(device => device.NameClean))
+                _muteTargetComboBox.Items.Add(new MuteTargetChoice(device.NameClean, Snapshot(device)));
+
+            MuteTargetChoice selected;
+            if (stored == null)
             {
-                var listViewItem = ProfileToListViewItem(profile);
-                profilesListView.Items.Add(listViewItem);
-            }
-
-            if (AppModel.Instance.ProfileManager.Profiles.Count > 0)
-            {
-                foreach (ColumnHeader column in profilesListView.Columns)
-                {
-                    column.Width = -2;
-                }
-            }
-        }
-
-        private void PopulateAudioDevices()
-        {
-            var selectedDevices = AppModel.Instance.SelectedDevices.ToArray();
-            PopulateAudioList(playbackListView, selectedDevices, _audioDeviceLister.PlaybackDevices);
-            PopulateAudioList(recordingListView, selectedDevices, _audioDeviceLister.RecordingDevices);
-        }
-
-        private void LocalizeForm()
-        {
-            RightToLeft = new LanguageFactory().Get(AppModel.Instance.Language).IsRightToLeft ? RightToLeft.Yes : RightToLeft.No;
-            // TabPages
-            playbackTabPage.Text = SettingsStrings.playback;
-            playbackListView.Groups[0].Header = SettingsStrings.selected;
-
-            recordingTabPage.Text = SettingsStrings.recording;
-            recordingListView.Groups[0].Header = SettingsStrings.selected;
-
-            appSettingTabPage.Text = SettingsStrings.settings;
-            tabProfile.Text = SettingsStrings.profile_tab;
-
-            // Settings - Basic
-            basicSettingsGroupBox.Text = SettingsStrings.basicSettings;
-            startWithWindowsCheckBox.Text = SettingsStrings.startWithWindows;
-            iconChangeLabel.Text = SettingsStrings.iconChange;
-
-            // Settings - Audio
-            audioSettingsGroupBox.Text = SettingsStrings.audioSettings;
-            switchCommunicationDeviceCheckBox.Text = SettingsStrings.communicationsDevice;
-            notificationLabel.Text = SettingsStrings.notification;
-            tooltipOnHoverLabel.Text = SettingsStrings.tooltipOnHover;
-            cycleThroughLabel.Text = SettingsStrings.cycleThrough;
-            foregroundAppCheckbox.Text = SettingsStrings.foregroundApp;
-            usePrimaryScreenCheckbox.Text = SettingsStrings.usePrimaryScreen;
-            quickMenuCheckbox.Text = SettingsStrings.quickMenu;
-
-            // Settings - Update
-            updateSettingsGroupBox.Text = SettingsStrings.updateSettings;
-            updateSilentRadioButton.Text = SettingsStrings.updateInstallAutomatically;
-            updateNotifyRadioButton.Text = SettingsStrings.updateNotify;
-            updateNeverRadioButton.Text = SettingsStrings.updateNever;
-            includeBetaVersionsCheckBox.Text = SettingsStrings.updateIncludeBetaVersions;
-            telemetryCheckbox.Text = SettingsStrings.telemetry;
-
-
-            // Settings - Language
-            languageGroupBox.Text = SettingsStrings.language;
-
-            // Settings - Profile
-            profileExplanationLabel.Text = SettingsStrings.profile_explanation;
-            addProfileButton.Text = SettingsStrings.profile_addButton;
-            deleteProfileButton.Text = SettingsStrings.profile_deleteButton;
-            editProfileButton.Text = SettingsStrings.profile_button_edit;
-
-
-            // Misc
-            hotkeysCheckBox.Text = SettingsStrings.hotkeyEnabled;
-            closeButton.Text = SettingsStrings.close;
-            toggleMuteLabel.Text = SettingsStrings.mute_toggle_label;
-            muteHotKeyCheckbox.Text = SettingsStrings.hotkeyEnabled;
-
-            addProfileButton.Image = Resources.profile_menu_add;
-            editProfileButton.Image = Resources.profile_menu_edit;
-            deleteProfileButton.Image = Resources.profile_menu_delete;
-        }
-
-
-        private void SelectSoundFileDialogOnFileOk(object sender, CancelEventArgs cancelEventArgs)
-        {
-            AppModel.Instance.CustomNotificationSound = new CachedSound(selectSoundFileDialog.FileName);
-            deleteSoundButton.Visible = true;
-        }
-
-        private void closeButton_Click(object sender, EventArgs e)
-        {
-            Close();
-        }
-
-
-        private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            var tabControlSender = (TabControl) sender;
-            if (tabControlSender.SelectedTab == playbackTabPage)
-            {
-                SetHotkeysFieldsVisibility(true);
-                hotKeyControl.HotKey = AppConfigs.Configuration.PlaybackHotKey;
-                hotKeyControl.Tag =
-                    new Tuple<HotKeyAction, HotKey>(HotKeyAction.Playback, AppConfigs.Configuration.PlaybackHotKey);
-                hotkeysCheckBox.Checked = AppConfigs.Configuration.PlaybackHotKey.Enabled;
-                muteHotKey.Visible = false;
-                muteHotKeyCheckbox.Visible = false;
-                toggleMuteLabel.Visible = false;
-            }
-            else if (tabControlSender.SelectedTab == recordingTabPage)
-            {
-                SetHotkeysFieldsVisibility(true);
-                hotKeyControl.HotKey = AppConfigs.Configuration.RecordingHotKey;
-                hotKeyControl.Tag =
-                    new Tuple<HotKeyAction, HotKey>(HotKeyAction.Recording, AppConfigs.Configuration.RecordingHotKey);
-                hotkeysCheckBox.Checked = AppConfigs.Configuration.RecordingHotKey.Enabled;
-
-                muteHotKey.Visible = true;
-                muteHotKeyCheckbox.Visible = true;
-                toggleMuteLabel.Visible = true;
+                selected = defaultChoice;
             }
             else
             {
-                muteHotKey.Visible = false;
-                muteHotKeyCheckbox.Visible = false;
-                toggleMuteLabel.Visible = false;
-                SetHotkeysFieldsVisibility(false);
+                // Match the persisted device exactly like the runtime does: endpoint ids change
+                // after driver updates, so fall back to the stable instance path or unique name.
+                var match = devices.Match(stored);
+                selected = match.IsResolved
+                    ? _muteTargetComboBox.Items.Cast<MuteTargetChoice>()
+                        .FirstOrDefault(choice => choice.Device != null &&
+                                                  string.Equals(choice.Device.Id, match.Device!.Id, StringComparison.OrdinalIgnoreCase))
+                    : null;
+
+                if (selected == null)
+                {
+                    selected = new MuteTargetChoice(GetBannerString("mute.target.unavailable"), stored);
+                    _muteTargetComboBox.Items.Add(selected);
+                }
             }
+
+            _muteTargetComboBox.SelectedItem = selected;
+        }
+        finally
+        {
+            _suppressMuteTargetSelection = false;
+        }
+    }
+
+    /// <summary>
+    /// Snapshot a live device into the serializable <see cref="DeviceInfo"/> stored in the
+    /// configuration. The snapshot keeps the name so the target survives endpoint-id changes.
+    /// </summary>
+#pragma warning disable CS0618 // Type or member is obsolete
+    private static DeviceInfo Snapshot(DeviceFullInfo device) =>
+        new(device.Name, device.Id, device.Type, device.IsUsb, DateTime.UtcNow);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+    /// <summary>
+    /// Builds the banner monitor, background colour and scale controls and grows the form just
+    /// enough to fit them.
+    /// </summary>
+    /// <remarks>
+    /// Every coordinate and size is derived from the designer's own controls, which
+    /// <see cref="InitializeComponent"/> has already scaled for the current DPI. Fixed pixel values
+    /// would instead be measured against the unscaled 96 DPI design and overlap the existing rows
+    /// at 125% and above.
+    /// </remarks>
+    private void InitializeBannerAppearanceControls()
+    {
+        // The monitor selector supersedes the legacy "always use primary screen" checkbox. Keep the
+        // setting readable so existing configurations still resolve, but expose a single control.
+        usePrimaryScreenCheckbox.Visible = false;
+
+        // Row geometry taken from the designer's own rows: pitch between two rows, row height and
+        // the gap left between them.
+        var rowPitch = Math.Max(1, opacityUpDown.Top - onScreenUpDown.Top);
+        var rowHeight = Math.Max(opacityUpDown.Height, opacityLabel.Height);
+        var rowGap = rowPitch - rowHeight;
+        var colorRowTop = bannerDisplayComboBox.Bottom + rowGap;
+        var scaleRowTop = colorRowTop + rowPitch;
+        var muteBannerRowTop = scaleRowTop + rowPitch;
+
+        // Same idea for the position group: append a row under the existing content.
+        var positionContentBottom = positionGroupBox.Controls.Cast<Control>().Max(control => control.Bottom);
+        var monitorRowTop = AppendedRowTop(positionGroupBox.Height, positionContentBottom);
+
+        _bannerMonitorComboBox = new ComboBox
+        {
+            Name = "bannerMonitorComboBox",
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Location = new Point(positionGroupBox.DisplayRectangle.X, monitorRowTop),
+            Size = new Size(positionGroupBox.Width - 2 * positionGroupBox.DisplayRectangle.X, rowHeight),
+            TabIndex = positionGroupBox.Controls.Count
+        };
+        _bannerMonitorComboBox.SelectedIndexChanged += (_, _) => BannerMonitorSelectionChanged();
+        positionGroupBox.Controls.Add(_bannerMonitorComboBox);
+        PopulateBannerMonitorChoices();
+
+        // Every other row on this tab is "label on the left, control on the right"; the colour picker
+        // follows that instead of doubling as its own caption.
+        bannerOptionsGroupBox.Controls.Add(new Label
+        {
+            Name = "bannerColorLabel",
+            Text = GetBannerString("banner.backgroundColor"),
+            Location = new Point(displayInfoLabel.Left, colorRowTop),
+            Size = new Size(displayInfoLabel.Width, displayInfoLabel.Height),
+            TextAlign = ContentAlignment.MiddleRight
+        });
+
+        _bannerColorButton = new Button
+        {
+            Name = "bannerColorButton",
+            Location = new Point(bannerDisplayComboBox.Left, colorRowTop),
+            Size = new Size(bannerDisplayComboBox.Width, Math.Max(bannerDisplayComboBox.Height, rowHeight)),
+            UseVisualStyleBackColor = true,
+            TabIndex = bannerOptionsGroupBox.Controls.Count
+        };
+        void PickBannerBackgroundColor()
+        {
+            using var dialog = new ColorDialog { Color = AppModel.Instance.BannerBackgroundColor, FullOpen = true };
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+            AppModel.Instance.BannerBackgroundColor = dialog.Color;
+            ShowSelectedBannerColor();
         }
 
-        private void SetHotkeysFieldsVisibility(bool visibility)
+        _bannerColorButton.Click += (_, _) => PickBannerBackgroundColor();
+
+        // The colour is painted by a child panel: under the system dark mode this app opts into,
+        // WinForms renders the button itself with the themed background and ignores an explicitly
+        // assigned BackColor. Keeping the button means the control stays clickable and focusable.
+        _bannerColorSwatch = new Panel
         {
-            hotkeysCheckBox.Visible = visibility;
-            hotKeyControl.Visible = visibility;
+            Name = "bannerColorSwatch",
+            Location = new Point(2, 2),
+            Size = new Size(_bannerColorButton.Width - 4, _bannerColorButton.Height - 4),
+            TabStop = false
+        };
+        // The swatch sits on top of the button, so without this it would swallow the clicks that
+        // are meant to open the picker.
+        _bannerColorSwatch.Click += (_, _) => PickBannerBackgroundColor();
+        _bannerColorButton.Controls.Add(_bannerColorSwatch);
+        bannerOptionsGroupBox.Controls.Add(_bannerColorButton);
+        ShowSelectedBannerColor();
+
+        bannerOptionsGroupBox.Controls.Add(new Label
+        {
+            Name = "bannerScaleLabel",
+            Text = GetBannerString("banner.scale"),
+            Location = new Point(displayInfoLabel.Left, scaleRowTop),
+            Size = new Size(displayInfoLabel.Width, displayInfoLabel.Height),
+            TextAlign = ContentAlignment.MiddleRight
+        });
+        _bannerScaleUpDown = new NumericUpDownWithUnits
+        {
+            Name = "bannerScaleUpDown",
+            Location = new Point(opacityUpDown.Left, scaleRowTop),
+            Size = new Size(opacityUpDown.Width, opacityUpDown.Height),
+            Minimum = AppModel.BannerScaleMinimum,
+            Maximum = AppModel.BannerScaleMaximum,
+            Increment = 10,
+            TextUnit = "%",
+            TextAlign = HorizontalAlignment.Center,
+            TabIndex = bannerOptionsGroupBox.Controls.Count
+        };
+        // Deliberately not data-bound. This control sits on the banner tab, so until that tab is opened its
+        // handle does not exist and a binding would be registered but inactive. See BindValue for why the
+        // shared PropertyManager then crashes on a null push into a control with a non-zero Minimum.
+        _bannerScaleUpDown.BindValue(
+            () => AppModel.Instance.BannerScalePercentage,
+            percentage => AppModel.Instance.BannerScalePercentage = percentage);
+        bannerOptionsGroupBox.Controls.Add(_bannerScaleUpDown);
+
+        _limitMuteBannersCheckBox = new CheckBox
+        {
+            Name = "limitMuteBannersCheckBox",
+            Text = GetBannerString("mute.banner.targetOnly"),
+            Location = new Point(singleNotificationCheckbox.Left, muteBannerRowTop),
+            AutoSize = true,
+            UseVisualStyleBackColor = true,
+            TabIndex = bannerOptionsGroupBox.Controls.Count
+        };
+        _limitMuteBannersCheckBox.DataBindings.Add(nameof(CheckBox.Checked), AppModel.Instance,
+            nameof(AppModel.LimitMuteBannersToTarget), false, DataSourceUpdateMode.OnPropertyChanged);
+        new ToolTip().SetToolTip(_limitMuteBannersCheckBox, GetBannerString("mute.banner.targetOnly.tooltip"));
+        bannerOptionsGroupBox.Controls.Add(_limitMuteBannersCheckBox);
+
+        // Grow the containers, and with them the tab page and the form, by exactly the extra rows.
+        // closeButton is anchored Bottom|Right, so it follows ClientSize on its own; nudging its
+        // Top as well would push it past the bottom edge of the client area.
+        var originalOptionsHeight = bannerOptionsGroupBox.Height;
+        // microphoneMuteGroupBox is the tallest child the designer placed in this group box, and
+        // unlike positionGroupBox it is not resized here, so it stays a stable reference.
+        bannerOptionsGroupBox.Height = HeightForRow(
+            originalOptionsHeight, microphoneMuteGroupBox.Bottom, _limitMuteBannersCheckBox.Bottom);
+        positionGroupBox.Height = HeightForRow(
+            positionGroupBox.Height, positionContentBottom, monitorRowTop + rowHeight);
+
+        var extraHeight = bannerOptionsGroupBox.Height - originalOptionsHeight;
+        if (extraHeight <= 0) return;
+
+        tabControl.Height += extraHeight;
+        ClientSize = new Size(ClientSize.Width, ClientSize.Height + extraHeight);
+    }
+
+    /// <summary>
+    /// Gap between the lowest child of a group box and its border.
+    /// </summary>
+    internal static int BottomMargin(int groupBoxHeight, int contentBottom) => groupBoxHeight - contentBottom;
+
+    /// <summary>
+    /// Top edge of a row appended below <paramref name="contentBottom"/>, leaving the group box's
+    /// existing gap between its content and its border.
+    /// </summary>
+    internal static int AppendedRowTop(int groupBoxHeight, int contentBottom) =>
+        contentBottom + BottomMargin(groupBoxHeight, contentBottom);
+
+    /// <summary>
+    /// Height a group box needs so that <paramref name="rowBottom"/> sits the same distance from
+    /// the border as the content that is already there. Never shrinks the group box.
+    /// </summary>
+    /// <param name="groupBoxHeight">Current height of the group box</param>
+    /// <param name="referenceContentBottom">Bottom of the content the gap is measured from</param>
+    /// <param name="rowBottom">Bottom of the content being added</param>
+    internal static int HeightForRow(int groupBoxHeight, int referenceContentBottom, int rowBottom)
+    {
+        var margin = BottomMargin(groupBoxHeight, referenceContentBottom);
+        var lowestContent = Math.Max(referenceContentBottom, rowBottom);
+        return Math.Max(groupBoxHeight, lowestContent + margin);
+    }
+
+    /// <summary>
+    /// (Re)fills the monitor selector from the currently connected displays, keeping the saved
+    /// selection. A monitor that disappeared falls back to the cursor/primary entry.
+    /// </summary>
+    private void PopulateBannerMonitorChoices()
+    {
+        var savedDeviceName = AppModel.Instance.BannerMonitorDeviceName;
+
+        _suppressBannerMonitorSelection = true;
+        try
+        {
+            _bannerMonitorComboBox.BeginUpdate();
+            _bannerMonitorComboBox.Items.Clear();
+            _bannerMonitorComboBox.Items.Add(new BannerMonitorChoice(GetBannerString("banner.monitor.cursor"), null, false));
+            _bannerMonitorComboBox.Items.Add(new BannerMonitorChoice(GetBannerString("banner.monitor.primary"), null, true));
+
+            // The device name travels with the entry: the position in the list shifts as soon as a
+            // display is plugged in or unplugged, so an index would then name a different monitor.
+            var monitorLabel = GetBannerString("banner.monitor.screen");
+            var screens = Screen.AllScreens;
+            for (var i = 0; i < screens.Length; i++)
+            {
+                _bannerMonitorComboBox.Items.Add(new BannerMonitorChoice(
+                    string.Format(monitorLabel, i + 1, screens[i].DeviceName), screens[i].DeviceName, false));
+            }
+
+            _bannerMonitorComboBox.SelectedIndex = ResolveMonitorSelectionIndex(
+                screens.Select(screen => screen.DeviceName).ToList(),
+                savedDeviceName,
+                AppModel.Instance.NotifyUsingPrimaryScreen);
+        }
+        finally
+        {
+            _bannerMonitorComboBox.EndUpdate();
+            _suppressBannerMonitorSelection = false;
+        }
+    }
+
+    /// <summary>
+    /// Combo box index for the banner monitor selection.
+    /// </summary>
+    /// <param name="connectedDeviceNames">Device names of the connected displays, in list order</param>
+    /// <param name="savedDeviceName">Pinned device name, may be null</param>
+    /// <param name="usePrimaryScreen">Whether to fall back to the primary screen</param>
+    /// <remarks>
+    /// Indices 0 and 1 are the cursor and primary pseudo entries, the connected displays follow, so
+    /// the result is always inside the list. Only a matched display has to be shifted past the two
+    /// pseudo entries: 0 and 1 are already usable indices, and shifting them would name a physical
+    /// monitor instead - or run past the end of the list on a single-display setup.
+    /// </remarks>
+    internal static int ResolveMonitorSelectionIndex(
+        IReadOnlyList<string> connectedDeviceNames, string savedDeviceName, bool usePrimaryScreen)
+    {
+        const int MONITOR_ENTRY_OFFSET = 2;
+
+        for (var i = 0; i < connectedDeviceNames.Count; i++)
+        {
+            if (string.Equals(connectedDeviceNames[i], savedDeviceName, StringComparison.OrdinalIgnoreCase))
+                return i + MONITOR_ENTRY_OFFSET;
         }
 
-        private void notificationComboBox_SelectedValueChanged(object sender, EventArgs e)
+        return usePrimaryScreen ? 1 : 0;
+    }
+
+    private void BannerMonitorSelectionChanged()
+    {
+        if (_suppressBannerMonitorSelection || _bannerMonitorComboBox.SelectedItem is not BannerMonitorChoice choice)
+            return;
+
+        // Applied as one update: both values decide which screen GetScreen() resolves, so they have
+        // to be in place together before the banners are moved.
+        AppModel.Instance.SetBannerMonitor(choice.DeviceName, choice.IsPrimary);
+    }
+
+    /// <summary>
+    /// Paints the swatch with the banner background currently configured, so the setting is
+    /// visible without opening the dialog.
+    /// </summary>
+    /// <remarks>
+    /// A <see cref="Panel"/> carries the colour rather than the button itself: under the system
+    /// dark mode this app opts into, WinForms renders <see cref="Button"/> with the themed
+    /// background and ignores an explicitly assigned <c>BackColor</c>.
+    /// </remarks>
+    private void ShowSelectedBannerColor() => _bannerColorSwatch.BackColor = AppModel.Instance.BannerBackgroundColor;
+
+    /// <summary>
+    /// Reads a banner specific resource, falling back to the key so a missing translation is
+    /// visible instead of rendering an empty control.
+    /// </summary>
+    private static string GetBannerString(string key) => SettingsStrings.ResourceManager.GetString(key) ?? key;
+
+    private void PopulateSettings()
+    {
+        PopulateAudioDevices();
+        playbackListView.SetGroupsState(ListViewGroupState.Collapsible);
+        recordingListView.SetGroupsState(ListViewGroupState.Collapsible);
+        // Profiles
+        PopulateProfiles();
+    }
+
+    private void PopulateProfiles()
+    {
+        profilesListView.Columns.Add(SettingsStrings.profile_name, 50, HorizontalAlignment.Left);
+        profilesListView.Columns.Add(SettingsStrings.profile_program, 100, HorizontalAlignment.Left);
+        profilesListView.Columns.Add(SettingsStrings.hotkey, 150, HorizontalAlignment.Left);
+        profilesListView.Columns.Add(SettingsStrings.playback, 150, HorizontalAlignment.Left);
+        profilesListView.Columns.Add(SettingsStrings.recording, 150, HorizontalAlignment.Left);
+        profilesListView.Columns.Add(SettingsStrings.communication, 150, HorizontalAlignment.Left);
+        profilesListView.Columns.Add(SettingsStrings.communication, 150, HorizontalAlignment.Left);
+
+        RefreshProfiles();
+    }
+
+    public void RefreshProfiles()
+    {
+        ListViewItem ProfileToListViewItem(Profile profile)
         {
-            if (!_loaded)
-                return;
-            var value = (DisplayEnumObject<NotificationTypeEnum>) ((ComboBox) sender).SelectedItem;
+            var listViewItem = new ListViewItem(profile.Name) { Tag = profile };
+            IconHandle appIconHandle = null;
+            DeviceFullInfo recording = null;
+            DeviceFullInfo playback = null;
+            DeviceFullInfo communication = null;
+            DeviceFullInfo recordingCommunication = null;
 
-            if (value == null)
-                return;
+            var applicationTrigger = profile.Triggers.FirstOrDefault(trig => trig.Type == TriggerFactory.Enum.Process);
+            var hotkeyTrigger = profile.Triggers.FirstOrDefault(trig => trig.Type == TriggerFactory.Enum.HotKey);
 
-            var notificationType = value.Enum;
-            if (notificationType == AppModel.Instance.NotificationSettings)
-                return;
-
-            var supportCustomSound =
-                new NotificationFactory().Get(notificationType).SupportCustomSound();
-            selectSoundButton.Visible = supportCustomSound != NotificationCustomSoundEnum.NotSupported;
-
-            if (supportCustomSound == NotificationCustomSoundEnum.Required)
+            if (applicationTrigger != null)
             {
                 try
                 {
-                    var sound = AppModel.Instance.CustomNotificationSound;
-                    deleteSoundButton.Visible = true;
+                    appIconHandle = IconExtractor.Extract(applicationTrigger.ApplicationPath, 0, false);
                 }
-                catch (CachedSoundFileNotExistsException)
+                catch
                 {
-                    selectSoundFileDialog.ShowDialog(this);
+                    appIconHandle = FallbackAppIconHandle.Acquire();
                 }
             }
 
-            usePrimaryScreenCheckbox.Enabled = notificationType == NotificationTypeEnum.BannerNotification;
-
-            AppModel.Instance.NotificationSettings = notificationType;
-        }
-
-        private void tooltipInfoComboBox_SelectedValueChanged(object sender, EventArgs e)
-        {
-            if (!_loaded)
-                return;
-            var value = (DisplayEnumObject<TooltipInfoTypeEnum>) ((ComboBox) sender).SelectedItem;
-
-            if (value == null)
-                return;
-
-
-            TooltipInfoManager.CurrentTooltipInfo = value.Enum;
-        }
-
-        private void cyclerComboBox_SelectedValueChanged(object sender, EventArgs e)
-        {
-            if (!_loaded)
-                return;
-            var value = (DisplayEnumObject<DeviceCyclerTypeEnum>) ((ComboBox) sender).SelectedItem;
-
-            if (value == null)
-                return;
-
-            DeviceCyclerManager.CurrentCycler = value.Enum;
-        }
-
-        private void languageComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (!_loaded)
-                return;
-
-            var value = (DisplayEnumObject<Language>) ((ComboBox) sender).SelectedItem;
-
-            if (value == null)
-                return;
-
-            AppModel.Instance.Language = value.Enum;
-
-            if (MessageBox.Show(SettingsStrings.languageRestartRequired,
-                SettingsStrings.languageRestartRequiredCaption,
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (profile.Playback != null)
             {
-                Program.RestartApp();
-            }
-        }
-
-        private void selectSoundButton_Click(object sender, EventArgs e)
-        {
-            var result = selectSoundFileDialog.ShowDialog(this);
-            if (result == DialogResult.Cancel)
-            {
-                AppModel.Instance.CustomNotificationSound = null;
-            }
-        }
-
-        private void hotkeysCheckbox_CheckedChanged(object sender, EventArgs e)
-        {
-            forceSetHotkeys(sender, hotKeyControl);
-        }
-
-        private void forceSetHotkeys(object sender, HotKeyTextBox hotKeyTextBox)
-        {
-            var control = (CheckBox) sender;
-            if (hotKeyTextBox.Tag == null)
-                return;
-            var (action, hotKey) = (Tuple<HotKeyAction, HotKey>) hotKeyTextBox.Tag;
-            var currentState = hotKey.Enabled;
-            hotKeyTextBox.Enabled = hotKey.Enabled = control.Checked;
-            if (currentState != hotKey.Enabled)
-                AppModel.Instance.SetHotkeyCombination(hotKey, action, true);
-        }
-
-        #region Basic Settings (CheckBoxes)
-
-        private void RunAtStartup_CheckedChanged(object sender, EventArgs e)
-        {
-            var ras = startWithWindowsCheckBox.Checked;
-            try
-            {
-                AppModel.Instance.RunAtStartup = ras;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(@"Error changing run at startup setting: " + ex.Message);
-                startWithWindowsCheckBox.Checked = AppModel.Instance.RunAtStartup;
-            }
-        }
-
-        private void communicationCheckbox_CheckedChanged(object sender, EventArgs e)
-        {
-            var comm = switchCommunicationDeviceCheckBox.Checked;
-            try
-            {
-                AppModel.Instance.SetCommunications = comm;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(@"Error changing run at startup setting: " + ex.Message);
-                switchCommunicationDeviceCheckBox.Checked = AppModel.Instance.SetCommunications;
-            }
-        }
-
-        private void betaVersionCheckbox_CheckedChanged(object sender, EventArgs e)
-        {
-            AppModel.Instance.IncludeBetaVersions = includeBetaVersionsCheckBox.Checked;
-        }
-
-        #endregion
-
-        #region Device List Playback
-
-        private void PopulateAudioList(ListView listView, IEnumerable<DeviceInfo> selectedDevices, IEnumerable<DeviceFullInfo> audioDevices)
-        {
-            try
-            {
-                PopulateDeviceTypeGroups(listView);
-
-                listView.SmallImageList = new ImageList
-                {
-                    ImageSize = new Size(32, 32),
-                    ColorDepth = ColorDepth.Depth32Bit
-                };
-
-                listView.Columns.Add("Device", -3, HorizontalAlignment.Center);
-                var items =
-                    audioDevices.Select(device =>
-                    {
-                        AddDeviceIconSmallImage(device, listView);
-
-                        return GenerateListViewItem(device, selectedDevices, listView);
-                    }).OrderBy(item => item.Text);
-                listView.Items.AddRange(items.ToArray());
-            }
-            finally
-            {
-                listView.ItemCheck += ListViewItemChecked;
-            }
-        }
-
-        /// <summary>
-        /// Using the information of the AudioDeviceWrapper, generate a ListViewItem
-        /// </summary>
-        /// <param name="device"></param>
-        /// <param name="selected"></param>
-        /// <param name="listView"></param>
-        /// <returns></returns>
-        private ListViewItem GenerateListViewItem(DeviceFullInfo device, IEnumerable<DeviceInfo> selected, ListView listView)
-        {
-            var listViewItem = new ListViewItem
-            {
-                Text = device.NameClean,
-                ImageKey = device.IconPath,
-                Tag = device
-            };
-            var isSelected = selected.Contains(device);
-            if (device.State == DeviceState.Active && isSelected)
-            {
-                listViewItem.Group = listView.Groups["selectedGroup"];
-            }
-            else
-            {
-                listViewItem.Group = GetGroup(device.State, listView);
+                playback = _audioDeviceLister.GetDevices(EDataFlow.eRender, EDeviceState.Active).FirstOrDefault(info =>
+                    info.Equals(profile.Playback));
             }
 
-            listViewItem.Checked = isSelected;
+            if (profile.Recording != null)
+            {
+                recording = _audioDeviceLister.GetDevices(EDataFlow.eCapture, EDeviceState.Active).FirstOrDefault(info =>
+                    info.Equals(profile.Recording));
+            }
+
+            if (profile.Communication != null)
+            {
+                communication = _audioDeviceLister.GetDevices(EDataFlow.eRender, EDeviceState.Active).FirstOrDefault(info =>
+                    info.Equals(profile.Communication));
+            }
+
+            if (profile.RecordingCommunication != null)
+            {
+                recordingCommunication = _audioDeviceLister.GetDevices(EDataFlow.eCapture, EDeviceState.Active).FirstOrDefault(info =>
+                    info.Equals(profile.RecordingCommunication));
+            }
+
+            listViewItem.SubItems.AddRange(new[]
+            {
+                new ListViewItem.ListViewSubItem(listViewItem, applicationTrigger?.ApplicationPath.Split('\\').Last() ?? "")
+                    { Tag = appIconHandle },
+                new ListViewItem.ListViewSubItem(listViewItem, hotkeyTrigger?.HotKey.ToString() ?? ""),
+                new ListViewItem.ListViewSubItem(listViewItem, playback?.NameClean ?? profile.Playback?.ToString() ?? "")
+                    { Tag = playback?.SmallIcon },
+                new ListViewItem.ListViewSubItem(listViewItem,
+                    recording?.NameClean ?? profile.Recording?.ToString() ?? "") { Tag = recording?.SmallIcon },
+                new ListViewItem.ListViewSubItem(listViewItem,
+                    communication?.NameClean ?? profile.Communication?.ToString() ?? "") { Tag = communication?.SmallIcon },
+                new ListViewItem.ListViewSubItem(listViewItem,
+                    recordingCommunication?.NameClean ?? profile.RecordingCommunication?.ToString() ?? "") { Tag = recordingCommunication?.SmallIcon },
+            });
 
             return listViewItem;
         }
 
-        /// <summary>
-        /// Using the DeviceClassIconPath, get the Icon
-        /// </summary>
-        /// <param name="device"></param>
-        /// <param name="listView"></param>
-        private void AddDeviceIconSmallImage(DeviceFullInfo device, ListView listView)
+        DisposeProfileListViewIconHandles();
+        profilesListView.Items.Clear();
+
+        foreach (var profile in AppModel.Instance.ProfileManager.Profiles)
         {
-            if (!listView.SmallImageList.Images.ContainsKey(device.IconPath))
+            var listViewItem = ProfileToListViewItem(profile);
+            profilesListView.Items.Add(listViewItem);
+        }
+
+        if (AppModel.Instance.ProfileManager.Profiles.Count <= 0) return;
+        foreach (ColumnHeader column in profilesListView.Columns)
+            column.Width = -2;
+    }
+
+    /// <summary>
+    /// Disposes all <see cref="IconHandle"/> objects stored in the profile list-view sub-item Tags.
+    /// Must be called before <c>profilesListView.Items.Clear()</c> so that GDI references are
+    /// released promptly.
+    /// </summary>
+    private void DisposeProfileListViewIconHandles()
+    {
+        foreach (ListViewItem item in profilesListView.Items)
+        {
+            foreach (ListViewItem.ListViewSubItem subItem in item.SubItems)
             {
-                listView.SmallImageList.Images.Add(device.IconPath,
-                    device.LargeIcon);
+                if (subItem.Tag is IconHandle iconHandle)
+                    iconHandle.Dispose();
             }
-        }
-
-        private void ListViewItemChecked(object sender, ItemCheckEventArgs e)
-        {
-            try
-            {
-                switch (e.NewValue)
-                {
-                    case CheckState.Checked:
-                        AppModel.Instance.SelectDevice((DeviceFullInfo) ((ListView) sender).Items[e.Index].Tag);
-                        break;
-                    case CheckState.Unchecked:
-                        AppModel.Instance.UnselectDevice((DeviceFullInfo) ((ListView) sender).Items[e.Index].Tag);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-            catch (Exception exception)
-            {
-                e.NewValue = e.CurrentValue;
-            }
-        }
-
-        #region Groups
-
-        /// <summary>
-        /// Get the ListViewItem group in which the device belongs.
-        /// </summary>
-        /// <param name="deviceState"></param>
-        /// <param name="listView"></param>
-        /// <returns></returns>
-        private ListViewGroup GetGroup(DeviceState deviceState, ListView listView)
-        {
-            switch (deviceState)
-            {
-                case DeviceState.Active:
-                    return listView.Groups[DeviceState.Active.ToString()];
-                default:
-                    return listView.Groups[DeviceState.NotPresent.ToString()];
-            }
-        }
-
-        private void PopulateDeviceTypeGroups(ListView listView)
-        {
-            listView.Groups.Add(new ListViewGroup(DeviceState.Active.ToString(), SettingsStrings.connected));
-            listView.Groups.Add(new ListViewGroup(DeviceState.NotPresent.ToString(), SettingsStrings.disconnected));
-        }
-
-        #endregion
-
-        #endregion
-
-        private void updateSilentRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (updateSilentRadioButton.Checked)
-            {
-                AppModel.Instance.UpdateMode = UpdateMode.Silent;
-            }
-        }
-
-        private void updateNotifyRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (updateNotifyRadioButton.Checked)
-            {
-                AppModel.Instance.UpdateMode = UpdateMode.Notify;
-            }
-        }
-
-        private void updateNeverRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (updateNeverRadioButton.Checked)
-            {
-                AppModel.Instance.UpdateMode = UpdateMode.Never;
-            }
-        }
-
-        private void deleteSoundButton_Click(object sender, EventArgs e)
-        {
-            AppModel.Instance.CustomNotificationSound = null;
-            deleteSoundButton.Visible = false;
-        }
-
-        private void ForegroundAppCheckbox_CheckedChanged(object sender, EventArgs e)
-        {
-            AppModel.Instance.SwitchForegroundProgram = foregroundAppCheckbox.Checked;
-        }
-
-        private void usePrimaryScreenCheckbox_CheckedChanged(object sender, EventArgs e)
-        {
-            AppModel.Instance.NotifyUsingPrimaryScreen = usePrimaryScreenCheckbox.Checked;
-        }
-
-        private void iconChangeChoicesComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (!_loaded)
-                return;
-            var comboBox = (ComboBox) sender;
-
-            if (comboBox == null)
-                return;
-
-            var item = (DisplayEnumObject<IconChangerFactory.ActionEnum>) iconChangeChoicesComboBox.SelectedItem;
-            AppConfigs.Configuration.SwitchIcon = item.Enum;
-            AppConfigs.Configuration.Save();
-
-            new IconChangerFactory().Get(item.Enum).ChangeIcon(AppModel.Instance.TrayIcon);
-        }
-
-        private void addProfileButton_Click(object sender, EventArgs e)
-        {
-            var form = new UpsertProfileExtended(new Profile(), _audioDeviceLister.PlaybackDevices, _audioDeviceLister.RecordingDevices, this);
-            form.Show(this);
-        }
-
-        private void profilesListView_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            editProfileButton.Enabled = profilesListView.SelectedIndices.Count == 1;
-            deleteProfileButton.Enabled = profilesListView.SelectedIndices.Count > 0;
-        }
-
-        private void deleteProfileButton_Click(object sender, EventArgs e)
-        {
-            if (profilesListView.SelectedItems.Count <= 0)
-            {
-                return;
-            }
-
-            var profiles = profilesListView.SelectedItems.Cast<ListViewItem>()
-                                           .Select(item => (Profile) item.Tag);
-            AppModel.Instance.ProfileManager.DeleteProfiles(profiles);
-            deleteProfileButton.Enabled = false;
-            editProfileButton.Enabled = false;
-            RefreshProfiles();
-        }
-
-        private void hotKeyControl_HotKeyChanged(object sender, HotKeyTextBox.Event e)
-        {
-            var control = (HotKeyTextBox) sender;
-            var tuple = (Tuple<HotKeyAction, HotKey>) control.Tag;
-            if (tuple == null)
-                return;
-
-            var newTuple = new Tuple<HotKeyAction, HotKey>(tuple.Item1, control.HotKey);
-            hotKeyControl.Tag = newTuple;
-
-            AppModel.Instance.SetHotkeyCombination(newTuple.Item2, newTuple.Item1);
-        }
-
-        private void editProfileButton_Click(object sender, EventArgs e)
-        {
-            if (profilesListView.SelectedItems.Count <= 0)
-            {
-                return;
-            }
-
-            var profile = (Profile) profilesListView.SelectedItems[0].Tag;
-            var form = new UpsertProfileExtended(profile, _audioDeviceLister.PlaybackDevices, _audioDeviceLister.RecordingDevices, this, true);
-            form.Show(this);
-        }
-
-        private void profilesListView_DoubleClick(object sender, EventArgs e)
-        {
-            editProfileButton_Click(sender, e);
-        }
-
-        private void muteHotKeyCheckbox_CheckedChanged(object sender, EventArgs e)
-        {
-            forceSetHotkeys(sender, muteHotKey);
         }
     }
+
+    private void PopulateAudioDevices()
+    {
+        var selectedDevices = AppModel.Instance.SelectedDevices;
+        PopulateAudioList(playbackListView, selectedDevices, _audioDeviceLister.GetDevices(EDataFlow.eRender, EDeviceState.Active | EDeviceState.Unplugged));
+        PopulateAudioList(recordingListView, selectedDevices, _audioDeviceLister.GetDevices(EDataFlow.eCapture, EDeviceState.Active | EDeviceState.Unplugged));
+        PopulateMuteTargetChoices();
+    }
+
+    private void RefreshAudioDevices()
+    {
+        // Unsubscribe ItemCheck before clearing to prevent spurious events
+        playbackListView.ItemCheck -= ListViewItemChecked;
+        recordingListView.ItemCheck -= ListViewItemChecked;
+
+        ClearListViewForRefresh(playbackListView);
+        ClearListViewForRefresh(recordingListView);
+
+        PopulateAudioDevices();
+        playbackListView.SetGroupsState(ListViewGroupState.Collapsible);
+        recordingListView.SetGroupsState(ListViewGroupState.Collapsible);
+    }
+
+    private static void ClearListViewForRefresh(ListView listView)
+    {
+        listView.Items.Clear();
+        var activeGroup = listView.Groups[nameof(EDeviceState.Active)];
+        if (activeGroup != null) listView.Groups.Remove(activeGroup);
+        var notPresentGroup = listView.Groups[nameof(EDeviceState.NotPresent)];
+        if (notPresentGroup != null) listView.Groups.Remove(notPresentGroup);
+        listView.Columns.Clear();
+        var oldImageList = listView.SmallImageList;
+        listView.SmallImageList = null;
+        oldImageList?.Dispose();
+    }
+
+    private void LocalizeForm()
+    {
+        RightToLeft = new LanguageFactory().Get(AppModel.Instance.Language).IsRightToLeft ? RightToLeft.Yes : RightToLeft.No;
+        // TabPages
+        playbackTabPage.Text = SettingsStrings.playback;
+        playbackListView.Groups[0].Header = SettingsStrings.selected;
+
+        recordingTabPage.Text = SettingsStrings.recording;
+        recordingListView.Groups[0].Header = SettingsStrings.selected;
+
+        profileTabPage.Text = SettingsStrings.profile_tab;
+        appSettingTabPage.Text = SettingsStrings.general;
+        notificationsTabPage.Text = SettingsStrings.notifications;
+        appSoundLockTabPage.Text = SettingsStrings.appSoundLock_tab;
+        troubleshootingTabPage.Text = SettingsStrings.troubleshooting;
+
+        // Settings - Basic
+        basicSettingsGroupBox.Text = SettingsStrings.basicSettings;
+        startWithWindowsCheckBox.Text = SettingsStrings.startWithWindows;
+        iconChangeLabel.Text = SettingsStrings.iconChange;
+        iconDoubleClickLabel.Text = SettingsStrings.iconDoubleClick;
+
+        // Settings - Audio
+        audioSettingsGroupBox.Text = SettingsStrings.audioSettings;
+        switchCommunicationDeviceCheckBox.Text = SettingsStrings.communicationsDevice;
+        tooltipOnHoverLabel.Text = SettingsStrings.tooltipOnHover;
+        cycleThroughLabel.Text = SettingsStrings.cycleThrough;
+        foregroundAppCheckbox.Text = SettingsStrings.foregroundApp;
+        quickMenuCheckbox.Text = SettingsStrings.quickMenu;
+        keepVolumeCheckbox.Text = SettingsStrings.keepVolume;
+
+        // Settings - Profile
+        profileExplanationLabel.Text = SettingsStrings.profile_explanation;
+        addProfileButton.Text = SettingsStrings.buttonAdd;
+        deleteProfileButton.Text = SettingsStrings.buttonDelete;
+        editProfileButton.Text = SettingsStrings.buttonEdit;
+
+        // Settings - Update
+        updateSettingsGroupBox.Text = SettingsStrings.updateSettings;
+        updateSilentRadioButton.Text = SettingsStrings.updateInstallAutomatically;
+        updateNotifyRadioButton.Text = SettingsStrings.updateNotify;
+        updateNeverRadioButton.Text = SettingsStrings.updateNever;
+        includeBetaVersionsCheckBox.Text = SettingsStrings.updateIncludeBetaVersions;
+        telemetryCheckbox.Text = SettingsStrings.telemetry;
+
+        // Settings - Language
+        languageGroupBox.Text = SettingsStrings.language;
+
+        // Settings - Theme
+        themeGroupBox.Text = SettingsStrings.theme;
+
+        // Settings - Notification
+        notificationsGroupBox.Text = SettingsStrings.notification_type;
+        customSoundFileGroupBox.Text = SettingsStrings.customSoundFile;
+        bannerOptionsGroupBox.Text = SettingsStrings.notification_bannerOptions;
+        positionGroupBox.Text = SettingsStrings.position;
+        onScreenTimeLabel.Text = SettingsStrings.banner_onscreen_time;
+        onScreenUpDown.TextUnit = "s";
+        usePrimaryScreenCheckbox.Text = SettingsStrings.usePrimaryScreen;
+        singleNotificationCheckbox.Text = SettingsStrings.notification_single;
+        opacityLabel.Text = SettingsStrings.banner_opacity;
+        opacityUpDown.TextUnit = "%";
+        displayInfoLabel.Text = SettingsStrings.banner_displayInfo;
+
+        // Settings - Troubleshooting
+        resetAudioDevicesGroupBox.Text = SettingsStrings.resetAudioDevices;
+        resetAudioDevicesLabel.Text = SettingsStrings.resetAudioDevices_desc;
+        resetAudioDevicesButton.Text = SettingsStrings.buttonReset;
+
+        exportLogFilesGroupBox.Text = SettingsStrings.exportLogFiles;
+        exportLogFilesLabel.Text = SettingsStrings.exportLogFiles_desc;
+        exportLogFilesButton.Text = SettingsStrings.buttonExport;
+
+        configFileGroupBox.Text = SettingsStrings.importExportConfigFile;
+        configFileLabel.Text = SettingsStrings.importExportConfigFile_desc;
+        exportConfigFileButton.Text = SettingsStrings.buttonExport;
+        importConfigFileButton.Text = SettingsStrings.buttonImport;
+
+        appNameLabel.Text = Application.ProductName;
+        troubleshootingLabel.Text = SettingsStrings.troubleshooting_desc;
+        gitHubHelpLinkLabel.Text = SettingsStrings.link_help;
+        discordCommunityLinkLabel.Text = SettingsStrings.link_community;
+        donateLinkLabel.Text = SettingsStrings.link_donate;
+
+        // Misc
+        hotKeyCheckBox.Text = SettingsStrings.hotkeyEnabled;
+        closeButton.Text = SettingsStrings.buttonClose;
+        switchDeviceLabel.Text = SettingsStrings.switchDevice;
+        toggleMuteLabel.Text = SettingsStrings.mute_toggle_label;
+        _muteTargetLabel.Text = GetBannerString("mute.target");
+        _limitMuteBannersCheckBox.Text = GetBannerString("mute.banner.targetOnly");
+        muteHotKeyCheckBox.Text = SettingsStrings.hotkeyEnabled;
+
+        addProfileButton.Image = Resources.profile_menu_add;
+        editProfileButton.Image = Resources.profile_menu_edit;
+        deleteProfileButton.Image = Resources.profile_menu_delete;
+
+        addAppSoundRuleButton.Text = SettingsStrings.buttonAdd;
+        editAppSoundRuleButton.Text = SettingsStrings.buttonEdit;
+        deleteAppSoundRuleButton.Text = SettingsStrings.buttonDelete;
+
+        addAppSoundRuleButton.Image = Resources.profile_menu_add;
+        editAppSoundRuleButton.Image = Resources.profile_menu_edit;
+        deleteAppSoundRuleButton.Image = Resources.profile_menu_delete;
+    }
+
+    private void CloseButton_Click(object sender, EventArgs e) => Close();
+
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        _deviceListRefreshedSubscription?.Dispose();
+        _themeChangedSubscription?.Dispose();
+        _displaySettingsChangedSubscription?.Dispose();
+        // Dispose all IconHandle objects stored in the profile list-view so GDI handles are
+        // released promptly rather than waiting for finalizer collection.
+        DisposeProfileListViewIconHandles();
+        base.OnFormClosed(e);
+    }
+
+    /// <summary>
+    /// Apply theme-aware colours to the surfaces that do not follow the framework's
+    /// dark-mode palette on their own: explicit Designer colours, GroupBox captions
+    /// and the custom-painted banner-position preview.
+    /// </summary>
+    private void ApplyTheme()
+    {
+        if (IsDisposed || Disposing) return;
+
+        var darkMode = WindowsThemeHelper.IsDarkModeEnabled();
+        var textColor = GetThemeTextColor(darkMode);
+        notificationsGroupBox.BackColor = GetNotificationPanelColor(darkMode);
+
+        // The Designer enables visual-style backgrounds on every TabPage. That path paints
+        // the light tab strip regardless of the OS palette, leaving any area not covered by
+        // a child control bright white in dark mode.
+        foreach (TabPage tabPage in tabControl.TabPages)
+        {
+            // Keep the Designer's visual-style background in light mode; only dark mode has
+            // to opt out so the explicit surface below is actually painted.
+            tabPage.UseVisualStyleBackColor = !darkMode;
+            tabPage.BackColor = GetTabPageColor(darkMode);
+        }
+
+        _muteTargetLabel.ForeColor = textColor;
+        _muteTargetPanel.BackColor = GetTabPageColor(darkMode);
+
+        foreach (var groupBox in EnumerateControls(this).OfType<GroupBox>())
+        {
+            groupBox.ForeColor = textColor;
+        }
+
+        // LinkLabel defaults to blue/red/purple, which disappear on the dark surface.
+        // One accent for every state keeps links readable; Color.Empty restores the
+        // framework defaults in light mode.
+        var linkColor = GetLinkColor(darkMode);
+        foreach (var linkLabel in EnumerateControls(this).OfType<LinkLabel>())
+        {
+            linkLabel.LinkColor = linkColor;
+            linkLabel.ActiveLinkColor = linkColor;
+            linkLabel.VisitedLinkColor = linkColor;
+        }
+
+        // The custom-sound check sets an explicit state-dependent foreground, so it must
+        // be recalculated after the theme changes instead of relying on GroupBox inheritance.
+        CustomSoundNotificationCheck();
+    }
+
+    private static IEnumerable<Control> EnumerateControls(Control root)
+    {
+        foreach (Control control in root.Controls)
+        {
+            yield return control;
+
+            foreach (var child in EnumerateControls(control))
+            {
+                yield return child;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Repaint the form and its owner-drawn children so theme-dependent custom
+    /// painting (the outline borders drawn with <see cref="PenLine"/>) picks up
+    /// the new system colours when the OS light/dark mode changes.
+    /// </summary>
+    public void RefreshTheme()
+    {
+        if (IsDisposed || Disposing) return;
+        ApplyTheme();
+        Invalidate(true);
+        foreach (Control control in Controls)
+        {
+            control.Invalidate();
+        }
+    }
+
+    protected override void OnSystemColorsChanged(EventArgs e)
+    {
+        base.OnSystemColorsChanged(e);
+        RefreshTheme();
+    }
+
+    private void TabControl_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        var tabControlSender = (TabControl)sender;
+        if (tabControlSender.SelectedTab == playbackTabPage)
+        {
+            SetHotKeyFieldsVisibility(true, false);
+            SetHotKeyValues(AppConfigs.Configuration.PlaybackHotKey, HotKeyAction.Playback);
+        }
+        else if (tabControlSender.SelectedTab == recordingTabPage)
+        {
+            SetHotKeyFieldsVisibility(true, true);
+            SetHotKeyValues(AppConfigs.Configuration.RecordingHotKey, HotKeyAction.Recording);
+        }
+        else if (tabControlSender.SelectedTab == appSoundLockTabPage)
+        {
+            SetHotKeyFieldsVisibility(false, false);
+            PopulateAppSoundLockRules();
+        }
+        else
+        {
+            SetHotKeyFieldsVisibility(false, false);
+        }
+    }
+
+    private void SetHotKeyValues(HotKey hotkey, HotKeyAction action)
+    {
+        hotKeyControl.HotKey = hotkey;
+        hotKeyControl.Tag = new Tuple<HotKeyAction, HotKey>(action, hotkey);
+        hotKeyCheckBox.Checked = hotkey.Enabled;
+    }
+
+    private void SetHotKeyFieldsVisibility(bool switchHotKeyVisibility, bool muteHotKeyVisibility)
+    {
+        hotKeyControl.Visible = switchHotKeyVisibility;
+        hotKeyCheckBox.Visible = switchHotKeyVisibility;
+        switchDeviceLabel.Visible = switchHotKeyVisibility;
+
+        muteHotKey.Visible = muteHotKeyVisibility;
+        muteHotKeyCheckBox.Visible = muteHotKeyVisibility;
+        toggleMuteLabel.Visible = muteHotKeyVisibility;
+    }
+
+    private void HotKeyCheckBox_CheckedChanged(object sender, EventArgs e) =>
+        ForceSetHotkeys(sender, hotKeyControl);
+
+    private void MuteHotKeyCheckBox_CheckedChanged(object sender, EventArgs e) =>
+        ForceSetHotkeys(sender, muteHotKey);
+
+    private void ForceSetHotkeys(object sender, HotKeyTextBox hotKeyTextBox)
+    {
+        var control = (CheckBox)sender;
+        if (hotKeyTextBox.Tag == null) return;
+
+        var (action, hotKey) = (Tuple<HotKeyAction, HotKey>)hotKeyTextBox.Tag;
+        if (hotKey.Enabled == control.Checked) return;
+
+        var updatedHotKey = new HotKey(hotKey.Keys, hotKey.Modifier) { Enabled = control.Checked };
+        if (AppModel.Instance.SetHotkeyCombination(updatedHotKey, action, true))
+        {
+            hotKeyTextBox.Tag = new Tuple<HotKeyAction, HotKey>(action, updatedHotKey);
+            hotKeyTextBox.Enabled = updatedHotKey.Enabled;
+        }
+        else
+        {
+            control.Checked = hotKey.Enabled;
+        }
+    }
+
+    private void HotKeyControl_HotKeyChanged(object sender, HotKeyTextBox.Event e)
+    {
+        var control = (HotKeyTextBox)sender;
+        var tuple = (Tuple<HotKeyAction, HotKey>)control.Tag;
+        if (tuple == null) return;
+
+        var newTuple = new Tuple<HotKeyAction, HotKey>(tuple.Item1, control.HotKey);
+        if (AppModel.Instance.SetHotkeyCombination(newTuple.Item2, newTuple.Item1))
+            control.Tag = newTuple;
+        else
+            control.HotKey = tuple.Item2;
+    }
+
+    private void SetComboBoxValue<T>(object sender, Action<DisplayEnumObject<T>> saveSetting) where T : Enum, IConvertible
+    {
+        if (!_loaded) return;
+        var selectedItem = (DisplayEnumObject<T>)((ComboBox)sender).SelectedItem;
+        if (selectedItem == null) return;
+        saveSetting(selectedItem);
+    }
+
+    #region Device List Playback
+
+    private void PopulateAudioList(ListView listView, IEnumerable<DeviceInfo> selectedDevices, IEnumerable<DeviceFullInfo> audioDevices)
+    {
+        try
+        {
+            PopulateDeviceTypeGroups(listView);
+
+            listView.SmallImageList = new ImageList
+            {
+                ImageSize = new Size(32, 32),
+                ColorDepth = ColorDepth.Depth32Bit
+            };
+
+            listView.Columns.Add("Device", -3, HorizontalAlignment.Center);
+            var items =
+                audioDevices.Select(device =>
+                    {
+                        AddDeviceIconSmallImage(device, listView);
+
+                        return GenerateListViewItem(device, selectedDevices, listView);
+                    })
+                    .OrderBy(item => item.Text);
+            listView.Items.AddRange(items.ToArray());
+            ResizeAudioListColumn(listView);
+        }
+        finally
+        {
+            listView.ItemCheck += ListViewItemChecked;
+        }
+    }
+
+    private static void ResizeAudioListColumn(ListView listView)
+    {
+        // WinForms only recomputes a details column from the item text when AutoResizeColumn is called
+        // after the ListView has already been populated. The device lists hide their header, so during a
+        // hot-plug refresh we resize the single column from its content to keep every device name visible.
+        var resizeStyle = listView.Items.Count > 0
+            ? ColumnHeaderAutoResizeStyle.ColumnContent
+            : ColumnHeaderAutoResizeStyle.HeaderSize;
+        listView.AutoResizeColumn(0, resizeStyle);
+    }
+
+    /// <summary>
+    /// Using the information of the AudioDeviceWrapper, generate a ListViewItem
+    /// </summary>
+    /// <param name="device"></param>
+    /// <param name="selected"></param>
+    /// <param name="listView"></param>
+    /// <returns></returns>
+    private ListViewItem GenerateListViewItem(DeviceFullInfo device, IEnumerable<DeviceInfo> selected, ListView listView)
+    {
+        var listViewItem = new ListViewItem
+        {
+            Text = device.NameClean,
+            ImageKey = device.IconPath,
+            Tag = device
+        };
+        var isSelected = selected.Contains(device);
+        if (device.State == EDeviceState.Active && isSelected)
+            listViewItem.Group = listView.Groups["selectedGroup"];
+        else
+            listViewItem.Group = GetGroup(device.State, listView);
+
+        listViewItem.Checked = isSelected;
+        return listViewItem;
+    }
+
+    /// <summary>
+    /// Using the DeviceClassIconPath, get the Icon
+    /// </summary>
+    /// <param name="device"></param>
+    /// <param name="listView"></param>
+    private void AddDeviceIconSmallImage(DeviceFullInfo device, ListView listView)
+    {
+        if (!listView.SmallImageList.Images.ContainsKey(device.IconPath))
+        {
+            using var iconHandle = device.LargeIcon;
+            listView.SmallImageList.Images.Add(device.IconPath, iconHandle.Icon);
+        }
+    }
+
+    private void ListViewItemChecked(object sender, ItemCheckEventArgs e)
+    {
+        try
+        {
+            switch (e.NewValue)
+            {
+                case CheckState.Checked:
+                    AppModel.Instance.SelectDevice((DeviceFullInfo)((ListView)sender).Items[e.Index].Tag);
+                    break;
+                case CheckState.Unchecked:
+                    AppModel.Instance.UnselectDevice((DeviceFullInfo)((ListView)sender).Items[e.Index].Tag);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        catch (Exception)
+        {
+            e.NewValue = e.CurrentValue;
+        }
+    }
+
+    #endregion
+
+    #region Groups
+
+    /// <summary>
+    /// Get the ListViewItem group in which the device belongs.
+    /// </summary>
+    /// <param name="deviceState"></param>
+    /// <param name="listView"></param>
+    /// <returns></returns>
+    private ListViewGroup GetGroup(EDeviceState deviceState, ListView listView)
+    {
+        switch (deviceState)
+        {
+            case EDeviceState.Active:
+                return listView.Groups[nameof(EDeviceState.Active)];
+            default:
+                return listView.Groups[nameof(EDeviceState.NotPresent)];
+        }
+    }
+
+    private void PopulateDeviceTypeGroups(ListView listView)
+    {
+        listView.Groups.Add(new ListViewGroup(nameof(EDeviceState.Active), SettingsStrings.connected));
+        listView.Groups.Add(new ListViewGroup(nameof(EDeviceState.NotPresent), SettingsStrings.disconnected));
+    }
+
+    #endregion
+
+    #region Profiles
+
+    private void AddProfileButton_Click(object sender, EventArgs e)
+    {
+        var form = new UpsertProfileExtended(new Profile(), _audioDeviceLister.GetDevices(EDataFlow.eRender, EDeviceState.Active | EDeviceState.Unplugged), _audioDeviceLister.GetDevices(EDataFlow.eCapture, EDeviceState.Active | EDeviceState.Unplugged), this);
+        form.Show(this);
+    }
+
+    private void ProfilesListView_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        editProfileButton.Enabled = profilesListView.SelectedIndices.Count == 1;
+        deleteProfileButton.Enabled = profilesListView.SelectedIndices.Count > 0;
+    }
+
+    private void DeleteProfileButton_Click(object sender, EventArgs e)
+    {
+        if (profilesListView.SelectedItems.Count <= 0) return;
+
+        var profiles = profilesListView.SelectedItems.Cast<ListViewItem>()
+            .Select(item => (Profile)item.Tag);
+        AppModel.Instance.ProfileManager.DeleteProfiles(profiles);
+        deleteProfileButton.Enabled = false;
+        editProfileButton.Enabled = false;
+        RefreshProfiles();
+    }
+
+    private void EditProfileButton_Click(object sender, EventArgs e)
+    {
+        if (profilesListView.SelectedItems.Count <= 0) return;
+
+        var profile = (Profile)profilesListView.SelectedItems[0].Tag;
+        var form = new UpsertProfileExtended(profile, _audioDeviceLister.GetDevices(EDataFlow.eRender, EDeviceState.Active | EDeviceState.Unplugged), _audioDeviceLister.GetDevices(EDataFlow.eCapture, EDeviceState.Active | EDeviceState.Unplugged), this, true);
+        form.Show(this);
+    }
+
+    private void ProfilesListView_DoubleClick(object sender, EventArgs e)
+    {
+        EditProfileButton_Click(sender, e);
+    }
+
+    #endregion
+
+    #region Basic Settings
+
+    private void RunAtStartup_CheckedChanged(object sender, EventArgs e)
+    {
+        try
+        {
+            AppModel.Instance.RunAtStartup = startWithWindowsCheckBox.Checked;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(@"Error changing run at startup setting: " + ex.Message);
+            startWithWindowsCheckBox.Checked = AppModel.Instance.RunAtStartup;
+        }
+    }
+
+    private void IconChangeChoicesComboBox_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<IconChanger>(sender, selectedItem =>
+        {
+            AppConfigs.Configuration.SwitchIcon = selectedItem.Enum;
+            AppConfigs.Configuration.Save();
+            new IconChangerFactory().Get(selectedItem.Enum).ChangeIcon(AppModel.Instance.TrayIcon);
+        });
+    }
+
+    private void IconDoubleClickComboBox_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<IconDoubleClick>(sender, selectedItem =>
+            AppModel.Instance.IconDoubleClick = selectedItem.Enum);
+    }
+
+    #endregion
+
+    #region Audio Settings
+
+    private void CommunicationCheckbox_CheckedChanged(object sender, EventArgs e)
+    {
+        var comm = switchCommunicationDeviceCheckBox.Checked;
+        try
+        {
+            AppModel.Instance.SetCommunications = comm;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(@"Error changing run at startup setting: " + ex.Message);
+            switchCommunicationDeviceCheckBox.Checked = AppModel.Instance.SetCommunications;
+        }
+    }
+
+    private void ForegroundAppCheckbox_CheckedChanged(object sender, EventArgs e)
+    {
+        AppModel.Instance.SwitchForegroundProgram = foregroundAppCheckbox.Checked;
+    }
+
+    private void KeepVolumeCheckbox_CheckedChanged(object sender, EventArgs e)
+    {
+        AppModel.Instance.KeepVolumeEnabled = keepVolumeCheckbox.Checked;
+    }
+
+    private void TooltipInfoComboBox_SelectedValueChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<TooltipInfoType>(sender, selectedItem =>
+            TooltipInfoManager.CurrentTooltipInfo = selectedItem.Enum);
+    }
+
+    private void CyclerComboBox_SelectedValueChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<DeviceCyclerType>(sender, selectedItem =>
+            DeviceCyclerManager.CurrentCycler = selectedItem.Enum);
+    }
+
+    #endregion
+
+    #region Update Settings
+
+    private static void SetUpdateValue(RadioButton radioButton, UpdateMode updateMode)
+    {
+        if (radioButton.Checked)
+            AppModel.Instance.UpdateMode = updateMode;
+    }
+
+    private void UpdateSilentRadioButton_CheckedChanged(object sender, EventArgs e) =>
+        SetUpdateValue(updateSilentRadioButton, UpdateMode.Silent);
+
+    private void UpdateNotifyRadioButton_CheckedChanged(object sender, EventArgs e) =>
+        SetUpdateValue(updateNotifyRadioButton, UpdateMode.Notify);
+
+    private void UpdateNeverRadioButton_CheckedChanged(object sender, EventArgs e) =>
+        SetUpdateValue(updateNeverRadioButton, UpdateMode.Never);
+
+    private void BetaVersionCheckbox_CheckedChanged(object sender, EventArgs e)
+    {
+        AppModel.Instance.IncludeBetaVersions = includeBetaVersionsCheckBox.Checked;
+    }
+
+    #endregion
+
+    #region Language
+
+    private void LanguageComboBox_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<Language>(sender, selectedItem =>
+        {
+            if (AppModel.Instance.Language == selectedItem.Enum) return;
+            AppModel.Instance.Language = selectedItem.Enum;
+
+            if (MessageBox.Show(SettingsStrings.languageRestartRequired,
+                    SettingsStrings.restartRequired_caption,
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) != DialogResult.Yes) return;
+            Program.RestartApp();
+        });
+    }
+
+    #endregion
+
+    #region Theme
+
+    private void ThemeComboBox_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<ThemeMode>(sender, selectedItem =>
+        {
+            if (AppModel.Instance.ThemeMode == selectedItem.Enum) return;
+            AppModel.Instance.ThemeMode = selectedItem.Enum;
+
+            if (MessageBox.Show(SettingsStrings.themeRestartRequired,
+                    SettingsStrings.restartRequired_caption,
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) != DialogResult.Yes) return;
+            Program.RestartApp();
+        });
+    }
+
+    #endregion
+
+    #region Notifications
+
+    private void NotificationAdvancedMode(bool isAdvancedMode)
+    {
+        switchProfileNotificationComboBox.Visible = isAdvancedMode;
+        switchProfileNotificationLabel.Visible = isAdvancedMode;
+        microphoneMuteNotificationComboBox.Visible = isAdvancedMode;
+        microphoneMuteNotificationLabel.Visible = isAdvancedMode;
+        notificationsGroupBox.Height = ScaleNotificationGroupBoxHeight(
+            isAdvancedMode ? AdvancedNotificationGroupBoxHeight : BasicNotificationGroupBoxHeight);
+    }
+
+    internal static int ScaleNotificationGroupBoxHeight(int logicalHeight, int deviceDpi) =>
+        (int)Math.Round(logicalHeight * deviceDpi / (double)BaseDpi, MidpointRounding.AwayFromZero);
+
+    private int ScaleNotificationGroupBoxHeight(int logicalHeight) => ScaleNotificationGroupBoxHeight(logicalHeight, DeviceDpi);
+
+    private void AdvancedModeCheckBox_CheckedChanged(object sender, EventArgs e)
+    {
+        var isAdvancedMode = advancedModeCheckBox.Checked;
+        NotificationAdvancedMode(isAdvancedMode);
+        AppModel.Instance.NotificationAdvancedMode = isAdvancedMode;
+    }
+
+    private void SwitchDeviceNotificationComboBox_SelectedValueChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<NotificationType>(sender, selectedItem =>
+        {
+            var notificationType = selectedItem.Enum;
+            if (notificationType == AppModel.Instance.SwitchDeviceNotification) return;
+            AppModel.Instance.SwitchDeviceNotification = notificationType;
+        });
+    }
+
+    private void SwitchProfileNotificationComboBox_SelectedValueChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<NotificationType>(sender, selectedItem =>
+            AppModel.Instance.SwitchProfileNotification = selectedItem.Enum);
+    }
+
+    private void MicrophoneMuteNotificationComboBox_SelectedValueChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<NotificationType>(sender, selectedItem =>
+            AppModel.Instance.MicrophoneMuteNotification = selectedItem.Enum);
+    }
+
+    private void CustomSoundNotificationCheck()
+    {
+        var customSound = AppModel.Instance.CustomNotificationSound;
+        void SetProperties(string text, Color color, FontStyle style = FontStyle.Regular)
+        {
+            var original = customSoundFileGroupBox.Width - 12;
+            selectSoundButton.Text = text;
+            selectSoundButton.ForeColor = color;
+            selectSoundButton.Width = customSound != null ? original - deleteSoundButton.Width - 6 : original;
+            selectSoundButton.Font = new Font("Segoe UI", 9F, style);
+        }
+
+        if (customSound == null)
+            SetProperties(SettingsStrings.buttonSelect + "…", ThemeTextColor);
+        else if (File.Exists(customSound.FilePath))
+            SetProperties(Path.GetFileName(customSound.FilePath), ThemeTextColor, FontStyle.Italic);
+        else
+            SetProperties(SettingsStrings.selectSoundButton_error, Color.Red, FontStyle.Bold);
+    }
+
+    private void SelectSoundButton_Click(object sender, EventArgs e)
+    {
+        selectSoundFileDialog.ShowDialog(this);
+    }
+
+    private void SelectSoundFileDialog_FileOk(object sender, CancelEventArgs cancelEventArgs)
+    {
+        try
+        {
+            AppModel.Instance.CustomNotificationSound = new CachedSound(selectSoundFileDialog.FileName);
+        }
+        catch (Exception)
+        {
+            MessageBox.Show(@"Please select another file", @"Invalid Sound file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        deleteSoundButton.Visible = true;
+        CustomSoundNotificationCheck();
+    }
+
+    private void DeleteSoundButton_Click(object sender, EventArgs e)
+    {
+        AppModel.Instance.CustomNotificationSound = null;
+        deleteSoundButton.Visible = false;
+        CustomSoundNotificationCheck();
+    }
+
+    private void UsePrimaryScreenCheckbox_CheckedChanged(object sender, EventArgs e)
+    {
+        AppModel.Instance.NotifyUsingPrimaryScreen = usePrimaryScreenCheckbox.Checked;
+    }
+
+    private void MicrophoneMuteBannerComboBox_SelectedValueChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<MicrophoneMute>(sender, selectedItem =>
+            AppModel.Instance.MicrophoneMuteBanner = selectedItem.Enum);
+    }
+
+    private void MicrophoneUnmuteBannerComboBox_SelectedValueChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<MicrophoneMute>(sender, selectedItem =>
+            AppModel.Instance.MicrophoneUnmuteBanner = selectedItem.Enum);
+    }
+
+    private void BannerDisplayComboBox_SelectedValueChanged(object sender, EventArgs e)
+    {
+        SetComboBoxValue<BannerDisplayInfo>(sender, selectedItem =>
+            AppModel.Instance.BannerDisplayInfo = selectedItem.Enum);
+    }
+
+    private void PositionGroupBox_Paint(object sender, PaintEventArgs e)
+    {
+        Size round =  new(RECT_PEN_WIDTH * 4, RECT_PEN_WIDTH * 4);
+        Rectangle rect = RectOutline(OFFSET_W, OFFSET_H, positionTopLeftRadioButton, positionBottomRightRadioButton);
+
+        e.Graphics.FillRoundedRectangle(new SolidBrush(PreviewFillColor), rect, round);
+        e.Graphics.DrawRoundedRectangle(PenLine(RECT_PEN_WIDTH), rect, round);
+
+        e.Graphics.DrawLine(PenLine(),
+            CenterPoint(positionCustomRadioButton),
+            CenterPoint(selectCustomPositionButton));
+    }
+
+    private static void SetBannerPositionValue(RadioButton radioButton, BannerPosition position)
+    {
+        if (!radioButton.Checked) return;
+        AppModel.Instance.BannerPosition = position;
+    }
+    private void PositionTopLeftRadioButton_CheckedChanged(object sender, EventArgs e) =>
+
+        SetBannerPositionValue(positionTopLeftRadioButton, BannerPosition.TopLeft);
+    private void PositionTopCenterRadioButton_CheckedChanged(object sender, EventArgs e) =>
+
+        SetBannerPositionValue(positionTopCenterRadioButton, BannerPosition.TopCenter);
+
+    private void PositionTopRightRadioButton_CheckedChanged(object sender, EventArgs e) =>
+        SetBannerPositionValue(positionTopRightRadioButton, BannerPosition.TopRight);
+
+    private void PositionCenterLeftRadioButton_CheckedChanged(object sender, EventArgs e) =>
+        SetBannerPositionValue(positionCenterLeftRadioButton, BannerPosition.CenterLeft);
+
+    private void PositionCenterRadioButton_CheckedChanged(object sender, EventArgs e) =>
+        SetBannerPositionValue(positionCenterRadioButton, BannerPosition.Center);
+
+    private void PositionCenterRightRadioButton_CheckedChanged(object sender, EventArgs e) =>
+        SetBannerPositionValue(positionCenterRightRadioButton, BannerPosition.CenterRight);
+
+    private void PositionBottomLeftRadioButton_CheckedChanged(object sender, EventArgs e) =>
+        SetBannerPositionValue(positionBottomLeftRadioButton, BannerPosition.BottomLeft);
+
+    private void PositionBottomCenterRadioButton_CheckedChanged(object sender, EventArgs e) =>
+        SetBannerPositionValue(positionBottomCenterRadioButton, BannerPosition.BottomCenter);
+
+    private void PositionBottomRightRadioButton_CheckedChanged(object sender, EventArgs e) =>
+        SetBannerPositionValue(positionBottomRightRadioButton, BannerPosition.BottomRight);
+
+    private void PositionCustomRadioButton_CheckedChanged(object sender, EventArgs e) =>
+        SetBannerPositionValue(positionCustomRadioButton, BannerPosition.Custom);
+
+    private void SelectCustomPositionButton_Click(object sender, EventArgs e)
+    {
+        positionCustomRadioButton.Checked = true;
+
+        var audioDevice = AudioSwitcher.Instance.GetDefaultAudioEndpoint(EDataFlow.eRender, ERole.eConsole);
+        using var iconHandle = audioDevice.LargeIcon;
+        var bannerData = new BannerData
+        {
+            Image = iconHandle.ToBitmap(),
+            Title = SettingsStrings.customPositionBanner_title,
+            Text = SettingsStrings.customPositionBanner_text,
+            Position = AppModel.Instance.BannerPositionImpl,
+            Ttl = TimeSpan.FromSeconds(6),
+            CustomPositionMode = true
+        };
+
+        _bannerManager.ShowNotification(bannerData);
+    }
+
+    #endregion
+
+    #region Troubleshooting
+
+    private void ResetAudioDevicesButton_Click(object sender, EventArgs e)
+    {
+        AudioSwitcher.Instance.ResetProcessDeviceConfiguration();
+    }
+
+    private void PrepareZipArchive(string title, string fileName, Action<ZipArchive> exportArchive)
+    {
+        var saveFileDialog = new SaveFileDialog
+        {
+            Title = title,
+            FileName = fileName,
+            DefaultExt = "zip",
+            Filter = "Zip Archive (*.zip)|*.zip",
+            RestoreDirectory = true,
+        };
+
+        if (saveFileDialog.ShowDialog() != DialogResult.OK) return;
+        if (File.Exists(saveFileDialog.FileName))
+            File.Delete(saveFileDialog.FileName);
+
+        using var archive = ZipFile.Open(saveFileDialog.FileName, ZipArchiveMode.Create);
+        exportArchive(archive);
+    }
+
+    private void ExportLogFilesButton_Click(object sender, EventArgs e)
+    {
+        PrepareZipArchive(SettingsStrings.exportLogFiles, "soundswitch_logs", archive =>
+        {
+            Log.CloseAndFlush();
+
+            var files = Directory.EnumerateFiles(ApplicationPath.Logs, "*.log");
+            foreach (var file in files)
+                // Add the entry for each file
+                archive.CreateEntryFromFile(file, Path.GetFileName(file), CompressionLevel.Optimal);
+
+            LoggerConfigurator.ConfigureLogger();
+        });
+    }
+
+    private void ExportConfigFileButton_Click(object sender, EventArgs e)
+    {
+        PrepareZipArchive(SettingsStrings.exportConfigFile, "soundswitch_config", archive =>
+        {
+            const string configFile = "SoundSwitchConfiguration.json";
+            archive.CreateEntryFromFile(Path.Combine(ApplicationPath.Default, configFile), configFile, CompressionLevel.Optimal);
+        });
+    }
+
+    private void ImportConfigFileButton_Click(object sender, EventArgs e)
+    {
+        const string configFile = "SoundSwitchConfiguration.json";
+        var filePath = Path.Combine(ApplicationPath.Default, configFile);
+
+        var openFileDialog = new OpenFileDialog
+        {
+            Title = SettingsStrings.importConfigFile,
+            Filter = "Zip Archive (*.zip)|*.zip",
+            RestoreDirectory = true,
+        };
+
+        while (true)
+        {
+            if (openFileDialog.ShowDialog() != DialogResult.OK) return;
+
+            using var archive = ZipFile.Open(openFileDialog.FileName, ZipArchiveMode.Read);
+            var entry = archive.GetEntry(configFile);
+            if (entry == null)
+            {
+                MessageBox.Show(SettingsStrings.importConfigErrorMessage,
+                    SettingsStrings.importConfigErrorMessage_caption,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Exclamation);
+                continue;
+            }
+
+            // Read content of the entry
+            string jsonContent;
+            try
+            {
+                using var stream = entry.Open();
+                using var reader = new StreamReader(stream);
+                jsonContent = reader.ReadToEnd();
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = string.Format(SettingsStrings.importConfigErrorReadingFile, configFile, ex.Message);
+                Log.Error(ex, "Error reading configuration file '{ConfigFile}' from archive during import.", configFile);
+                MessageBox.Show(errorMessage,
+                    SettingsStrings.importConfigErrorMessage_caption,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                continue;
+            }
+
+            try
+            {
+                // Validate JSON structure
+                JObject.Parse(jsonContent);
+
+                // Attempt to deserialize
+                var config = JsonConvert.DeserializeObject<SoundSwitchConfiguration>(jsonContent);
+                if (config == null)
+                {
+                    var errorMessage = string.Format(SettingsStrings.importConfigErrorDeserializationNull, configFile);
+                    Log.Warning("Configuration file '{ConfigFile}' deserialized to null during import.", configFile);
+                    MessageBox.Show(errorMessage,
+                        SettingsStrings.importConfigErrorMessage_caption,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    continue;
+                }
+            }
+            catch (JsonReaderException jsonEx)
+            {
+                var errorMessage = string.Format(SettingsStrings.importConfigErrorInvalidJson, configFile, jsonEx.Message);
+                Log.Warning(jsonEx, "Configuration file '{ConfigFile}' is not valid JSON during import.", configFile);
+                MessageBox.Show(errorMessage,
+                    SettingsStrings.importConfigErrorMessage_caption,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                continue;
+            }
+            catch (Exception ex) // Catches other errors during deserialization
+            {
+                var errorMessage = string.Format(SettingsStrings.importConfigErrorDeserializationFailed, configFile, ex.Message);
+                Log.Warning(ex, "Failed to deserialize configuration file '{ConfigFile}' during import.", configFile);
+                MessageBox.Show(errorMessage,
+                    SettingsStrings.importConfigErrorMessage_caption,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                continue;
+            }
+
+            if (MessageBox.Show(SettingsStrings.importConfigRestartRequired,
+                    SettingsStrings.restartRequired_caption,
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) != DialogResult.Yes) return;
+
+            File.Copy(filePath, Path.ChangeExtension(filePath, ".old"), true);
+            entry.ExtractToFile(filePath, true);
+            break;
+        }
+
+        Program.RestartApp();
+    }
+
+    public static void GitHubHelpLink_LinkClicked(object sender, EventArgs e)
+    {
+        BrowserUtil.OpenUrl("https://github.com/Belphemur/SoundSwitch/discussions");
+    }
+
+    public static void DiscordCommunityLink_LinkClicked(object sender, EventArgs e)
+    {
+        BrowserUtil.OpenUrl("https://discord.gg/gUCw3Ue");
+    }
+
+    public static void DonateLink_LinkClicked(object sender, EventArgs e)
+    {
+        BrowserUtil.OpenUrl($"https://soundswitch.aaflalo.me/?utm_campaign=application&utm_source={Application.ProductVersion}#donate");
+    }
+
+    private void PopulateAppSoundLockRules()
+    {
+        appSoundLockListView.Columns.Clear();
+        // Fixed widths keep all six columns visible in the 656 px list. Longer
+        // process/device names are ellipsized and remain available in the tooltip.
+        appSoundLockListView.Columns.Add(SettingsStrings.profile_program, 110);
+        appSoundLockListView.Columns.Add(SettingsStrings.appSoundLock_rule_windowTitle, 85);
+        appSoundLockListView.Columns.Add(SettingsStrings.playback, 125);
+        appSoundLockListView.Columns.Add(SettingsStrings.recording, 125);
+        appSoundLockListView.Columns.Add(SettingsStrings.appSoundLock_rule_mode, 75);
+        appSoundLockListView.Columns.Add(SettingsStrings.hotkey, 120);
+
+        appSoundLockListView.Items.Clear();
+
+        var playbacks = _audioDeviceLister.GetDevices(EDataFlow.eRender, EDeviceState.Active | EDeviceState.Unplugged | EDeviceState.Disabled).ToList();
+        var recordings = _audioDeviceLister.GetDevices(EDataFlow.eCapture, EDeviceState.Active | EDeviceState.Unplugged | EDeviceState.Disabled).ToList();
+        // The runtime (AppSoundLockManager) resolves rules against ACTIVE devices only; the
+        // ambiguity marker must reflect that same view, not the wider display list.
+        var activePlaybacks = _audioDeviceLister.GetDevices(EDataFlow.eRender, EDeviceState.Active);
+        var activeRecordings = _audioDeviceLister.GetDevices(EDataFlow.eCapture, EDeviceState.Active);
+
+        // Windows assignments section (ADR §4): assignments that exist in Windows' own per-app
+        // store and that no SoundSwitch rule owns. Read-only rows above the user's rules; the
+        // merge rule keeps one identity in one place only (§11.5).
+        var assignmentTint = WindowsThemeHelper.IsDarkModeEnabled()
+            ? ProcessSelectionForm.DarkGridDimmedColor
+            : SystemColors.GrayText;
+
+        var windowsAssignments = AppModel.Instance.AppSoundLockManager.GetWindowsAssignments();
+
+        // The section band that names the group (ADR §6.5): without it the tinted rows are the
+        // only cue, and ShowGroups is off so a ListViewGroup would not render either. No rows,
+        // no band — an empty header above the user's rules reads as a broken section.
+        if (windowsAssignments.Count > 0)
+        {
+            var sectionHeader = new ListViewItem(SettingsStrings.appSoundLock_rules_section_windows)
+            {
+                Tag = null,
+                ForeColor = assignmentTint
+            };
+            sectionHeader.SubItems[0].Tag = assignmentTint;
+            for (var column = 1; column < appSoundLockListView.Columns.Count; column++)
+            {
+                sectionHeader.SubItems.Add(string.Empty).Tag = assignmentTint;
+            }
+            appSoundLockListView.Items.Add(sectionHeader);
+        }
+
+        foreach (var assignment in windowsAssignments)
+        {
+            var name = Path.GetFileNameWithoutExtension(assignment.RelativePath);
+            var item = new ListViewItem(name)
+            {
+                Tag = null,
+                ToolTipText = $"{name}{Environment.NewLine}{assignment.ExePath}{Environment.NewLine}{SettingsStrings.appSoundLock_rules_section_windowsHint}",
+                Checked = false
+            };
+            item.SubItems[0].Tag = assignmentTint;
+
+            var windowSub = item.SubItems.Add(string.Empty);
+            windowSub.Tag = assignmentTint;
+
+            var playbackSub = item.SubItems.Add(EndpointDisplay(assignment.PlaybackDeviceId, playbacks));
+            playbackSub.Tag = assignmentTint;
+
+            var recordingSub = item.SubItems.Add(EndpointDisplay(assignment.RecordingDeviceId, recordings));
+            recordingSub.Tag = assignmentTint;
+
+            var modeSub = item.SubItems.Add(SettingsStrings.appSoundLock_rules_section_windowsHint);
+            modeSub.Tag = assignmentTint;
+
+            var hotkeySub = item.SubItems.Add(string.Empty);
+            hotkeySub.Tag = assignmentTint;
+
+            appSoundLockListView.Items.Add(item);
+        }
+
+        appSoundLockListView.ItemCheck -= AppSoundLockListView_ItemCheck;
+        foreach (var rule in AppConfigs.Configuration.AppSoundRules)
+        {
+            var pairs = rule.DevicePairs ?? new List<AppSoundRuleDevicePair>();
+            var firstPair = pairs.FirstOrDefault();
+            var playbackResult = AppRuleDeviceResolver.ResolveResult(firstPair?.Playback, playbacks);
+            var recordingResult = AppRuleDeviceResolver.ResolveResult(firstPair?.Recording, recordings);
+            var playback = playbackResult.IsResolved ? playbackResult.Device : null;
+            var recording = recordingResult.IsResolved ? recordingResult.Device : null;
+
+            var processName = GetCleanProcessName(rule.ProcessPath);
+            IconHandle processIcon = null;
+            if (!string.IsNullOrEmpty(rule.ProcessPath) && File.Exists(rule.ProcessPath))
+            {
+                try { processIcon = IconExtractor.Extract(rule.ProcessPath, 0, true); }
+                catch
+                {
+                    // ignored
+                }
+            }
+
+            var item = new ListViewItem(processName)
+            {
+                Tag = rule,
+                Checked = rule.Enabled
+            };
+            item.SubItems[0].Tag = processIcon;
+
+            // Window Title
+            item.SubItems.Add(rule.WindowName);
+
+            // Playback
+            var playbackText = FormatResolvedDevice(playback, firstPair?.Playback, activePlaybacks);
+            var playbackSubItem = item.SubItems.Add(playbackText);
+            playbackSubItem.Tag = playback?.SmallIcon;
+
+            // Recording
+            var recordingText = FormatResolvedDevice(recording, firstPair?.Recording, activeRecordings);
+            var recordingSubItem = item.SubItems.Add(recordingText);
+            recordingSubItem.Tag = recording?.SmallIcon;
+
+            // Mode (with the pair count for Hotkey rules, where the count matters). Enforcement is
+            // derived state, not a mode the user picks (ADR §0), so Automatic covers both the
+            // dynamic path and the identity assignment it also writes.
+            var modeText = rule.Mode == AppRuleMode.Hotkey
+                ? SettingsStrings.appSoundLock_rule_mode_hotkey
+                : SettingsStrings.appSoundLock_rule_mode_automatic;
+            if (rule.Mode == AppRuleMode.Hotkey && pairs.Count > 1)
+            {
+                modeText = $"{modeText} ({pairs.Count})";
+            }
+            item.SubItems.Add(modeText);
+
+            // Hotkey
+            item.SubItems.Add(rule.Mode == AppRuleMode.Hotkey ? rule.HotKey?.Display() ?? string.Empty : string.Empty);
+
+            if (pairs.Count > 0)
+            {
+                var tooltip = new List<string>();
+                if (!string.IsNullOrEmpty(rule.ProcessPath))
+                {
+                    tooltip.Add($"{SettingsStrings.appSoundLock_rule_processPath}: {rule.ProcessPath}");
+                }
+                if (!string.IsNullOrEmpty(rule.WindowName))
+                {
+                    tooltip.Add($"{SettingsStrings.appSoundLock_rule_windowTitle}: {rule.WindowName}");
+                }
+                for (var index = 0; index < pairs.Count; index++)
+                {
+                    var pair = pairs[index];
+                    // Resolve and format every pair the same way the cells do, so an
+                    // ambiguous or unavailable side is visible for each cycle step.
+                    var pb = AppRuleDeviceResolver.ResolveResult(pair.Playback, activePlaybacks);
+                    var rc = AppRuleDeviceResolver.ResolveResult(pair.Recording, activeRecordings);
+                    tooltip.Add($"{index + 1}. {FormatResolvedDevice(pb.IsResolved ? pb.Device : null, pair.Playback, activePlaybacks)} / " +
+                        $"{FormatResolvedDevice(rc.IsResolved ? rc.Device : null, pair.Recording, activeRecordings)}");
+                }
+                item.ToolTipText = string.Join(Environment.NewLine, tooltip);
+            }
+
+            appSoundLockListView.Items.Add(item);
+        }
+        appSoundLockListView.ItemCheck += AppSoundLockListView_ItemCheck;
+    }
+
+    /// <summary>
+    /// Text for an app-rule device list cell: the live device name when resolved, otherwise the
+    /// stored name. The ambiguity marker reflects the ACTIVE-only runtime view (what a rule
+    /// switch will actually see), not the wider display list — see #2457.
+    /// </summary>
+    private static string FormatResolvedDevice(DeviceFullInfo? resolved, DeviceInfo? stored, DeviceReadOnlyCollection<DeviceFullInfo> runtimeCandidates)
+    {
+        var text = resolved?.NameClean ?? stored?.NameClean ?? string.Empty;
+        var ambiguousAtRuntime = runtimeCandidates.Match(stored).Kind == DeviceMatchKind.Ambiguous;
+        return ambiguousAtRuntime && text.Length > 0
+            ? text + " " + SettingsStrings.ResourceManager.GetString("appSoundLock.rule.ambiguousDevice")
+            : text;
+    }
+
+    private string GetCleanProcessName(string processPath)
+    {
+        if (string.IsNullOrEmpty(processPath)) return string.Empty;
+
+        // Extract filename from .*Regex\.Escape(filename).*
+        var match = System.Text.RegularExpressions.Regex.Match(processPath, @"\.\*(?<name>.*?)\.\*");
+        if (match.Success)
+        {
+            try { return System.Text.RegularExpressions.Regex.Unescape(match.Groups["name"].Value); } 
+            catch (Exception ex) { Log.Debug(ex, "Failed to unescape regex pattern for display name: {Pattern}", processPath); }
+        }
+
+        // Fallback to filename if it looks like a path
+        try { return Path.GetFileName(processPath); } catch { return processPath; }
+    }
+
+    /// <summary>
+    /// Device cell text for a Windows-assignment row: the <see cref="DeviceFullInfo.NameClean"/>
+    /// of the persisted endpoint id, or the raw id when no device currently matches.
+    /// </summary>
+    private static string EndpointDisplay(string? deviceId, IReadOnlyList<DeviceFullInfo> devices)
+    {
+        if (string.IsNullOrEmpty(deviceId)) return string.Empty;
+
+        var match = devices.FirstOrDefault(device => string.Equals(device.Id, deviceId, StringComparison.OrdinalIgnoreCase));
+        return match?.NameClean ?? deviceId;
+    }
+
+    private void AppSoundLockListView_ItemCheck(object sender, ItemCheckEventArgs e)
+    {
+        // Windows-assignment rows are read-only — their tag is not a rule.
+        if (appSoundLockListView.Items[e.Index].Tag is not AppSoundRule rule)
+        {
+            e.NewValue = e.CurrentValue;
+            return;
+        }
+
+        rule.Enabled = e.NewValue == CheckState.Checked;
+        AppConfigs.Configuration.Save();
+        AppModel.Instance.AppSoundLockManager.ReloadHotkeys();
+        AppModel.Instance.AppSoundLockManager.OnRulesChanged();
+    }
+
+    private void AddAppSoundRuleButton_Click(object sender, EventArgs e)
+    {
+        var playbacks = _audioDeviceLister.GetDevices(EDataFlow.eRender, EDeviceState.Active);
+        var recordings = _audioDeviceLister.GetDevices(EDataFlow.eCapture, EDeviceState.Active);
+        
+        using var form = new UpsertAppSoundLockRule(new AppSoundRule(), playbacks, recordings);
+        if (form.ShowDialog(this) == DialogResult.OK)
+        {
+            AppConfigs.Configuration.AppSoundRules.Add(form.Rule);
+            AppConfigs.Configuration.Save();
+            TelemetryService.TrackAppRuleCreated();
+            AppModel.Instance.AppSoundLockManager.ReloadHotkeys();
+            AppModel.Instance.AppSoundLockManager.OnRulesChanged();
+            PopulateAppSoundLockRules();
+        }
+    }
+
+    private void EditAppSoundRuleButton_Click(object sender, EventArgs e)
+    {
+        if (appSoundLockListView.SelectedItems.Count == 0 ||
+            appSoundLockListView.SelectedItems[0].Tag is not AppSoundRule) return;
+        var rule = (AppSoundRule)appSoundLockListView.SelectedItems[0].Tag;
+
+        var playbacks = _audioDeviceLister.GetDevices(EDataFlow.eRender, EDeviceState.Active);
+        var recordings = _audioDeviceLister.GetDevices(EDataFlow.eCapture, EDeviceState.Active);
+
+        using var form = new UpsertAppSoundLockRule(rule, playbacks, recordings, true);
+        if (form.ShowDialog(this) == DialogResult.OK)
+        {
+            AppConfigs.Configuration.AppSoundRules.Remove(rule);
+            AppConfigs.Configuration.AppSoundRules.Add(form.Rule);
+            AppConfigs.Configuration.Save();
+            AppModel.Instance.AppSoundLockManager.ReloadHotkeys();
+            AppModel.Instance.AppSoundLockManager.OnRulesChanged();
+            PopulateAppSoundLockRules();
+        }
+    }
+
+    private void DeleteAppSoundRuleButton_Click(object sender, EventArgs e)
+    {
+        if (appSoundLockListView.SelectedItems.Count == 0 ||
+            appSoundLockListView.SelectedItems[0].Tag is not AppSoundRule) return;
+        var rule = (AppSoundRule)appSoundLockListView.SelectedItems[0].Tag;
+
+        if (MessageBox.Show($"Are you sure you want to delete this rule?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+        {
+            AppConfigs.Configuration.AppSoundRules.Remove(rule);
+            AppConfigs.Configuration.Save();
+            TelemetryService.TrackAppRuleDeleted();
+            AppModel.Instance.AppSoundLockManager.ReloadHotkeys();
+            AppModel.Instance.AppSoundLockManager.OnRulesChanged();
+            PopulateAppSoundLockRules();
+        }
+    }
+
+    private void AppSoundLockListView_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        var isRule = appSoundLockListView.SelectedItems.Count > 0 &&
+                     appSoundLockListView.SelectedItems[0].Tag is AppSoundRule;
+        editAppSoundRuleButton.Enabled = isRule;
+        deleteAppSoundRuleButton.Enabled = isRule;
+    }
+
+    private void AppSoundLockListView_DoubleClick(object sender, EventArgs e)
+    {
+        if (appSoundLockListView.SelectedItems.Count > 0 &&
+            appSoundLockListView.SelectedItems[0].Tag is AppSoundRule)
+        {
+            EditAppSoundRuleButton_Click(sender, e);
+        }
+    }
+
+    #endregion
 }

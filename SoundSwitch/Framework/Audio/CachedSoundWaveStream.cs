@@ -1,4 +1,4 @@
-/********************************************************************
+﻿/********************************************************************
 * Copyright (C) 2015-2017 Antoine Aflalo
 *
 * This program is free software; you can redistribute it and/or
@@ -13,30 +13,26 @@
 ********************************************************************/
 
 using System;
+
 using NAudio.Wave;
 
-namespace SoundSwitch.Framework.Audio
+namespace SoundSwitch.Framework.Audio;
+
+public class CachedSoundWaveStream(CachedSound cachedSound) : WaveStream
 {
-    public class CachedSoundWaveStream : WaveStream
+    public override WaveFormat WaveFormat => cachedSound.WaveFormat;
+    public override int Read(byte[] buffer, int offset, int count)
     {
-        private readonly CachedSound _cachedSound;
+        if (Position >= cachedSound.AudioData.Length)
+            return 0;
 
-        public CachedSoundWaveStream(CachedSound cachedSound)
-        {
-            _cachedSound = cachedSound;
-        }
-
-        public override WaveFormat WaveFormat => _cachedSound.WaveFormat;
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            var availableSamples = _cachedSound.AudioData.Length - Position;
-            var samplesToCopy = Math.Min(availableSamples, count);
-            Array.Copy(_cachedSound.AudioData, Position, buffer, offset, samplesToCopy);
-            Position += samplesToCopy;
-            return (int)samplesToCopy;
-        }
-
-        public override long Length => _cachedSound.AudioData.Length;
-        public override long Position { get; set; }
+        var availableSamples = cachedSound.AudioData.Length - Position;
+        var samplesToCopy = Math.Min(availableSamples, count);
+        Array.Copy(cachedSound.AudioData, Position, buffer, offset, samplesToCopy);
+        Position += samplesToCopy;
+        return (int)samplesToCopy;
     }
+
+    public override long Length => cachedSound.AudioData.Length;
+    public override long Position { get; set; }
 }

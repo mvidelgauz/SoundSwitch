@@ -3,126 +3,283 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+
 using SoundSwitch.Framework.WinApi;
 using SoundSwitch.Framework.WinApi.Keyboard;
 
-namespace SoundSwitch.UI.Component
+namespace SoundSwitch.UI.Component;
+
+public class HotKeyTextBox : TextBox
 {
-    public class HotKeyTextBox : TextBox
+    public class Event : EventArgs;
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
+    [DefaultValue(null)]
+    public HotKey HotKey
     {
-        public class Event : EventArgs
+        get => _hotKey;
+        set
         {
+            _hotKey = value;
+            Text = value?.Display() ?? "";
         }
+    }
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-        [DefaultValue(null)]
-        public HotKey HotKey
+    private HotKey _hotKey;
+    private bool _listenToHotkey;
+
+    private enum HotKeyDisplayState
+    {
+        Neutral,
+        Valid,
+        Invalid
+    }
+
+    /// <summary>
+    /// Whether the box currently holds a valid hotkey. A hotkey that was edited
+    /// into an invalid state (e.g. a modifier-less key, an AltGr combination) still
+    /// keeps its previous <see cref="HotKey"/> value until a valid one is entered,
+    /// so callers must check this before persisting.
+    /// </summary>
+    public bool IsValid => _displayState != HotKeyDisplayState.Invalid && _hotKey != null;
+
+    private HotKeyDisplayState _displayState = HotKeyDisplayState.Neutral;
+
+    public HotKeyTextBox()
+    {
+        // App-mode light/dark flips do not raise OnSystemColorsChanged; the repository
+        // exposes them through WindowsAPIAdapter.SystemThemeChanged (see Settings form).
+        WindowsAPIAdapter.SystemThemeChanged += OnSystemThemeChanged;
+    }
+
+    [Browsable(true)] public event EventHandler<Event> HotKeyChanged;
+
+    [Browsable(true)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public bool ListenToHotkey
+    {
+        get => _listenToHotkey;
+        set
         {
-            get => _hotKey;
-            set
+            _listenToHotkey = value;
+            if (value)
             {
-                _hotKey = value;
-                Text = value?.Display() ?? "";
-            }
-        }
-
-        private HotKey _hotKey;
-        private bool _listenToHotkey;
-
-        [Browsable(true)]
-        public event EventHandler<Event> HotKeyChanged;
-
-        [Browsable(true)]
-        public bool ListenToHotkey
-        {
-            get => _listenToHotkey;
-            set
-            {
-                _listenToHotkey = value;
-                if (value)
-                {
-                    WindowsAPIAdapter.HotKeyPressed += WindowsAPIAdapterOnHotKeyPressed;
-                }
-                else
-                {
-                    WindowsAPIAdapter.HotKeyPressed -= WindowsAPIAdapterOnHotKeyPressed;
-                }
-            }
-        }
-
-        public void CleanHotKeyChangedHandler()
-        {
-            HotKeyChanged = null;
-        }
-
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && ListenToHotkey)
-            {
-                WindowsAPIAdapter.HotKeyPressed -= WindowsAPIAdapterOnHotKeyPressed;
-            }
-            base.Dispose(disposing);
-        }
-
-        private void WindowsAPIAdapterOnHotKeyPressed(object? sender, WindowsAPIAdapter.KeyPressedEventArgs e)
-        {
-            Invoke(new Action(() =>
-            {
-                if (!Visible)
-                {
-                    return;
-                }
-
-                HotKey = e.HotKey;
-                ForeColor = Color.Green;
-                HotKeyChanged?.Invoke(this, new Event());
-            }), null);
-        }
-
-        protected override void OnKeyDown(KeyEventArgs e)
-        {
-            HotKey.ModifierKeys modifierKeys = 0;
-            foreach (var pressedModifier in KeyboardWindowsAPI.GetPressedModifiers())
-            {
-                {
-                    switch (pressedModifier)
-                    {
-                        case Keys.Control:
-                            modifierKeys |= HotKey.ModifierKeys.Control;
-                            break;
-                        case Keys.Alt:
-                            modifierKeys |= HotKey.ModifierKeys.Alt;
-                            break;
-                        case Keys.Shift:
-                            modifierKeys |= HotKey.ModifierKeys.Shift;
-                            break;
-                        case Keys.LWin:
-                        case Keys.RWin:
-                            modifierKeys |= HotKey.ModifierKeys.Win;
-                            break;
-                    }
-                }
-            }
-
-            var normalPressedKeys = KeyboardWindowsAPI.GetNormalPressedKeys();
-            var key = normalPressedKeys.FirstOrDefault();
-
-
-            if (key == Keys.None)
-            {
-                Text = new HotKey(key, modifierKeys).Display();
-                ForeColor = Color.Crimson;
+                WindowsAPIAdapter.HotKeyPressed += WindowsAPIAdapterOnHotKeyPressed;
             }
             else
             {
-                HotKey = new HotKey(key, modifierKeys);
-                ForeColor = Color.Green;
-                HotKeyChanged?.Invoke(this, new Event());
+                WindowsAPIAdapter.HotKeyPressed -= WindowsAPIAdapterOnHotKeyPressed;
+            }
+        }
+    }
+
+    public void CleanHotKeyChangedHandler()
+    {
+        HotKeyChanged = null;
+    }
+
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            WindowsAPIAdapter.SystemThemeChanged -= OnSystemThemeChanged;
+            if (ListenToHotkey)
+            {
+                WindowsAPIAdapter.HotKeyPressed -= WindowsAPIAdapterOnHotKeyPressed;
+            }
+        }
+
+        base.Dispose(disposing);
+    }
+
+    private void OnSystemThemeChanged(object? sender, EventArgs e)
+    {
+        // The event is posted asynchronously, so re-check teardown state on both
+        // sides of the marshal (see ThemeChangeDispatcher).
+        ThemeChangeDispatcher.BeginThemeUpdate(this, ReapplyThemedColor);
+    }
+
+    /// <summary>
+    /// Reapply the themed status color for the currently displayed hotkey state,
+    /// so a live light/dark switch does not leave the previous palette in place.
+    /// </summary>
+    private void ReapplyThemedColor()
+    {
+        switch (_displayState)
+        {
+            case HotKeyDisplayState.Valid:
+                ForeColor = ValidColor(WindowsThemeHelper.IsDarkModeEnabled());
+                break;
+            case HotKeyDisplayState.Invalid:
+                ForeColor = InvalidColor(WindowsThemeHelper.IsDarkModeEnabled());
+                break;
+        }
+    }
+
+    private void WindowsAPIAdapterOnHotKeyPressed(object? sender, WindowsAPIAdapter.KeyPressedEventArgs e)
+    {
+        Invoke(new Action(() =>
+        {
+            if (!Visible)
+            {
+                return;
             }
 
+            HotKey = e.HotKey;
+            _displayState = HotKeyDisplayState.Valid;
+            ForeColor = ValidColor(WindowsThemeHelper.IsDarkModeEnabled());
+            HotKeyChanged?.Invoke(this, new Event());
+        }), null);
+    }
+
+    /// <summary>
+    /// Foreground color used for a valid hotkey, chosen for legibility on both light and dark TextBox backgrounds.
+    /// </summary>
+    internal static Color ValidColor(bool isDarkMode)
+    {
+        return isDarkMode ? Color.FromArgb(102, 187, 106) : Color.Green;
+    }
+
+    /// <summary>
+    /// Foreground color used for an invalid hotkey, chosen for legibility on both light and dark TextBox backgrounds.
+    /// </summary>
+    internal static Color InvalidColor(bool isDarkMode)
+    {
+        return isDarkMode ? Color.FromArgb(255, 107, 107) : Color.Crimson;
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        // AltGr (Right Alt) on international keyboard layouts generates a synthetic
+        // Ctrl+Alt combination in Windows. On Windows 11, registering a hotkey with
+        // both Ctrl and Alt modifiers intercepts AltGr key presses, preventing users
+        // from typing characters that require AltGr (e.g. the pipe | character on
+        // Swedish keyboards). Reject AltGr as a hotkey modifier to avoid this conflict.
+        if (KeyboardWindowsAPI.IsAltGr())
+        {
+            SetInvalidState(Keys.None, 0);
+            e.Handled = true;
+            base.OnKeyDown(e);
+            return;
+        }
+
+        HotKey.ModifierKeys modifierKeys = 0;
+        foreach (var pressedModifier in KeyboardWindowsAPI.GetPressedModifiers())
+        {
+            {
+                switch (pressedModifier)
+                {
+                    case Keys.Control:
+                        modifierKeys |= HotKey.ModifierKeys.Control;
+                        break;
+                    case Keys.Alt:
+                        modifierKeys |= HotKey.ModifierKeys.Alt;
+                        break;
+                    case Keys.Shift:
+                        modifierKeys |= HotKey.ModifierKeys.Shift;
+                        break;
+                    case Keys.LWin:
+                    case Keys.RWin:
+                        modifierKeys |= HotKey.ModifierKeys.Win;
+                        break;
+                }
+            }
+        }
+
+        var normalPressedKeys = KeyboardWindowsAPI.GetNormalPressedKeys();
+        var key = normalPressedKeys.FirstOrDefault();
+
+        // Case 1: No key pressed - show error state
+        if (key == Keys.None)
+        {
+            SetInvalidState(key, modifierKeys);
             e.Handled = true;
             base.OnKeyUp(e);
+            return;
+        }
+
+        // Case 2: No modifiers - only accept special keys
+        if (modifierKeys == 0 && !IsSpecialKey(key))
+        {
+            SetInvalidState(key, modifierKeys);
+            e.Handled = true;
+            base.OnKeyUp(e);
+            return;
+        }
+
+        // Valid hotkey - set and trigger change event
+        SetValidHotKey(key, modifierKeys);
+
+        e.Handled = true;
+        base.OnKeyUp(e);
+    }
+
+    private void SetValidHotKey(Keys key, HotKey.ModifierKeys modifierKeys)
+    {
+        HotKey = new HotKey(key, modifierKeys);
+        _displayState = HotKeyDisplayState.Valid;
+        ForeColor = ValidColor(WindowsThemeHelper.IsDarkModeEnabled());
+        HotKeyChanged?.Invoke(this, new Event());
+    }
+
+    private void SetInvalidState(Keys key, HotKey.ModifierKeys modifierKeys)
+    {
+        Text = new HotKey(key, modifierKeys).Display();
+        _displayState = HotKeyDisplayState.Invalid;
+        ForeColor = InvalidColor(WindowsThemeHelper.IsDarkModeEnabled());
+    }
+
+    private static bool IsSpecialKey(Keys key)
+    {
+        // Function keys
+        if (key >= Keys.F1 && key <= Keys.F24)
+            return true;
+
+        // Media and special keys
+        switch (key)
+        {
+            case Keys.PrintScreen:
+            case Keys.Scroll:
+            case Keys.Pause:
+            case Keys.Insert:
+            case Keys.Home:
+            case Keys.PageUp:
+            case Keys.Delete:
+            case Keys.End:
+            case Keys.PageDown:
+            case Keys.Left:
+            case Keys.Up:
+            case Keys.Right:
+            case Keys.Down:
+            case Keys.NumLock:
+            case Keys.Play:
+            case Keys.Zoom:
+            case Keys.SelectMedia:
+            case Keys.MediaStop:
+            case Keys.MediaPlayPause:
+            case Keys.MediaNextTrack:
+            case Keys.MediaPreviousTrack:
+            case Keys.VolumeDown:
+            case Keys.VolumeUp:
+            case Keys.VolumeMute:
+            case Keys.BrowserBack:
+            case Keys.BrowserFavorites:
+            case Keys.BrowserForward:
+            case Keys.BrowserHome:
+            case Keys.BrowserRefresh:
+            case Keys.BrowserSearch:
+            case Keys.BrowserStop:
+            case Keys.LaunchApplication1:
+            case Keys.LaunchApplication2:
+            case Keys.LaunchMail:
+            case Keys.Multiply:
+            case Keys.Divide:
+            case Keys.Add:
+            case Keys.Subtract:
+                return true;
+            default:
+                return false;
         }
     }
 }

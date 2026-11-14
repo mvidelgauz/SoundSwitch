@@ -14,8 +14,11 @@
 
 using System;
 using System.Windows.Forms;
+
 using Serilog;
+
 using SoundSwitch.Framework.Updater;
+using SoundSwitch.Framework.Telemetry;
 using SoundSwitch.Framework.Updater.Installer;
 using SoundSwitch.Framework.Updater.Releases;
 using SoundSwitch.Framework.Updater.Remind;
@@ -24,120 +27,159 @@ using SoundSwitch.Localization.Factory;
 using SoundSwitch.Model;
 using SoundSwitch.Properties;
 using SoundSwitch.UI.Component;
+using SoundSwitch.Util;
 
-namespace SoundSwitch.UI.Forms
+namespace SoundSwitch.UI.Forms;
+
+public sealed partial class UpdateDownloadForm : Form
 {
-    public sealed partial class UpdateDownloadForm : Form
+    private WebFile _releaseFile;
+    private AppRelease _appReleaseInfo;
+    private readonly PostponeService _postponeService = new();
+
+    public UpdateDownloadForm()
     {
-        private WebFile _releaseFile;
-        private AppRelease _appReleaseInfo;
-        private readonly PostponeService _postponeService = new();
+        RightToLeft = new LanguageFactory().Get(AppModel.Instance.Language).IsRightToLeft ? RightToLeft.Yes : RightToLeft.No;
 
-        public UpdateDownloadForm()
+        InitializeComponent();
+        Icon = Resources.UpdateIcon;
+
+        LocalizeForm();
+        downloadProgress.DisplayStyle = TextProgressBar.ProgressBarDisplayText.Both;
+        downloadProgress.Visible = false;
+        TopMost = true;
+    }
+
+    public void DownloadRelease(AppRelease appRelease)
+    {
+        Text = appRelease.Name;
+        _appReleaseInfo = appRelease;
+        installButton.Enabled = true;
+        changeLog.SetChangelog(appRelease.Changelog);
+        Name = appRelease.Name;
+        downloadProgress.CustomText = appRelease.Asset.Name;
+        downloadProgress.Value = 0;
+
+        _releaseFile = new WebFile(new Uri(appRelease.Asset.BrowserDownloadUrl));
+
+        _releaseFile.DownloadProgress += (sender, progress) =>
         {
-            RightToLeft = new LanguageFactory().Get(AppModel.Instance.Language).IsRightToLeft ? RightToLeft.Yes : RightToLeft.No;
-
-            InitializeComponent();
-            Icon = Resources.UpdateIcon;
-
-            LocalizeForm();
-            downloadProgress.DisplayStyle = TextProgressBar.ProgressBarDisplayText.Both;
-            downloadProgress.Visible = false;
-            TopMost = true;
-        }
-
-        public void DownloadRelease(AppRelease appRelease)
-        {
-            Text = appRelease.Name;
-            _appReleaseInfo = appRelease;
-            installButton.Enabled = true;
-            changeLog.SetChangelog(appRelease.Changelog);
-            Name = appRelease.Name;
-            downloadProgress.CustomText = appRelease.Asset.Name;
-            downloadProgress.Value = 0;
-
-            _releaseFile = new WebFile(new Uri(appRelease.Asset.BrowserDownloadUrl));
-
-            _releaseFile.DownloadProgress += (sender, progress) =>
+            if (downloadProgress.IsDisposed)
             {
-                if (downloadProgress.IsDisposed)
-                {
-                    return;
-                }
+                return;
+            }
 
-                if (downloadProgress.InvokeRequired)
-                {
-                    downloadProgress.BeginInvoke(new Action(() => { downloadProgress.Value = (int) Math.Ceiling(progress.Percentage); }));
-                }
-                else
-                {
-                    downloadProgress.Value = (int) Math.Ceiling(progress.Percentage);
-                }
-            };
-            _releaseFile.DownloadFailed += (sender, @event) =>
+            if (downloadProgress.InvokeRequired)
             {
-                Log.Error(@event.Exception, "Couldn't download the Release ");
-                MessageBox.Show(@event.Exception.Message,
-                    UpdateDownloadStrings.downloadFailed,
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            };
-            _releaseFile.Downloaded += (sender, args) =>
-            {
-                if (!SignatureChecker.IsValid(_releaseFile.FilePath))
-                {
-                    Log.Error("Wrong signature for the release");
-                    MessageBox.Show(UpdateDownloadStrings.notSigned,
-                        UpdateDownloadStrings.notSignedTitle,
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                new UpdateRunner().RunUpdate(_releaseFile, "/SILENT");
-                if (InvokeRequired)
-                {
-                    BeginInvoke((Action) Close);
-                }
-                else
-                {
-                    Close();
-                }
-            };
-            ShowDialog();
-        }
-
-        private void LocalizeForm()
-        {
-            // Misc
-            changeLogGroup.Text = UpdateDownloadStrings.changelog;
-            cancelButton.Text = UpdateDownloadStrings.remindMe;
-            installButton.Text = UpdateDownloadStrings.install;
-        }
-
-        private void cancelButton_Click(object sender, EventArgs e)
-        {
-            if (_releaseFile.DownloadStarted)
-            {
-                _releaseFile.CancelDownload();
+                downloadProgress.BeginInvoke(new Action(() => { downloadProgress.Value = (int)Math.Ceiling(progress.Percentage); }));
             }
             else
             {
-                _postponeService.PostponeRelease(_appReleaseInfo);
+                downloadProgress.Value = (int)Math.Ceiling(progress.Percentage);
             }
-            Close();
-        }
-
-        private void installButton_Click(object sender, EventArgs e)
+        };
+        _releaseFile.DownloadFailed += (sender, @event) =>
         {
-            downloadProgress.Enabled = true;
-            downloadProgress.Visible = true;
-            _releaseFile.DownloadFile();
-            installButton.Enabled = false;
-            cancelButton.Text = UpdateDownloadStrings.cancel;
-        }
+            Log.Error(@event.Exception, "Couldn't download the Release ");
+            TelemetryService.TrackUpdateDownloadFailed();
+            MessageBox.Show(@event.Exception.Message,
+                UpdateDownloadStrings.downloadFailed,
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+        };
+        _releaseFile.Downloaded += (sender, args) =>
+        {
+#if NIGHTLY
+            // Nightly artifacts carry a SHA-512 (unsigned builds); release-train
+            // installers are Authenticode-signed and verified by signature.
+            var checksumResult = _appReleaseInfo.ExpectedSha512 == null
+                ? SignatureChecker.IsValid(_releaseFile.FilePath).UnwrapFailure()?.ToString()
+                : UpdateVerifier.Verify(_releaseFile.FilePath, _appReleaseInfo.ExpectedSha512).UnwrapFailure();
+            if (checksumResult != null)
+            {
+                Log.Error("Wrong integrity check ({Kind}) for the release: {checksumResult}",
+                    _appReleaseInfo.ExpectedSha512 == null ? "signature" : "sha512", checksumResult);
+                var title = _appReleaseInfo.ExpectedSha512 == null ? UpdateDownloadStrings.notSignedTitle : UpdateDownloadStrings.wrongChecksumTitle;
+                var message = _appReleaseInfo.ExpectedSha512 == null
+                    ? string.Format(UpdateDownloadStrings.wrongSignature, "https://soundswitch.aaflalo.me")
+                    : UpdateDownloadStrings.wrongChecksum;
+                MessageBox.Show(message,
+                    title,
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                TelemetryService.TrackUpdateInstalled(SoundSwitch.Framework.Configuration.AppConfigs.Configuration.UpdateMode,
+                    _appReleaseInfo.ExpectedSha512 == null ? "signature_error" : "checksum_error");
+                return;
+            }
+#else
+            var signatureResult = SignatureChecker.IsValid(_releaseFile.FilePath).UnwrapFailure();
+            if (signatureResult != null)
+            {
+                Log.Error("Wrong signature for the release: {signatureResult}", signatureResult);
+                MessageBox.Show(UpdateDownloadStrings.notSigned,
+                    UpdateDownloadStrings.notSignedTitle,
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                TelemetryService.TrackUpdateInstalled(SoundSwitch.Framework.Configuration.AppConfigs.Configuration.UpdateMode, "signature_error");
+                return;
+            }
+#endif
 
-        private void UpdateDownloadForm_FormClosing(object sender, FormClosingEventArgs e)
+            var mode = SoundSwitch.Framework.Configuration.AppConfigs.Configuration.UpdateMode;
+            try
+            {
+                new UpdateRunner().RunUpdate(_releaseFile, "/SILENT");
+                TelemetryService.TrackUpdateInstalled(mode, "success");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to launch the update installer");
+                TelemetryService.TrackUpdateInstalled(mode, "failed");
+            }
+
+            if (InvokeRequired)
+            {
+                BeginInvoke(Close);
+            }
+            else
+            {
+                Close();
+            }
+        };
+        ShowDialog();
+    }
+
+    private void LocalizeForm()
+    {
+        // Misc
+        changeLogGroup.Text = UpdateDownloadStrings.changelog;
+        cancelButton.Text = UpdateDownloadStrings.remindMe;
+        installButton.Text = UpdateDownloadStrings.install;
+    }
+
+    private void CancelButton_Click(object sender, EventArgs e)
+    {
+        if (_releaseFile.DownloadStarted)
         {
             _releaseFile.CancelDownload();
         }
+        else
+        {
+            TelemetryService.TrackUpdatePostponed();
+            _postponeService.PostponeRelease(_appReleaseInfo);
+        }
+
+        Close();
+    }
+
+    private void InstallButton_Click(object sender, EventArgs e)
+    {
+        downloadProgress.Enabled = true;
+        downloadProgress.Visible = true;
+        _releaseFile.DownloadFile();
+        installButton.Enabled = false;
+        cancelButton.Text = UpdateDownloadStrings.cancel;
+    }
+
+    private void UpdateDownloadForm_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        _releaseFile.CancelDownload();
     }
 }

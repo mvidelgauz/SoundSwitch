@@ -1,23 +1,32 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using NAudio.CoreAudioApi;
+
 using Newtonsoft.Json;
+using SoundSwitch.Audio.Manager;
+using SoundSwitch.Audio.Manager.Interop.Enum;
+#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace SoundSwitch.Common.Framework.Audio.Device
 {
-    public class DeviceInfo : IEquatable<DeviceInfo>
+    public partial class DeviceInfo : IEquatable<DeviceInfo>
     {
-        private static readonly Regex NameSplitterRegex = new Regex(@"(?<friendlyName>[\w\s-_\.\/\\]+)\s\([\d\s\-|]*(?<deviceName>.+)\)", RegexOptions.Compiled);
+        private static readonly Regex NameSplitterRegex = NameSplitterRegexCompiled();
 
-        private static readonly Regex NameCleanerRegex = new Regex(@"^\d+\s?-\s?", RegexOptions.Compiled | RegexOptions.Singleline);
+        private static readonly Regex NameCleanerRegex = NameCleanerRegexCompiled();
 
         private string _nameClean;
 
         [Obsolete("Use " + nameof(NameClean))]
         public string Name { get; }
 
+        [JsonIgnore]
+        public string FriendlyName { get; private set; }
+
+        [JsonIgnore]
+        public string DeviceName { get; private set; }
+
         public string Id { get; }
-        public DataFlow Type { get; }
+        public EDataFlow Type { get; }
 
         public bool IsUsb { get; } = true;
 
@@ -36,27 +45,32 @@ namespace SoundSwitch.Common.Framework.Audio.Device
                 //Old naming, can't do anything about this
                 if (!match.Success)
                 {
+                    FriendlyName = Name;
+                    DeviceName = string.Empty;
                     return _nameClean = Name;
                 }
 
-                var friendlyName = match.Groups["friendlyName"].Value;
-                var deviceName = match.Groups["deviceName"].Value;
-                return _nameClean = $"{NameCleanerRegex.Replace(friendlyName, "")} ({deviceName})";
+                FriendlyName = match.Groups["friendlyName"].Value;
+                DeviceName = match.Groups["deviceName"].Value;
+                return _nameClean = $"{NameCleanerRegex.Replace(FriendlyName, "")} ({DeviceName})";
             }
         }
 
-        public DeviceInfo(MMDevice device)
+        /// <summary>
+        /// Build the DTO from a device snapshot. The <see cref="AudioDevice"/> properties are an
+        /// immutable snapshot captured on the ComThread (with the defensive fallbacks baked in), so
+        /// this constructor cannot fail on transient audio-service conditions.
+        /// </summary>
+        public DeviceInfo(AudioDevice device)
         {
             Name = device.FriendlyName;
-            Id = device.ID;
+            Id = device.Id;
             Type = device.DataFlow;
-            var deviceProperties = device.Properties;
-            var enumerator = deviceProperties.Contains(PropertyKeys.DEVPKEY_Device_EnumeratorName) ? (string) deviceProperties[PropertyKeys.DEVPKEY_Device_EnumeratorName].Value : "";
-            IsUsb = enumerator == "USB";
+            IsUsb = device.IsUsb;
         }
 
         [JsonConstructor]
-        public DeviceInfo(string name, string id, DataFlow type, bool isUsb, DateTime discoveredAt)
+        public DeviceInfo(string name, string id, EDataFlow type, bool isUsb, DateTime discoveredAt)
         {
             Name = name;
             Id = id;
@@ -97,19 +111,32 @@ namespace SoundSwitch.Common.Framework.Audio.Device
 
         public override bool Equals(object obj)
         {
-            return ReferenceEquals(this, obj) || obj is DeviceInfo other && Equals(other);
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj is not DeviceInfo info)
+            {
+                return false;
+            }
+
+            return Equals(info);
         }
 
         public override int GetHashCode()
         {
-            unchecked
-            {
-                var hashCode = (NameClean != null ? NameClean.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (Id != null ? Id.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (int) Type;
-                hashCode = (hashCode * 397) ^ IsUsb.GetHashCode();
-                return hashCode;
-            }
+            return HashCode.Combine(Type, NameClean, Id);
         }
+
+        [GeneratedRegex(@"(?<friendlyName>.+)\s\([\d\s\-|]*(?<deviceName>.+)\)", RegexOptions.Compiled)]
+        private static partial Regex NameSplitterRegexCompiled();
+        [GeneratedRegex(@"\s?\(\d\)|^\d+\s?-\s?", RegexOptions.Compiled | RegexOptions.Singleline)]
+        private static partial Regex NameCleanerRegexCompiled();
     }
 }
